@@ -1,0 +1,31 @@
+[en]
+QKZ_HOOK = Hook
+QKZ_HOOK_SPEED = Hook Speed
+QKZ_HOOK_COLOR = Hook Color
+QKZ_HOOK_WAIT = Wait 3 seconds after using hook
+QKZ_HOOK_NOTAVAIL = You don't have hook yet
+QKZ_HOOK_HOWTOUSE = How to use?
+QKZ_HOOK_HOWTOUSE_DESC = Bind + hook command in console to some button. Press that button.
+QKZ_HOOK_HOWTOGET = How to get?
+QKZ_HOOK_HOWTOGET_DESC = If you don't have it already, finish the map and you'll get it.
+QKZ_HOOK_GIVEHOOK = GiveHook
+QKZ_HOOK_GIVEHOOK_CVAR = GiveHook command works only if kzq_hook is 2
+QKZ_HOOK_GIVEHOOK_TOGGLE_ON = "name" enabled your hook
+QKZ_HOOK_GIVEHOOK_TOGGLE_OFF = "name" disabled your hook
+QKZ_HOOK_TERMINATERUN = Hook used, timer stopped
+
+[sr]
+QKZ_HOOK = Kuka
+QKZ_HOOK_SPEED = Brzina kuke
+QKZ_HOOK_COLOR = Boja kuke
+QKZ_HOOK_WAIT = Sacekaj 3 sekunde posle korišćenja kuke
+QKZ_HOOK_NOTAVAIL = Nemaš kuku
+QKZ_HOOK_HOWTOUSE = Kako koristiti?
+QKZ_HOOK_HOWTOUSE_DESC = Binduj + hook komandu na neko dugme. Pritisni dugme.
+QKZ_HOOK_HOWTOGET = Kako dobiti?
+QKZ_HOOK_HOWTOGET_DESC = Ako već nemas kuku, završi mapu i dobićeš.
+QKZ_HOOK_GIVEHOOK = Dodeli kuku
+QKZ_HOOK_GIVEHOOK_CVAR = Dodela kuke je moguća samo ako je kzq_hook 2
+QKZ_HOOK_GIVEHOOK_TOGGLE_ON = "name" ti je dao kuku
+QKZ_HOOK_GIVEHOOK_TOGGLE_OFF = "name" ti je oduzeo kuku
+QKZ_HOOK_TERMINATERUN = Kuka je iskoriscena, tajmer stopiran

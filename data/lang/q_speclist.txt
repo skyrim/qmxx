@@ -1,0 +1,5 @@
+[en]
+QKZ_SL_SPECTATORLIST = Spectator list
+
+[sr]
+QKZ_SL_SPECTATORLIST = Lista posmatraca
