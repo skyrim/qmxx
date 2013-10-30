@@ -1024,6 +1024,3 @@ public _q_menu_destroy( plugin, params )
 	
 	ArraySetCell( g_menu_items_per_page, menu_id, 0 );
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
