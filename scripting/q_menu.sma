@@ -85,8 +85,6 @@ public plugin_init( )
 
 public plugin_end( )
 {
-	log_amx( "q_menu plugin_end" );
-	
 	ArrayDestroy( g_menu_title );
 	ArrayDestroy( g_menu_subtitle );
 	ArrayDestroy( g_menu_forward );
@@ -1114,7 +1112,6 @@ public _q_menu_destroy( plugin, params )
 		return;
 	}
 	
-	log_amx( "q_menu_destroy" );
 	new menu_id = get_param( 1 );
 	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
 	{
