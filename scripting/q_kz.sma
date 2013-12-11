@@ -523,7 +523,7 @@ public plugin_init( )
 	get_cvar_string( "hostname", g_server_Name, charsmax(g_server_Name) );
 	
 	cvar_Checkpoints	= register_cvar( "kzq_checkpoints",	"1" );
-	cvar_TeleportSplash	= register_cvar( "kzq_teleport_splash",	"1" );
+	cvar_TeleportSplash	= register_cvar( "kzq_teleport_splash",	"0" );
 	cvar_Prefix		= register_cvar( "kzq_prefix",		"QKZ" );
 	cvar_Pause 		= register_cvar( "kzq_pause",		"1" );
 	cvar_GodMode 		= register_cvar( "kzq_godmode",		"1" );
@@ -536,12 +536,12 @@ public plugin_init( )
 	cvar_Respawn		= register_cvar( "kzq_respawn",		"1" );
 	cvar_RespawnTime	= register_cvar( "kzq_respawn_time",	"3.0" );
 	cvar_HPBug		= register_cvar( "kzq_hpbug",		"0" );
-	cvar_PrintType		= register_cvar( "kzq_print_type",	"1" );
+	cvar_PrintType		= register_cvar( "kzq_print_type",	"0" );
 	cvar_PrintColor		= register_cvar( "kzq_print_color",	"0 100 255" );
 	cvar_PrintPos		= register_cvar( "kzq_print_pos",	"-1.0 0.9" );
 	cvar_SpawnWithMenu	= register_cvar( "kzq_spawnwithmenu",	"1" );
 	cvar_VipFlags		= register_cvar( "kzq_vipflags",	"a" );
-	cvar_Rewards		= register_cvar( "kzq_rewards",		"1" );
+	cvar_Rewards		= register_cvar( "kzq_rewards",		"0" );
 	
 	g_settings_itemname = ArrayCreate( 32, 8 );
 	g_settings_itemplugin = ArrayCreate( 1, 8 );
@@ -1154,8 +1154,10 @@ public event_RunStart( id )
 {
 	for( new i = 0, size = ArraySize( forward_TimerStart_pre ); i < size; ++i ) {
 		new ret;
-		new callback = ArrayGetCell( forward_TimerStart_pre, i );
-		ExecuteForward( callback, ret, id );
+		ExecuteForward( ArrayGetCell( forward_TimerStart_pre, i ), ret, id );
+		if( ret == PLUGIN_HANDLED ) {
+			return;
+		}
 	}
 	
 	g_player_run_Running[id] = true;
@@ -1215,8 +1217,7 @@ public event_RunStart( id )
 	
 	for( new i = 0, size = ArraySize( forward_TimerStart_post ); i < size; ++i ) {
 		new ret;
-		new callback = ArrayGetCell( forward_TimerStart_post, i );
-		ExecuteForward( callback, ret, id );
+		ExecuteForward( ArrayGetCell( forward_TimerStart_post, i ), ret, id );
 	}
 }
 
