@@ -3,8 +3,9 @@
 #include <q_menu>
 
 /* todo
-- menu parent
-- menu stack
+- item renderer, menu renderer
+- menu parent, menu stack, item access maybe
+- remove hacks in the near future
 */
 
 #pragma semicolon 1
@@ -42,6 +43,8 @@ public plugin_natives( )
 	register_native( "q_menu_display", "_q_menu_display" );
 	register_native( "q_menu_get_handler", "_q_menu_get_handler" );
 	register_native( "q_menu_set_handler", "_q_menu_set_handler" );
+	register_native( "q_menu_get_title", "_q_menu_get_title" );
+	register_native( "q_menu_set_title", "_q_menu_set_title" );
 	register_native( "q_menu_get_subtitle", "_q_menu_get_subtitle" );
 	register_native( "q_menu_set_subtitle", "_q_menu_set_subtitle" );
 	register_native( "q_menu_get_items_per_page", "_q_menu_get_items_per_page" );
@@ -51,6 +54,7 @@ public plugin_natives( )
 	
 	register_native( "q_menu_item_add", "_q_menu_item_add" );
 	register_native( "q_menu_item_remove", "_q_menu_item_remove" );
+	register_native( "q_menu_item_clear", "_q_menu_item_clear" );
 	register_native( "q_menu_item_count", "_q_menu_item_count" );
 	register_native( "q_menu_item_get_name", "_q_menu_item_get_name" );
 	register_native( "q_menu_item_set_name", "_q_menu_item_set_name" );
@@ -62,8 +66,6 @@ public plugin_natives( )
 	register_native( "q_menu_item_set_enabled", "_q_menu_item_set_enabled" );
 }
 
-new asdf;
-
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
@@ -71,46 +73,53 @@ public plugin_init( )
 	g_menu_title = ArrayCreate( 32, 8 );
 	g_menu_subtitle = ArrayCreate( 32, 8 );
 	g_menu_forward = ArrayCreate( 1, 8 );
+	g_menu_items_per_page = ArrayCreate( 1, 8 );
 	g_menu_item_name = ArrayCreate( 1, 8 );
 	g_menu_item_data = ArrayCreate( 1, 8 );
 	g_menu_item_enabled = ArrayCreate( 1, 8 );
 	g_menu_item_pickable = ArrayCreate( 1, 8 );
-	g_menu_items_per_page = ArrayCreate( 1, 8 );
+	
 	
 	register_clcmd( "menuselect", "clcmd_menuselect" );
-	
-	register_clcmd( "say y", "y" );
-	
-	asdf = q_menu_create( "test", "hendler" );
-	q_menu_set_subtitle( asdf, "test subtitle" );
-	q_menu_set_items_per_page( asdf, 4 );
-	q_menu_item_add( asdf, "item0", "data1" );
-	q_menu_item_add( asdf, "item1", "data2" );
-	q_menu_item_add( asdf, "item2" );
-	q_menu_item_add( asdf, "item3" );
-	q_menu_item_add( asdf, "item4" );
-	q_menu_item_add( asdf, "item5" );
-	q_menu_item_add( asdf, "item6" );
-	q_menu_item_add( asdf, "item7" );
-	q_menu_item_add( asdf, "item8" );
-	q_menu_item_add( asdf, "item9" );
-	q_menu_item_add( asdf, "item10" );
-	q_menu_item_set_name( asdf, QMenuItem_Exit, "" );
-	q_menu_item_set_pickable( asdf, QMenuItem_Exit, false );
 }
 
-public y( id )
+public plugin_end( )
 {
-	q_menu_display( id, asdf );
-}
-
-public hendler( id, menu, item )
-{
-	client_print( id, print_chat, "menu #%d, item #%d", menu, item );
+	log_amx( "q_menu plugin_end" );
+	
+	ArrayDestroy( g_menu_title );
+	ArrayDestroy( g_menu_subtitle );
+	ArrayDestroy( g_menu_forward );
+	ArrayDestroy( g_menu_items_per_page );
+	
+	new Array:name, Array:data, Array:enab, Array:pick;
+	for( new i = 0, size = ArraySize( g_menu_item_name ); i < size; ++i )
+	{
+		name = ArrayGetCell( g_menu_item_name, i );
+		if( name ) ArrayDestroy( name );
+		
+		data = ArrayGetCell( g_menu_item_data, i );
+		if( data ) ArrayDestroy( data );
+		
+		enab = ArrayGetCell( g_menu_item_enabled, i );
+		if( enab ) ArrayDestroy( enab );
+		
+		pick = ArrayGetCell( g_menu_item_pickable, i );
+		if( pick ) ArrayDestroy( pick );
+	}
+	ArrayDestroy( g_menu_item_name );
+	ArrayDestroy( g_menu_item_data );
+	ArrayDestroy( g_menu_item_enabled );
+	ArrayDestroy( g_menu_item_pickable );
 }
 
 public clcmd_menuselect( id, level, cid )
 {
+	// hack
+	new junk1, junk2;
+	if( player_menu_info( id, junk1, junk2 ) )
+		return PLUGIN_CONTINUE;
+	
 	if( g_player_menu[id] && ( g_player_menu_expire[id] < get_gametime( ) ) )
 	{
 		new slot[3];
@@ -150,7 +159,12 @@ public clcmd_menuselect( id, level, cid )
 				}
 				else
 				{
-					item = key;
+					if( key == 9 ) {
+						item = QMenuItem_Exit;
+					}
+					else {
+						item = key;
+					}
 				}
 				
 				g_player_menu[id] = false;
@@ -362,7 +376,7 @@ public _q_menu_item_get_name( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_item ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -392,7 +406,7 @@ public _q_menu_item_set_name( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_item ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -422,7 +436,7 @@ public _q_menu_item_get_data( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_item_data ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -452,7 +466,7 @@ public _q_menu_item_set_data( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_item_data ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -462,7 +476,7 @@ public _q_menu_item_set_data( plugin, params )
 	ArraySetString( arr_item_data, item, item_data );
 }
 
-// q_menu_item_set_type( menu_id, item, bool:pickable )
+// q_menu_item_set_pickable( menu_id, item, bool:pickable )
 public _q_menu_item_set_pickable( plugin, params )
 {
 	if( params != 3 )
@@ -482,7 +496,7 @@ public _q_menu_item_set_pickable( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_item_data ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -510,7 +524,7 @@ public _q_menu_item_get_pickable( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_item_data ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return false;
 	}
 	
@@ -537,7 +551,7 @@ public _q_menu_item_get_enabled( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_items ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return false;
 	}
 	
@@ -564,7 +578,7 @@ public _q_menu_item_set_enabled( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_items ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -591,7 +605,7 @@ public _q_menu_item_remove( plugin, params )
 	new item = get_param( 2 ) + 3;
 	if( ( item < 0 ) || ( item >= ArraySize( arr_items ) ) )
 	{
-		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item );
+		log_error( AMX_ERR_NATIVE, "Invalid item id %d", item - 3 );
 		return;
 	}
 	
@@ -607,11 +621,53 @@ public _q_menu_item_remove( plugin, params )
 	new Array:arr_items_data = ArrayGetCell( g_menu_item_data, menu_id );
 	ArrayDeleteItem( arr_items_data, item );
 	
-	new Array:arr_items_type = ArrayGetCell( g_menu_item_pickable, menu_id );
-	ArrayDeleteItem( arr_items_type, item );
+	new Array:arr_items_pickable = ArrayGetCell( g_menu_item_pickable, menu_id );
+	ArrayDeleteItem( arr_items_pickable, item );
 	
 	new Array:arr_items_enabled = ArrayGetCell( g_menu_item_enabled, menu_id );
 	ArrayDeleteItem( arr_items_enabled, item );
+}
+
+// q_menu_item_clear( menu )
+public _q_menu_item_clear( plugin, params )
+{
+	if( params != 1 )
+	{
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params );
+		return;
+	}
+	
+	new menu_id = get_param( 1 );
+	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
+	{
+		log_error( AMX_ERR_NATIVE, "Invalid menu id %d", menu_id );
+		return;
+	}
+	
+	new Array:temp;
+	temp = ArrayGetCell( g_menu_item_name, menu_id );
+	ArrayClear( temp );
+	ArrayPushString( temp, "Exit" );
+	ArrayPushString( temp, "Next" );
+	ArrayPushString( temp, "Back" );
+	
+	temp = ArrayGetCell( g_menu_item_data, menu_id );
+	ArrayClear( temp );
+	ArrayPushString( temp, "" );
+	ArrayPushString( temp, "" );
+	ArrayPushString( temp, "" );
+	
+	temp = ArrayGetCell( g_menu_item_enabled, menu_id );
+	ArrayClear( temp );
+	ArrayPushCell( temp, true );
+	ArrayPushCell( temp, true );
+	ArrayPushCell( temp, true );
+	
+	temp = ArrayGetCell( g_menu_item_pickable, menu_id );
+	ArrayClear( temp );
+	ArrayPushCell( temp, true );
+	ArrayPushCell( temp, true );
+	ArrayPushCell( temp, true );
 }
 
 // q_menu_item_count( menu_id )
@@ -715,6 +771,10 @@ public _q_menu_display( plugin, params )
 		log_error( AMX_ERR_NATIVE, "Invalid menu id %d", menu_id );
 		return;
 	}
+	
+	new junk1, junk2;
+	if( player_menu_info( id, junk1, junk2 ) )
+		show_menu( id, 0, "^n" ); // hack
 	
 	new menu_time = get_param( 3 );
 	new page = get_param( 4 );
@@ -826,9 +886,26 @@ public _q_menu_display( plugin, params )
 	{
 		for( new size = ArraySize( arr_items ); ( i - 3 < 9 ) && ( i < size ); ++i )
 		{
-			keys |= (1<<(i-3));
 			ArrayGetString( arr_items, i, item, charsmax(item) );
-			menu_len += formatex( menu[menu_len], charsmax(menu) - menu_len, "\y%d. \w%s^n", i - 2, item ); // i + 1 - 3
+			
+			if( ArrayGetCell( arr_items_pickable, i ) )
+			{
+				if( ArrayGetCell( arr_items_enabled, i ) )
+				{
+					keys |= (1<<(i-3));
+					c = 'w';
+				}
+				else
+				{
+					c = 'd';
+				}
+				
+				menu_len += formatex( menu[menu_len], charsmax(menu) - menu_len, "\y%d. \%c%s^n", i - 2, c, item ); // i + 1 - 3
+			}
+			else
+			{
+				menu_len += formatex( menu[menu_len], charsmax(menu) - menu_len, "\w%s^n", item );
+			}
 		}
 		
 		for( ; i - 3 < 9; ++i )
@@ -943,6 +1020,49 @@ public _q_menu_set_handler( plugin, params )
 	ArraySetCell( g_menu_forward, menu_id, fwd );
 }
 
+// q_menu_get_title( menu, title[], len )
+public _q_menu_get_title( plugin, params )
+{
+	if( params != 3 )
+	{
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params );
+		return;
+	}
+	
+	new menu_id = get_param( 1 );
+	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
+	{
+		log_error( AMX_ERR_NATIVE, "Invalid menu id %d", menu_id );
+		return;
+	}
+	
+	new title[32];
+	ArrayGetString( g_menu_title, menu_id, title, charsmax(title) );
+	set_string( 2, title, get_param( 3 ) );
+}
+
+// q_menu_set_title( menu, title[] )
+public _q_menu_set_title( plugin, params )
+{
+	if( params != 2 )
+	{
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
+		return;
+	}
+	
+	new menu_id = get_param( 1 );
+	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
+	{
+		log_error( AMX_ERR_NATIVE, "Invalid menu id %d", menu_id );
+		return;
+	}
+	
+	new title[32];
+	get_string( 2, title, charsmax(title) );
+	ArraySetString( g_menu_title, menu_id, title );
+
+}
+
 // q_menu_get_subtitle( menu_id, subtitle[], len )
 public _q_menu_get_subtitle( plugin, params )
 {
@@ -961,7 +1081,7 @@ public _q_menu_get_subtitle( plugin, params )
 	
 	new subtitle[32];
 	ArrayGetString( g_menu_subtitle, menu_id, subtitle, charsmax(subtitle) );
-	set_string( 2, subtitle, charsmax(subtitle) );
+	set_string( 2, subtitle, get_param( 3 ) );
 }
 
 // q_menu_set_subtitle( menu_id, subtitle[] )
@@ -994,6 +1114,7 @@ public _q_menu_destroy( plugin, params )
 		return;
 	}
 	
+	log_amx( "q_menu_destroy" );
 	new menu_id = get_param( 1 );
 	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
 	{
