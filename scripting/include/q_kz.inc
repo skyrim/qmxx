@@ -144,19 +144,23 @@ native q_kz_help_additem( item_name[], item_content[] );
  *  NOTE: You can call this func only in QKZ_RegisteringRewards */
 native q_kz_register_reward( name[], handler[], callback[] = "" );
 
+native Array:q_kz_getStartButtonEntities( );
+
+native Array:q_kz_getStopButtonEntities( );
+
 // FORWARDS
-forward QKZ_Init( );
-forward QKZ_Shutdown( );
-
-forward QKZ_RunStart_pre( id );
-forward QKZ_RunStart_post( id );
-forward QKZ_RunEnd_pre( id, Float:time, weapon, cps, tps );
-forward QKZ_RunEnd_post( id, Float:time, weapon, cps, tps );
-
 forward QKZ_RegisterSettings( );
 forward QKZ_RegisterCvars( );
 forward QKZ_RegisterHelp( );
 forward QKZ_RegisterRewards( );
+
+native q_kz_registerForward( Q_KZ_Forward:forwardType, callback[], _post = false );
+
+enum Q_KZ_Forward {
+	Q_KZ_TimerStart,	// id
+	Q_KZ_TimerStop,		// id, successful
+	Q_KZ_TimerPause		// id, paused
+}
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
 */

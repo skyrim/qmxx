@@ -1,9 +1,3 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*												   *
-*    Quaker's KZ Mod v1.0									   *
-*												   *
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 //   To do:
 // - fix menus (welcome, kz menu, settings)
 // - fix death animation
@@ -182,10 +176,12 @@ new Float:g_player_run_StartTime[MAX_PLAYERS + 1];
 new Float:g_player_run_PauseTime[MAX_PLAYERS + 1];
 new g_player_kzmenu[33];
 
-new mfwd_run_start_pre;
-new mfwd_run_start_post;
-new mfwd_run_end_pre;
-new mfwd_run_end_post;
+new Array:forward_TimerStart_pre;
+new Array:forward_TimerStart_post;
+new Array:forward_TimerStop_pre;
+new Array:forward_TimerStop_post;
+new Array:forward_TimerPause_pre;
+new Array:forward_TimerPause_post;
 
 new g_msg_Health;
 new g_msg_SayText;
@@ -477,6 +473,7 @@ public plugin_natives( )
 	register_native( "q_kz_get_end_pos",		"_q_kz_get_end_pos" );
 	register_native( "q_kz_getStartButtonEntities",	"_q_kz_getStartButtonEntities" );
 	register_native( "q_kz_getStopButtonEntities",	"_q_kz_getStopButtonEntities" );
+	register_native( "q_kz_registerForward",	"_q_kz_registerForward" );
 }
 
 public module_filter( module[] )
@@ -567,6 +564,13 @@ public plugin_init( )
 	g_startButtonEntities = ArrayCreate( 1, 1 );
 	g_stopButtonEntities = ArrayCreate( 1, 1 );
 	
+	forward_TimerStart_pre = ArrayCreate( 1, 1 );
+	forward_TimerStart_post = ArrayCreate( 1, 1 );
+	forward_TimerStop_pre = ArrayCreate( 1, 1 );
+	forward_TimerStop_post = ArrayCreate( 1, 1 );
+	forward_TimerPause_pre = ArrayCreate( 1, 1 );
+	forward_TimerPause_post = ArrayCreate( 1, 1 );
+	
 	q_kz_register_clcmd( "/cp",		"clcmd_Checkpoint" );
 	q_kz_register_clcmd( "say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check" );
 	q_kz_register_clcmd( "say /check",	"clcmd_Checkpoint" );
@@ -580,7 +584,7 @@ public plugin_init( )
 	q_kz_register_clcmd( "say /unstuck",	"clcmd_Stuck" );
 	q_kz_register_clcmd( "say /start",	"clcmd_Start", _,	"Teleport to start button position. Alternative: /begin" );
 	q_kz_register_clcmd( "say /begin",	"clcmd_Start" );
-	q_kz_register_clcmd( "say /end",		"clcmd_End", _,		"Teleport to end button position. Alternative: /finish" );
+	q_kz_register_clcmd( "say /end",	"clcmd_End", _,		"Teleport to end button position. Alternative: /finish" );
 	q_kz_register_clcmd( "say /finish",	"clcmd_End" );
 	q_kz_register_clcmd( "say /setstart",	"clcmd_SetStart", _,	"Set custom start position" );
 	q_kz_register_clcmd( "say /unsetstart",	"clcmd_UnsetStart", _,	"Remove custom start position" );
@@ -607,7 +611,7 @@ public plugin_init( )
 	q_kz_register_clcmd( "radio1",		"clcmd_Block" );
 	q_kz_register_clcmd( "radio2",		"clcmd_Block" );
 	q_kz_register_clcmd( "radio3",		"clcmd_Block" );
-	q_kz_register_clcmd( "jointeam",		"clcmd_Block" );
+	q_kz_register_clcmd( "jointeam",	"clcmd_Block" );
 	
 	register_menucmd( register_menuid("\rWeapons^n^n"), 		1023, "menu_Weapons_handler" );
 	register_menucmd( register_menuid("\rPistols^n^n"), 		1023, "menu_Pistols_handler" );
@@ -616,11 +620,6 @@ public plugin_init( )
 	register_menucmd( register_menuid("\rRifles^n^n"), 		1023, "menu_Rifles_handler" );
 	register_menucmd( register_menuid("\rMachine Guns^n^n"),	1023, "menu_MachineGuns_handler" );
 	register_menucmd( register_menuid("\rSniper Rifles^n^n"),	1023, "menu_SniperRifles_handler" );
-	
-	mfwd_run_start_pre = CreateMultiForward( "QKZ_RunStart_pre", ET_CONTINUE, FP_CELL );
-	mfwd_run_start_post = CreateMultiForward( "QKZ_RunStart_post", ET_IGNORE, FP_CELL );
-	mfwd_run_end_pre = CreateMultiForward( "QKZ_RunEnd_pre", ET_CONTINUE, FP_CELL, FP_FLOAT, FP_CELL, FP_CELL, FP_CELL );
-	mfwd_run_end_post = CreateMultiForward( "QKZ_RunEnd_post", ET_IGNORE, FP_CELL, FP_FLOAT, FP_CELL, FP_CELL, FP_CELL );
 	
 	register_forward( FM_EmitSound, "fwd_EmitSound" );
 	register_forward( FM_ClientKill, "fwd_ClientKill" );
@@ -633,6 +632,8 @@ public plugin_init( )
 	RegisterHam( Ham_Spawn, "player", "fwd_Spawn_player", 1 );
 	RegisterHam( Ham_Touch, "weaponbox", "fwd_Touch_weaponbox", 1 );
 	RegisterHam( Ham_Touch, "trigger_hurt", "fwd_Touch_hurt" );
+	
+	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
 	
 	register_event( "ResetHUD",	"event_ResetHUD", "b" );
 	register_event( "SpecHealth2",	"event_SpecHealth2", "bd" );
@@ -695,10 +696,6 @@ public plugin_cfg( )
 	new mfwd;
 	new ret; //junk
 	
-	mfwd = CreateMultiForward( "QKZ_Init", ET_IGNORE );
-	ExecuteForward( mfwd, ret );
-	DestroyForward( mfwd );
-	
 	g_settings_registering = true;
 	mfwd = CreateMultiForward( "QKZ_RegisterSettings", ET_IGNORE );
 	ExecuteForward( mfwd, ret );
@@ -726,16 +723,6 @@ public plugin_cfg( )
 
 public plugin_end( )
 {
-	new ret; // junk
-	new mfwd = CreateMultiForward( "QKZ_Shutdown", ET_IGNORE );
-	ExecuteForward( mfwd, ret );
-	DestroyForward( mfwd );
-	
-	DestroyForward( mfwd_run_end_pre );
-	DestroyForward( mfwd_run_end_post );
-	DestroyForward( mfwd_run_start_pre );
-	DestroyForward( mfwd_run_start_post );
-	
 	save_CFG( );
 	save_ButtonPositions( );
 	
@@ -750,6 +737,13 @@ public plugin_end( )
 	
 	ArrayDestroy( g_cvars_id );
 	ArrayDestroy( g_cvars_desc );
+	
+	forward_TimerStart_pre ? ArrayDestroy( forward_TimerStart_pre ) : 0;
+	forward_TimerStart_post ? ArrayDestroy( forward_TimerStart_post ) : 0;
+	forward_TimerStop_pre ? ArrayDestroy( forward_TimerStop_pre ) : 0;
+	forward_TimerStop_post ? ArrayDestroy( forward_TimerStop_post ) : 0;
+	forward_TimerPause_pre ? ArrayDestroy( forward_TimerPause_pre ) : 0;
+	forward_TimerPause_post ? ArrayDestroy( forward_TimerPause_post ) : 0;
 	
 	new Array:temp;
 	for( new i = 0, size = ArraySize( g_help_items ); i < size; ++i )
@@ -1145,10 +1139,11 @@ public QKZ_RegisterCvars( )
 	q_kz_register_cvar( cvar_Rewards, "Enable/disable KZ rewards" );
 }
 
-public QKZ_RunEnd_post( id )
+public forward_KZTimerStop( id, successful )
 {
-	if( get_pcvar_num( cvar_Rewards ) )
+	if( successful && get_pcvar_num( cvar_Rewards ) ) {
 		menu_KZRewards( id );
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -1157,10 +1152,11 @@ public QKZ_RunEnd_post( id )
 
 public event_RunStart( id )
 {
-	new shouldTerminate;
-	ExecuteForward( mfwd_run_start_pre, shouldTerminate, id );
-	if( shouldTerminate )
-		return;
+	for( new i = 0, size = ArraySize( forward_TimerStart_pre ); i < size; ++i ) {
+		new ret;
+		new callback = ArrayGetCell( forward_TimerStart_pre, i );
+		ExecuteForward( callback, ret, id );
+	}
 	
 	g_player_run_Running[id] = true;
 	g_player_run_StartTime[id] = get_gametime( );
@@ -1217,8 +1213,11 @@ public event_RunStart( id )
 	
 	q_kz_print( id, "%L", id, "QKZ_RUN_STARTED" );
 	
-	new ret; // junk
-	ExecuteForward( mfwd_run_start_post, ret, id );
+	for( new i = 0, size = ArraySize( forward_TimerStart_post ); i < size; ++i ) {
+		new ret;
+		new callback = ArrayGetCell( forward_TimerStart_post, i );
+		ExecuteForward( callback, ret, id );
+	}
 }
 
 public event_RunEnd( id )
@@ -1230,33 +1229,36 @@ public event_RunEnd( id )
 		return;
 	}
 	
-	new Float:rtime = get_gametime( ) - g_player_run_StartTime[id];
-	
-	new fwd_return;
-	ExecuteForward( mfwd_run_end_pre, fwd_return, id, rtime, g_player_run_WeaponID[id], g_player_CPcounter[id], g_player_TPcounter[id] );
-	
-	if( !fwd_return )
-	{
-		new prefix[4];
-		get_pcvar_string( cvar_Prefix, prefix, 3 );
-		
-		new minutes = floatround( rtime / 60, floatround_floor );
-		new Float:seconds = rtime - ( minutes * 60 );
-		
-		message_SayText( 0, "^x04[%s] ^x03%s ^x01has finished the map in ^x04%02d:%s%.2f ^x01(CPs: ^x04%d ^x01| TPs: ^x04%d^x01) with ^x04%s",
-			prefix,
-			g_player_Name[id],
-			minutes,
-			seconds < 10 ? "0" : "",
-			seconds,
-			g_player_CPcounter[id],
-			g_player_TPcounter[id],
-			g_sz_WeaponName[g_player_run_WeaponID[id]] );
-			
-		client_cmd( id, "spk buttons/bell1" );
+	for( new i = 0, size = ArraySize( forward_TimerStop_pre ); i < size; ++i ) {
+		new ret;
+		new callback = ArrayGetCell( forward_TimerStop_pre, i );
+		ExecuteForward( callback, ret, id, true );
 	}
 	
-	ExecuteForward( mfwd_run_end_post, fwd_return, id, rtime, g_player_run_WeaponID[id], g_player_CPcounter[id], g_player_TPcounter[id] );
+	new prefix[4];
+	get_pcvar_string( cvar_Prefix, prefix, 3 );
+	
+	new Float:rtime = get_gametime( ) - g_player_run_StartTime[id];
+	new minutes = floatround( rtime / 60, floatround_floor );
+	new Float:seconds = rtime - ( minutes * 60 );
+	
+	message_SayText( 0, "^x04[%s] ^x03%s ^x01has finished the map in ^x04%02d:%s%.2f ^x01(CPs: ^x04%d ^x01| TPs: ^x04%d^x01) with ^x04%s",
+		prefix,
+		g_player_Name[id],
+		minutes,
+		seconds < 10 ? "0" : "",
+		seconds,
+		g_player_CPcounter[id],
+		g_player_TPcounter[id],
+		g_sz_WeaponName[g_player_run_WeaponID[id]] );
+		
+	client_cmd( id, "spk buttons/bell1" );
+	
+	for( new i = 0, size = ArraySize( forward_TimerStop_post ); i < size; ++i ) {
+		new ret;
+		new callback = ArrayGetCell( forward_TimerStop_post, i );
+		ExecuteForward( callback, ret, id, true );
+	}
 	
 	run_reset( id );
 }
@@ -1760,8 +1762,13 @@ public clcmd_Pause( id )
 		return PLUGIN_HANDLED;
 	}
 
+	for( new i = 0, size = ArraySize( forward_TimerPause_pre ); i < size; ++i ) {
+		new ret;
+		ExecuteForward( ArrayGetCell( forward_TimerPause_pre, i ), ret, id, g_player_run_Paused[id] );
+	}
+	
 	if( g_player_run_Paused[id] )
-	{
+	{	
 		g_player_run_Paused[id] = false;
 		g_player_run_StartTime[ id ] += ( get_gametime() - g_player_run_PauseTime[ id ] );
 		
@@ -1779,6 +1786,11 @@ public clcmd_Pause( id )
 		q_kz_print( id, "%L", id, "QKZ_RUN_PAUSED" );
 	}
 	
+	for( new i = 0, size = ArraySize( forward_TimerPause_post ); i < size; ++i ) {
+		new ret;
+		ExecuteForward( ArrayGetCell( forward_TimerPause_post, i ), ret, id, g_player_run_Paused[id] );
+	}
+	
 	return PLUGIN_HANDLED;
 }
 
@@ -1793,7 +1805,7 @@ public clcmd_Stop( id )
 	
 	if( g_player_run_Running[id] )
 	{
-		run_reset( id );
+		q_kz_terminate_run( id, "" );
 		
 		q_kz_print( id, "%L", id, "QKZ_RUN_STOPPED" );
 	}
@@ -3204,6 +3216,16 @@ public _q_kz_terminate_run( plugin, params )
 	
 	if( g_player_run_Running[id] )
 	{
+		for( new i = 0, size = ArraySize( forward_TimerStop_pre ); i < size; ++i ) {
+			new ret;
+			ExecuteForward( ArrayGetCell( forward_TimerStop_pre, i ), ret, id, false );
+		}
+		
+		for( new i = 0, size = ArraySize( forward_TimerStop_post ); i < size; ++i ) {
+			new ret;
+			ExecuteForward( ArrayGetCell( forward_TimerStop_post, i ), ret, id, false );
+		}
+		
 		run_reset( id );
 		
 		new buffer[192];
@@ -3638,6 +3660,41 @@ public _q_kz_getStopButtonEntities( plugin, params ) {
 	return _:g_stopButtonEntities;
 }
 
+// q_kz_registerForward( Q_KZ_Forward, callback[], _post = 0 )
+public _q_kz_registerForward( plugin, params ) {
+	if( params != 3 ) {
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params );
+		return;
+	}
+	
+	new handler[32];
+	get_string( 2, handler, charsmax(handler) );
+	if( get_func_id( handler, plugin ) == -1 ) {
+		log_error( AMX_ERR_NATIVE, "Handler function ^"%s^" not found", handler );
+		return;
+	}
+	
+	new forwardType = get_param( 1 );
+	new isForwardPost = get_param( 3 );
+	switch( forwardType ) {
+	case Q_KZ_TimerStart: {
+		new phandler = CreateOneForward( plugin, handler, FP_CELL );
+		ArrayPushCell( isForwardPost ? forward_TimerStart_post : forward_TimerStart_pre, phandler );
+	}
+	case Q_KZ_TimerStop: {
+		new phandler = CreateOneForward( plugin, handler, FP_CELL, FP_CELL );
+		ArrayPushCell( isForwardPost ? forward_TimerStop_post : forward_TimerStop_pre, phandler );
+	}
+	case Q_KZ_TimerPause: {
+		new phandler = CreateOneForward( plugin, handler, FP_CELL, FP_CELL );
+		ArrayPushCell( isForwardPost ? forward_TimerPause_post : forward_TimerPause_pre, phandler );
+	}
+	default: {
+		log_error( AMX_ERR_NATIVE, "Unknown forward type" );
+	}
+	}
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Settings											   *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -3996,9 +4053,3 @@ stock fm_find_ent_by_owner(index, const classname[], owner, jghgtype = 0)
 
 	return ent;
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*												   *
-*    END											   *
-*												   *
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
