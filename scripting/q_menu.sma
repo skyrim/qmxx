@@ -85,10 +85,10 @@ public plugin_init( )
 
 public plugin_end( )
 {
-	ArrayDestroy( g_menu_title );
-	ArrayDestroy( g_menu_subtitle );
-	ArrayDestroy( g_menu_forward );
-	ArrayDestroy( g_menu_items_per_page );
+	g_menu_title ? ArrayDestroy( g_menu_title ) : 0;
+	g_menu_subtitle ? ArrayDestroy( g_menu_subtitle ) : 0;
+	g_menu_forward ? ArrayDestroy( g_menu_forward ) : 0;
+	g_menu_items_per_page ? ArrayDestroy( g_menu_items_per_page ) : 0;
 	
 	new Array:name, Array:data, Array:enab, Array:pick;
 	for( new i = 0, size = ArraySize( g_menu_item_name ); i < size; ++i )
@@ -105,10 +105,10 @@ public plugin_end( )
 		pick = ArrayGetCell( g_menu_item_pickable, i );
 		if( pick ) ArrayDestroy( pick );
 	}
-	ArrayDestroy( g_menu_item_name );
-	ArrayDestroy( g_menu_item_data );
-	ArrayDestroy( g_menu_item_enabled );
-	ArrayDestroy( g_menu_item_pickable );
+	g_menu_item_name ? ArrayDestroy( g_menu_item_name ) : 0;
+	g_menu_item_data ? ArrayDestroy( g_menu_item_data ) : 0;
+	g_menu_item_enabled ? ArrayDestroy( g_menu_item_enabled ) : 0;
+	g_menu_item_pickable ? ArrayDestroy( g_menu_item_pickable ) : 0;
 }
 
 public clcmd_menuselect( id, level, cid )
@@ -1122,19 +1122,19 @@ public _q_menu_destroy( plugin, params )
 	ArraySetString( g_menu_title, menu_id, "" );
 	
 	new Array:arr_items = ArrayGetCell( g_menu_item_name, menu_id );
-	ArrayDestroy( arr_items );
+	arr_items ? ArrayDestroy( arr_items ) : 0;
 	ArraySetCell( g_menu_item_name, menu_id, 0 );
 	
 	new Array:arr_items_data = ArrayGetCell( g_menu_item_data, menu_id );
-	ArrayDestroy( arr_items_data );
+	arr_items_data ? ArrayDestroy( arr_items_data ) : 0;
 	ArraySetCell( g_menu_item_data, menu_id, 0 );
 	
 	new Array:arr_items_enabled = ArrayGetCell( g_menu_item_enabled, menu_id );
-	ArrayDestroy( arr_items_enabled );
+	arr_items_enabled ? ArrayDestroy( arr_items_enabled ) : 0;
 	ArraySetCell( g_menu_item_enabled, menu_id, 0 );
 	
 	new Array:arr_items_pickable = ArrayGetCell( g_menu_item_pickable, menu_id );
-	ArrayDestroy( arr_items_pickable );
+	arr_items_pickable ? ArrayDestroy( arr_items_pickable ) : 0;
 	ArraySetCell( g_menu_item_pickable, menu_id, 0 );
 	
 	DestroyForward( ArrayGetCell( g_menu_forward, menu_id ) );
