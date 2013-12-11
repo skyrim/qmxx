@@ -152,6 +152,9 @@ new Array:g_rewards_callback;
 
 new Array:g_commands;
 
+new Array:g_startButtonEntities;
+new Array:g_stopButtonEntities;
+
 new g_player_ingame[MAX_PLAYERS + 1];
 new g_player_Connected[MAX_PLAYERS + 1];
 new g_player_Alive[MAX_PLAYERS + 1];
@@ -472,6 +475,8 @@ public plugin_natives( )
 	register_native( "q_kz_get_start_pos",		"_q_kz_get_start_pos" );
 	register_native( "q_kz_is_end_set",		"_q_kz_is_end_set" );
 	register_native( "q_kz_get_end_pos",		"_q_kz_get_end_pos" );
+	register_native( "q_kz_getStartButtonEntities",	"_q_kz_getStartButtonEntities" );
+	register_native( "q_kz_getStopButtonEntities",	"_q_kz_getStopButtonEntities" );
 }
 
 public module_filter( module[] )
@@ -558,6 +563,9 @@ public plugin_init( )
 	g_help_items_content = ArrayCreate( 1, 8 );
 	
 	g_commands = ArrayCreate( 4 );
+	
+	g_startButtonEntities = ArrayCreate( 1, 1 );
+	g_stopButtonEntities = ArrayCreate( 1, 1 );
 	
 	q_kz_register_clcmd( "/cp",		"clcmd_Checkpoint" );
 	q_kz_register_clcmd( "say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check" );
@@ -732,6 +740,9 @@ public plugin_end( )
 	save_ButtonPositions( );
 	
 	ArrayDestroy( g_commands );
+	
+	ArrayDestroy( g_startButtonEntities );
+	ArrayDestroy( g_stopButtonEntities );
 	
 	ArrayDestroy( g_settings_itemname );
 	ArrayDestroy( g_settings_itemplugin );
@@ -3618,6 +3629,15 @@ public _q_kz_register_clcmd( plugin, params )
 	ArrayPushArray( g_commands, temp_array );
 }
 
+// q_kz_getStartButtonEntities( )
+public _q_kz_getStartButtonEntities( plugin, params ) {
+	return _:g_startButtonEntities;
+}
+
+public _q_kz_getStopButtonEntities( plugin, params ) {
+	return _:g_stopButtonEntities;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Settings											   *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -3826,10 +3846,12 @@ find_Buttons( )
 		if( TrieKeyExists( tStart, szTarget ) )
 		{
 			SET_BITVECTOR( g_map_ent_StartButton, ent );
+			ArrayPushCell( g_startButtonEntities, ent );
 		}
 		else if( TrieKeyExists( tStop, szTarget ) )
 		{
 			SET_BITVECTOR( g_map_ent_EndButton, ent );
+			ArrayPushCell( g_stopButtonEntities, ent );
 		}
 		else
 		{
@@ -3838,10 +3860,12 @@ find_Buttons( )
 			if( TrieKeyExists( tStart, szTarget ) )
 			{
 				SET_BITVECTOR( g_map_ent_StartButton, ent );
+				ArrayPushCell( g_startButtonEntities, ent );
 			}
 			else if( TrieKeyExists( tStop, szTarget ) )
 			{
 				SET_BITVECTOR( g_map_ent_EndButton, ent );
+				ArrayPushCell( g_stopButtonEntities, ent );
 			}
 		}
 	}
