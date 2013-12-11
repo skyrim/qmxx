@@ -47,6 +47,8 @@ public plugin_init( )
 	
 	mfwd_duel_start = CreateMultiForward( "q_kz_duel_start", ET_IGNORE, FP_CELL, FP_CELL );
 	mfwd_duel_end = CreateMultiForward( "q_kz_duel_end", ET_IGNORE, FP_CELL, FP_CELL );
+	
+	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
 }
 
 public client_connect( id )
@@ -122,17 +124,17 @@ public clcmd_duel( id, level, cid )
 	get_user_name( id, name, charsmax(name) );
 	client_print( target, print_chat, "%s challenges you in a duel. Say /accept, /reject or ignore this message.", name );
 	
-	//if( is_user_bot( target ) )
-	//	set_task( 2.0, "wtf", target );
+	if( is_user_bot( target ) )
+		set_task( 2.0, "wtf", target );
 	
 	return PLUGIN_HANDLED;
 }
 
-/*public wtf( id )
+public wtf( id )
 {
 	if( is_user_connected( id ) )
 		clcmd_accept( id, 0, 0 );
-}*/
+}
 
 public clcmd_accept( id, level, cid )
 {
@@ -181,17 +183,32 @@ public clcmd_surrender( id, level, cid )
 	return PLUGIN_HANDLED;
 }
 
-public QKZ_RunEnd_post( id, Float:rtime, weapon, cps, tps )
-{
+public forward_KZTimerStop( id, successful ) {
 	new duel_id = get_player_duel( id );
 	
 	if( is_duel_valid( duel_id ) && ( g_duel_status[duel_id] == Q_KZ_DS_INPROGRESS ) )
 	{
-		duel_end( duel_id, id );
+		duel_end( duel_id, successful ? id : duel_opponent( id ) );
 	}
 }
 
 // duel core stuff
+
+duel_opponent( id ) {
+	if( g_player_duel[id] != 2 && g_player_duel[id] != 3 ) {
+		return 0;
+	}
+	
+	new duel_id = get_player_duel( id );
+	if( g_duel_players[duel_id][0] == id ) {
+		return g_duel_players[duel_id][1];
+	}
+	else {
+		return g_duel_players[duel_id][0];
+	}
+	
+	return 0;
+}
 
 duel_create( challenger, challenged )
 {

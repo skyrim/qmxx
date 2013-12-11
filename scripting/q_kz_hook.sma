@@ -97,6 +97,8 @@ public plugin_init( )
 	register_clcmd( "HookColor",	"messagemode_HookColor" );
 	
 	register_forward( FM_PlayerPreThink, "fwd_PlayerPreThink" );
+	
+	q_kz_registerForward( Q_KZ_TimerStart, "forward_KZTimerStart" );
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -207,8 +209,7 @@ public fwd_PlayerPreThink( id )
 	}
 }
 
-public QKZ_RunStart_pre( id )
-{
+public forward_KZTimerStart( id ) {
 	if( g_player_hook[id] & HOOK_ACTIVE )
 	{
 		clcmd_HookOff( id );

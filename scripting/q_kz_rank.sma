@@ -124,6 +124,8 @@ public plugin_init( )
 	g_rank_noob_CPs = TrieCreate( );
 	g_rank_noob_TPs = TrieCreate( );
 	g_rank_noob_Date = TrieCreate( );
+	
+	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
 }
 
 public plugin_cfg( )
@@ -220,14 +222,26 @@ public client_disconnect( id )
 * Forwards
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-public QKZ_RunEnd_post( id, Float:flTime, iWeapon, iCPs, iTPs )
+public forward_KZTimerStop( id, successful )
 {
-	if( iTPs ) 	// player used teleports so he's a noob
-		rank_updateNoob( id, flTime, iWeapon, iCPs, iTPs );
-	else 		// this one's a pro
-		rank_updatePro( id, flTime, iWeapon );
+	// need time, weapon, cps, tps
+	if( !successful ) {
+		return;
+	}
+	
+	new Float:time = q_kz_get_user_runtime( id );
+	new cps = q_kz_get_user_cps( id );
+	new tps = q_kz_get_user_tps( id );
+	new weapon = get_user_weapon( id );
+	
+	if( tps ) {
+		rank_updateNoob( id, time, weapon, cps, tps );
+	}
+	else {
+		rank_updatePro( id, time, weapon );
+	}
 		
-	return PLUGIN_HANDLED;
+	return;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -880,3 +894,6 @@ plural( num )
 	
 	return 3;
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/
