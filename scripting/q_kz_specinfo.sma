@@ -6,15 +6,12 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q KZ SpecInfo"
+#define PLUGIN "Q::KZ::SpecInfo"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECINFO 5650
 #define TASKTIME_SPECINFO 1.0
-
-new cvar_specinfo;
-new cvar_specinfo_pos;
 
 new g_player_Name[33][32];
 new g_player_IP[33][16];
@@ -22,12 +19,15 @@ new g_player_Country[33][46];
 new g_player_SpecInfo[33];
 new g_player_SpecID[33];
 
+new cvar_specinfo;
+new cvar_specinfo_pos;
+
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
 	cvar_specinfo = register_cvar( "q_kz_specinfo", "1" );
-	cvar_specinfo_pos = register_cvar( "q_kz_specinfo_pos", "-1.0, 0.15" );
+	cvar_specinfo_pos = register_cvar( "q_kz_specinfo_pos_x", "-1.0 0.15" );
 	
 	register_event( "SpecHealth2", "event_SpecHealth2", "bd" );
 	
@@ -86,12 +86,14 @@ public task_SpecInfo( )
 	new red, green, blue;
 	q_kz_get_hud_color( red, green, blue );
 	
-	new posstr[16];
-	get_pcvar_string( cvar_specinfo_pos, posstr, charsmax(posstr) );
-	new posstr_x[8], posstr_y[8];
-	parse( posstr, posstr_x, charsmax(posstr_x), posstr_y, charsmax(posstr_y) );
-	new Float:pos_x = str_to_float( posstr_x );
-	new Float:pos_y = str_to_float( posstr_y );
+	new sz_pos[10];
+	get_pcvar_string( cvar_specinfo_pos, sz_pos, charsmax(sz_pos) );
+	new sz_pos_x[6];
+	new sz_pos_y[6];
+	parse( sz_pos, sz_pos_x, charsmax(sz_pos_x), sz_pos_y, charsmax(sz_pos_y) );
+	new Float:pos_x = str_to_float( sz_pos_x );
+	new Float:pos_y = str_to_float( sz_pos_y );
+	
 	for( new i = 1; i <= 32; i++ )
 	{
 		if( is_user_connected( i ) && !is_user_alive( i ) && g_player_SpecInfo[i] )

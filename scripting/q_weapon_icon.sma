@@ -4,10 +4,11 @@
  */
 
 #include <amxmodx>
+#include <cvar_util>
 
 #pragma semicolon 1
 
-#define PLUGIN "Q WeaponIcon"
+#define PLUGIN "Q::WeaponIcon"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 
@@ -46,17 +47,68 @@ new g_WeaponSprites[][] =
 	"d_p90"
 };
 
-new cvar_weapon_icon;
+new g_server_weaponicon;
 
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	cvar_weapon_icon = register_cvar( "q_weapon_icon", "2" );
+	new cvar_wpnico = CvarRegister( "q_weapon_icon", "2" );
+	CvarCache( cvar_wpnico, CvarType_Int, g_server_weaponicon );
+	CvarHookChange( cvar_wpnico, "cvar_hook_wpnico", true );
 	
 	register_event( "CurWeapon", "event_CurWeapon", "b", "1!0" );
 	register_event( "Spectator", "event_Spectator", "a" );
 	register_event( "DeathMsg", "event_DeathMsg", "a" );
+}
+
+public cvar_hook_wpnico( cvar_handle, oldval[], newval[], cvar_name[] )
+{
+	new ov = str_to_num( oldval );
+	new nv = str_to_num( newval );
+	
+	if( ov != nv )
+	{
+		switch( nv )
+		{
+			case 1:
+			{
+				new wpn;
+				for( new i = 1; i <= 32; ++i )
+				{
+					if( is_user_connected( i ) )
+					{
+						wpn = get_user_weapon( i );
+						message_StatusIcon( i, 1, g_WeaponSprites[wpn] );
+					}
+				}
+			}
+			case 2:
+			{
+				new wpn;
+				for( new i = 1; i <= 32; ++i )
+				{
+					if( is_user_connected( i ) )
+					{
+						wpn = get_user_weapon( i );
+						message_StatusIcon( i, 0, g_WeaponSprites[get_user_weapon(i)] );
+						message_Scenario( i, 1, g_WeaponSprites[wpn] );
+					}
+				}
+			}
+			default:
+			{
+				for( new i = 1; i <= 32; ++i )
+				{
+					if( is_user_connected( i ) )
+					{
+						message_Scenario( i, 0 );
+						message_StatusIcon( i, 0, g_WeaponSprites[get_user_weapon(i)] );
+					}
+				}
+			}
+		}
+	}
 }
 
 public event_CurWeapon( id )
@@ -65,7 +117,7 @@ public event_CurWeapon( id )
 	
 	new wpn = read_data( 2 );
 	
-	switch( get_pcvar_num( cvar_weapon_icon ) )
+	switch( g_server_weaponicon )
 	{
 		case 1:
 		{

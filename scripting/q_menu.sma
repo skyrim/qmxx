@@ -10,7 +10,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q Menu"
+#define PLUGIN "Q::Menu"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q CStrike"
+#define PLUGIN "Q::CStrike"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

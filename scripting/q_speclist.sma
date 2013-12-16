@@ -6,12 +6,13 @@
 
 #include <amxmodx>
 #include <fakemeta>
+#include <cvar_util>
 
 #include <q_cookies>
 
 #pragma semicolon 1
 
-#define PLUGIN "Q SpecList"
+#define PLUGIN "Q::SpecList"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 
@@ -20,9 +21,10 @@
 
 new g_cookies_failed;
 
-new cvar_speclist;
-new cvar_speclist_pos;
 new cvar_speclist_color;
+
+new g_server_speclist;
+new Float:g_server_speclist_pos[2];
 
 new g_player_name[33][32];
 new g_player_speclist[33];
@@ -60,9 +62,10 @@ public plugin_init( )
 	
 	register_dictionary( "q_speclist.txt" );
 	
-	cvar_speclist = register_cvar( "q_speclist", "1" );
-	cvar_speclist_pos = register_cvar( "q_speclist_pos", "0.8 0.15" );
-	cvar_speclist_color = register_cvar( "q_speclist_color", "0 125 255" );
+	CvarCache( CvarRegister( "q_speclist", "1" ), CvarType_Int, g_server_speclist );
+	CvarCache( CvarRegister( "q_speclist_pos_x", "0.8" ), CvarType_Float, g_server_speclist_pos[0] );
+	CvarCache( CvarRegister( "q_speclist_pos_y", "0.15" ), CvarType_Float, g_server_speclist_pos[1] );
+	cvar_speclist_color = CvarRegister( "q_speclist_color", "0 125 255" );
 	
 	register_menucmd( register_menuid( "\yQKZ / Speclist" ), MENU_KEY_0 | MENU_KEY_1 | MENU_KEY_2, "menu_speclist" );
 	
@@ -162,9 +165,8 @@ public task_SpecList( task_id )
 	static buffer[32][512];
 	new buffer_len[33];
 	
-	if( !get_pcvar_num( cvar_speclist ) ) {
+	if( !g_server_speclist )
 		return;
-	}
 	
 	new spectated[33];
 	new spectator[33];
@@ -188,20 +190,14 @@ public task_SpecList( task_id )
 		}
 	}
 	
-	new posstr[16];
-	get_pcvar_string( cvar_speclist_pos, posstr, charsmax(posstr) );
-	new posstr_x[8], posstr_y[8];
-	parse( posstr, posstr_x, charsmax(posstr_x), posstr_y, charsmax(posstr_y) );
-	new Float:pos_x = str_to_float( posstr_x );
-	new Float:pos_y = str_to_float( posstr_y );
 	for( new i = 1; i <= 32; ++i )
 	{
 		set_hudmessage(
 			g_player_speclist_color[i][0],
 			g_player_speclist_color[i][1],
 			g_player_speclist_color[i][2],
-			pos_x,
-			pos_y,
+			g_server_speclist_pos[0],
+			g_server_speclist_pos[1],
 			0, 0.0, 1.0, _, _, 4 );
 		
 		if( spectated[i] && g_player_speclist[i] )

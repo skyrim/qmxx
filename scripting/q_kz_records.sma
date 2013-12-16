@@ -1,223 +1,251 @@
-/**
-* to do:
-* - better directory structure
-* - multilingual for everything (menu title, community name, ...)
-* - saytext message abstraction (like show_hudmessage)
-* - maybe, just maybe, add support for map name as argument e.g /wr kz_map_name
-*/
-
 #include <amxmodx>
+
 #include <q_kz>
+#include <q_menu>
+
+/**
+ * to do:
+ * - /community <map>
+ * - multilingual (world, country names, menu stuff, ...)
+ */
 
 #pragma semicolon 1
 
-#define PLUGIN "Q KZ Records"
-#define VERSION "1.0"
+#define PLUGIN "Q::KZ::Records"
+#define VERSION "3.0"
 #define AUTHOR "Quaker"
 
-#define MAX_RECORDS 32
-#define MAX_WAYS 5
-
-new g_map_name_len;
-new g_map_name[32];
-
-new g_record_count = 0;
-new g_record_cid[MAX_RECORDS];
-new g_record_community[MAX_RECORDS][32];
-
-new g_record_player[MAX_RECORDS][MAX_WAYS][32];
-new Float:g_record_time[MAX_RECORDS][MAX_WAYS];
-
-new g_record_waycount[MAX_RECORDS];
-new g_record_wayname[MAX_RECORDS][MAX_WAYS][16];
-
-new msg_SayText;
-
-new g_menu_records;
+new g_menu_communities;
+new g_menu_record;
+new Trie:g_recordcomm_cmd2id;
+new Array:g_recordcomm_name;
+new Array:g_recordcomm_way;
+new Array:g_recordcomm_player;
+new Array:g_recordcomm_time;
 
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	register_dictionary( "q_kz_records.txt" );
+	new datadir[128];
+	q_kz_get_datadir( datadir, charsmax(datadir) );
+	add( datadir, charsmax(datadir), "/records" );
 	
-	get_mapname( g_map_name, charsmax(g_map_name) );
-	g_map_name_len = strlen( g_map_name );
-	
-	msg_SayText = get_user_msgid( "SayText" );
-	
-	new recd[128];
-	q_kz_get_datadir( recd, charsmax(recd) );
-	add( recd, charsmax(recd), "/records" );
-	if( !dir_exists( recd ) )
+	if( !dir_exists( datadir ) )
 	{
-		mkdir( recd );
-		
+		mkdir( datadir );
+		pause( "a" );
 		return;
 	}
 	
-	new recf[64];
-	new recdh = open_dir( recd, recf, charsmax(recf) );
-	if( recdh )
+	new inifile[160];
+	formatex( inifile, charsmax(inifile), "%s/records.ini", datadir );
+	new f = fopen( inifile, "rt" );
+	if( !f )
 	{
-		new recfname[64];
-		new recfext[64];
-		new recfpath[128];
-		new reccmd[32];
-		do
-		{
-			strtok( recf, recfname, charsmax(recfname), recfext, charsmax(recfext), '.', true );
-			if( equal( recfext, "qkzrec" ) )
-			{
-				formatex( reccmd, charsmax(reccmd), "say /%s", recfname );
-				g_record_cid[g_record_count] = register_clcmd( reccmd, "clcmd_record" );
-				
-				formatex( recfpath, charsmax(recfpath), "%s/%s", recd, recf );
-				new f = fopen( recfpath, "rt" );
-				if( f )
-				{
-					fgets( f, g_record_community[g_record_count], charsmax(g_record_community[]) );
-					trim( g_record_community[g_record_count] );
-					
-					g_record_waycount[g_record_count] = 0;
-					
-					new buffer[128];
-					new mname[32];
-					new pname[32];
-					new rtime[16];
-					while( !feof( f ) )
-					{
-						fgets( f, buffer, charsmax(buffer) );
-						parse( buffer, mname, charsmax(mname), rtime, charsmax(rtime), pname, charsmax(pname) );
-						
-						if( equal( mname, g_map_name, g_map_name_len ) )
-						{
-							g_record_player[g_record_count][g_record_waycount[g_record_count]] = pname;
-							g_record_time[g_record_count][g_record_waycount[g_record_count]] = str_to_float( rtime );
-							
-							new sqbpos = strfind( mname, "[" );
-							if( sqbpos != -1 )
-							{
-								copyc( g_record_wayname[g_record_count][g_record_waycount[g_record_count]], charsmax(g_record_wayname[][]), mname[sqbpos + 1], ']' );
-								++g_record_waycount[g_record_count];
-							}
-							else
-							{
-								break;
-							}
-						}
-					}
-					
-					fclose( f );
-				}
-				
-				g_record_count += 1;
-			}
-		}
-		while( next_file( recdh, recf, charsmax(recf) ) );
-		
-		close_dir( recdh );
+		pause( "a" );
+		return;
 	}
 	
-	if( g_record_count )
+	register_clcmd( "say /records", "clcmd_records" );
+	register_clcmd( "say", "clcmd_community_record" );
+	
+	g_menu_communities = q_menu_create( "Records", "menu_communities_handler" );
+	g_menu_record = q_menu_create( "", "menu_record_handler" );
+	
+	g_recordcomm_cmd2id = TrieCreate( );
+	g_recordcomm_name = ArrayCreate( 32, 1 );
+	g_recordcomm_way = ArrayCreate( 1, 1 );
+	g_recordcomm_time = ArrayCreate( 1, 1 );
+	g_recordcomm_player = ArrayCreate( 1, 1 );
+	
+	new buffer[128];
+	new count;
+	new community[32], command[32], recordfile[32];
+	
+	new recordfilepath[160];
+	new currmap[32], currmap_len;
+	get_mapname( currmap, charsmax(currmap) );
+	currmap_len = strlen( currmap );
+	new map[32], way[32], time[10], player[32];
+	while( !feof( f ) )
 	{
-		g_menu_records = menu_create( "QKZ Records", "menu_records_hnd" );
-		for( new i = 0; i < g_record_count; ++i )
-		{
-			menu_additem( g_menu_records, g_record_community[i] );
-		}
+		fgets( f, buffer, charsmax(buffer) );
+		parse( buffer, community, charsmax(community), command, charsmax(command), recordfile, charsmax(recordfile) );
 		
-		register_clcmd( "say /records", "clcmd_records" );
+		formatex( recordfilepath, charsmax(recordfilepath), "%s/%s", datadir, recordfile );
+		new fr = fopen( recordfilepath, "rt" );
+		if( !fr )
+			continue; // maybe print error
+		
+		new Array:way_array, Array:player_array, Array:time_array;
+		
+		new found = false;
+		while( !feof( fr ) )
+		{
+			fgets( fr, buffer, charsmax(buffer) );
+			
+			if( equal( currmap, buffer, currmap_len ) )
+			{
+				parse( buffer, map, charsmax(map), time, charsmax(time), player, charsmax(player) );
+				
+				if( !found )
+				{
+					found = true;
+					
+					TrieSetCell( g_recordcomm_cmd2id, command, count );
+					ArrayPushString( g_recordcomm_name, community );
+					q_menu_item_add( g_menu_communities, "" );
+					
+					way_array = ArrayCreate( 32, 1 );
+					player_array = ArrayCreate( 32, 1 );
+					time_array = ArrayCreate( 1, 1 );
+					ArrayPushCell( g_recordcomm_way, way_array );
+					ArrayPushCell( g_recordcomm_player, player_array );
+					ArrayPushCell( g_recordcomm_time, time_array );
+					
+					++count;
+				}
+				else
+				{
+					if( map[currmap_len] != '[' ) // if we get here, it means we found another map with similar name
+						break;
+				}
+				
+				if( map[currmap_len] == '[' )
+					copyc( way, charsmax(way), map[currmap_len + 1], ']' );
+				
+				ArrayPushString( way_array, way );
+				way[0] = 0;
+				copyc( player, charsmax(player), player, ' ' );
+				ArrayPushString( player_array, player );
+				ArrayPushCell( time_array, str_to_float( time ) );
+			}
+			else if( found ) // if found earlier, but not now, than there are no more records for this map
+			{
+				break;
+			}
+		}
+		fclose( fr );
 	}
+	fclose( f );
 }
 
 public plugin_end( )
 {
-	menu_destroy( g_menu_records );
+	new Array:temp;
+	
+	for( new i = 0, size = ArraySize( g_recordcomm_way ); i < size; ++i )
+	{
+		temp = ArrayGetCell( g_recordcomm_way, i );
+		ArrayDestroy( temp );
+	}
+	ArrayDestroy( g_recordcomm_way );
+	
+	for( new i = 0, size = ArraySize( g_recordcomm_player ); i < size; ++i )
+	{
+		temp = ArrayGetCell( g_recordcomm_player, i );
+		ArrayDestroy( temp );
+	}
+	ArrayDestroy( g_recordcomm_player );
+	
+	for( new i = 0, size = ArraySize( g_recordcomm_time ); i < size; ++i )
+	{
+		temp = ArrayGetCell( g_recordcomm_time, i );
+		ArrayDestroy( temp );
+	}
+	ArrayDestroy( g_recordcomm_time );
+	
+	ArrayDestroy( g_recordcomm_name );
 }
 
-public clcmd_record( id, level, cid )
+public clcmd_community_record( id, level, cid )
 {
-	for( new i = 0; i < g_record_count; ++i )
+	new command[16];
+	read_argv( 1, command, charsmax(command) );
+	
+	new community;
+	if( TrieKeyExists( g_recordcomm_cmd2id, command ) )
 	{
-		if( g_record_cid[i] == cid )
-		{
-			new mins, Float:secs, szTime[10];
-			new buffer[128];
-			
-			if( g_record_waycount[i] )
-			{
-				buffer[0] = 1;
-				LookupLangKey( buffer[1], charsmax(buffer), "Q_KZ_RECORDS_RECORD_ON", id );
-				replace( buffer, charsmax(buffer), "%COMMUNITY%", g_record_community[i] );
-				replace( buffer, charsmax(buffer), "%MAP%", g_map_name );
-				replace_all( buffer, charsmax(buffer), "!n", "^x01" );
-				replace_all( buffer, charsmax(buffer), "!t", "^x03" );
-				replace_all( buffer, charsmax(buffer), "!g", "^x04" );
-				
-				message_begin( MSG_ONE_UNRELIABLE, msg_SayText, _, id );
-				write_byte( id );
-				write_string( buffer );
-				message_end( );
-				
-				for( new j = 0; j < g_record_waycount[i]; ++j )
-				{
-					mins = floatround( g_record_time[i][j] / 60, floatround_floor );
-					secs = g_record_time[i][j] - float( mins * 60 );
-					formatex( szTime, charsmax(szTime), "%d:%s%.2f", mins, secs < 10 ? "0" : "", secs );
-					
-					buffer[0] = 1;
-					LookupLangKey( buffer[1], charsmax(buffer), "Q_KZ_RECORDS_WAY_RECORD", id );
-					replace( buffer, charsmax(buffer), "%WAY%", g_record_wayname[i][j] );
-					replace( buffer, charsmax(buffer), "%PLAYER%", g_record_player[i][j] );
-					replace( buffer, charsmax(buffer), "%TIME%", szTime );
-					replace_all( buffer, charsmax(buffer), "!n", "^x01" );
-					replace_all( buffer, charsmax(buffer), "!t", "^x03" );
-					replace_all( buffer, charsmax(buffer), "!g", "^x04" );
-					
-					message_begin( MSG_ONE_UNRELIABLE, msg_SayText, _, id );
-					write_byte( id );
-					write_string( buffer );
-					message_end( );
-				}
-			}
-			else
-			{
-				mins = floatround( g_record_time[i][0] / 60, floatround_floor );
-				secs = g_record_time[i][0] - float( mins * 60 );
-				formatex( szTime, charsmax(szTime), "%d:%s%.2f", mins, secs < 10 ? "0" : "", secs );
-				
-				buffer[0] = 1;
-				LookupLangKey( buffer[1], charsmax(buffer), "Q_KZ_RECORDS_MAP_RECORD", id );
-				replace( buffer, charsmax(buffer), "%COMMUNITY%", g_record_community[i] );
-				replace( buffer, charsmax(buffer), "%MAP%", g_map_name );
-				replace( buffer, charsmax(buffer), "%PLAYER%", g_record_player[i][0] );
-				replace( buffer, charsmax(buffer), "%TIME%", szTime );
-				replace_all( buffer, charsmax(buffer), "!n", "^x01" );
-				replace_all( buffer, charsmax(buffer), "!t", "^x03" );
-				replace_all( buffer, charsmax(buffer), "!g", "^x04" );
-				
-				message_begin( MSG_ONE_UNRELIABLE, msg_SayText, _, id );
-				write_byte( id );
-				write_string( buffer );
-				message_end( );
-			}
-		}
+		TrieGetCell( g_recordcomm_cmd2id, command, community );
+	
+		menu_record( id, community );
+		
+		return PLUGIN_HANDLED;
 	}
+	
+	return PLUGIN_CONTINUE;
+}
+
+menu_record( id, community )
+{
+	new community_name[32];
+	ArrayGetString( g_recordcomm_name, community, community_name, charsmax(community_name) );
+	new map[32];
+	get_mapname( map, charsmax(map) );
+	new title[64];
+	formatex( title, charsmax(title), "%s record on %s", community_name, map ); // multilang
+	q_menu_set_title( g_menu_record, title );
+	
+	q_menu_item_clear( g_menu_record );
+	
+	new item[48];
+	new player[32], Float:time, minutes, Float:seconds, way[32];
+	for( new i = 0, size = ArraySize( ArrayGetCell( g_recordcomm_way, community ) ); i < size; ++i )
+	{
+		ArrayGetString( ArrayGetCell( g_recordcomm_player, community ), i, player, charsmax(player) );
+		
+		time = ArrayGetCell( ArrayGetCell( g_recordcomm_time, community ), i );
+		minutes = floatround( time / 60, floatround_floor );
+		seconds = time - minutes * 60.0;
+		
+		ArrayGetString( ArrayGetCell( g_recordcomm_way, community ), i, way, charsmax(way) );
+		
+		if( strlen(way) > 0 )
+			formatex( item, charsmax(item), "\r[%s] \y%s \wdone in \y%d:%s%.2f", way, player, minutes, ( seconds < 10.0 ) ? "0" : "", seconds ); // multilang
+		else
+			formatex( item, charsmax(item), "\y%s \wdone in \y%d:%s%.2f", player, minutes, ( seconds < 10.0 ) ? "0" : "", seconds ); // multilang
+			
+		q_menu_item_add( g_menu_record, item, "", false, false );
+	}
+	
+	q_menu_display( id, g_menu_record );
+}
+
+public menu_record_handler( id, menu, item )
+{
+	if( item < 0 )
+		return PLUGIN_CONTINUE;
 	
 	return PLUGIN_HANDLED;
 }
 
 public clcmd_records( id, level, cid )
 {
-	menu_display( id, g_menu_records );
+	menu_communities( id );
 	
 	return PLUGIN_HANDLED;
 }
 
-public menu_records_hnd( id, menu, item )
+menu_communities( id )
 {
-	clcmd_record( id, 0, g_record_cid[item] );
+	new name[32];
+	for( new i = 0, size = ArraySize( g_recordcomm_name ); i < size; ++i )
+	{
+		ArrayGetString( g_recordcomm_name, i, name, charsmax(name) );
+		q_menu_item_set_name( g_menu_communities, i, name );
+	}
+	
+	// set item names at users language
+	q_menu_display( id, g_menu_communities );
+}
+
+public menu_communities_handler( id, menu, item )
+{
+	if( item < 0 )
+		return PLUGIN_CONTINUE;
+	
+	menu_record( id, item );
 	
 	return PLUGIN_HANDLED;
 }

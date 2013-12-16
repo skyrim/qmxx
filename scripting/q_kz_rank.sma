@@ -10,7 +10,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN  "Quaker's KZ Rank"
+#define PLUGIN  "Q::KZ::Rank"
 #define VERSION "1.0"
 #define AUTHOR  "Quaker"
 
@@ -800,7 +800,6 @@ public clcmd_Pro10( id, level, cid )
 
 public clcmd_Noob10( id, level, cid )
 {
-	server_print( "%d", strlen( g_rank_noob_Top15 ) );
 	show_motd( id, g_rank_noob_Top15 );
 	
 	return PLUGIN_HANDLED;

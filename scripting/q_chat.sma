@@ -4,7 +4,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Quaker's Chat"
+#define PLUGIN "Q::Chat"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

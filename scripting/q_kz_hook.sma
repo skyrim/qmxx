@@ -13,7 +13,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q KZ Hook"
+#define PLUGIN "Q::KZ::Hook"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

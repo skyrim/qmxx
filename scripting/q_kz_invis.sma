@@ -5,7 +5,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q KZ Invis"
+#define PLUGIN "Q::KZ::Invis"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

@@ -5,7 +5,7 @@
  * - a lot
  */
 
-#define PLUGIN "Quaker's KZ Jumpstats Beam"
+#define PLUGIN "Q::Jumpstats::Beam"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

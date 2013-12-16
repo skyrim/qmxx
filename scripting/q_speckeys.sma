@@ -6,10 +6,11 @@
 
 #include <amxmodx>
 #include <fakemeta>
+#include <cvar_util>
 
 #pragma semicolon 1
 
-#define PLUGIN "Q SpecKeys"
+#define PLUGIN "Q::SpecKeys"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 
@@ -18,7 +19,7 @@
 
 new const g_allbuttons = IN_JUMP | IN_DUCK | IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT;
 
-new cvar_hud_keys;
+new g_server_speckeys;
 
 new g_player_speckeys[33];
 new g_player_showkeys[33];
@@ -28,7 +29,7 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	cvar_hud_keys = register_cvar( "q_hud_keys", "1" );
+	CvarCache( CvarRegister( "q_hud_keys", "1" ), CvarType_Int, g_server_speckeys );
 	
 	register_clcmd( "say /speckeys", "clcmd_SpecKeys" );
 	register_clcmd( "say /showkeys", "clcmd_ShowKeys" );
@@ -73,9 +74,7 @@ public task_SpecKeys( )
 	static specmode;
 	static const msg_format[] = "%s^n^n%s^n^n%s^t^t^t^t^t^t^t^t%s^n^n%s^n^n%s";
 	
-	if( !get_pcvar_num( cvar_hud_keys ) ) {
-		return;
-	}
+	if( !g_server_speckeys ) return;
 	
 	for( new i = 1; i <= 32; ++i )
 	{

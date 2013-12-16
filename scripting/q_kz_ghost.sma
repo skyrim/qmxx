@@ -9,7 +9,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q KZ Ghost"
+#define PLUGIN "Q::KZ::Ghost"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

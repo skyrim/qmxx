@@ -5,7 +5,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN "Q Cookies"
+#define PLUGIN "Q::Cookies"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 

@@ -7,18 +7,19 @@
 
 #include <amxmodx>
 #include <geoip>
+#include <cvar_util>
 
 #include <q>
 #include <q_menu>
 
 #pragma semicolon 1
 
-#define PLUGIN "Q Country"
+#define PLUGIN "Q::Country"
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 
-new cvar_joinmessage;
-new cvar_leavemessage;
+new cvar_joinmsg;
+new cvar_leavemsg;
 
 new country_menu;
 
@@ -28,8 +29,8 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	cvar_joinmessage = register_cvar( "q_country_joinmessage", "0" );
-	cvar_leavemessage = register_cvar( "q_country_leavemessage", "0" );
+	CvarCache( register_cvar( "q_country_joinmessage", "0" ), CvarType_Int, cvar_joinmsg );
+	CvarCache( register_cvar( "q_country_leavemessage", "0" ), CvarType_Int, cvar_leavemsg );
 	
 	q_menu_create( "Q Countries", "menu_countries_handler" );
 	
@@ -51,7 +52,7 @@ public client_putinserver( id )
 		player_country[id] = "Unknown Country";
 	}
 	
-	if( get_pcvar_num( cvar_joinmessage ) )
+	if( cvar_joinmsg )
 	{
 		client_print( 0, print_chat, "%s from %s entered the game", name, player_country[id] );
 	}
@@ -88,7 +89,7 @@ public client_disconnect( id )
 	new name[32];
 	get_user_name( id, name, charsmax(name) );
 	
-	if( get_pcvar_num( cvar_leavemessage ) )
+	if( cvar_leavemsg )
 	{
 		client_print( 0, print_chat, "%s from %s left the game", name, player_country[id] );
 	}
