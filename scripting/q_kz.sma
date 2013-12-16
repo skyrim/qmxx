@@ -195,7 +195,6 @@ new g_msg_RoundTime;
 new g_msg_StatusIcon;
 new g_msg_Crosshair;
 new g_msg_ClCorpse;
-new g_msg_ReceiveW;
 new g_msg_VGUIMenu;
 new g_msg_ShowMenu;
 
@@ -209,13 +208,6 @@ new const g_szRemoveEnts[][] =
 	"armoury_entity", "game_player_equip", "player_weaponstrip",
 	"info_deathmatch_start"
 };
-
-enum Weather
-{
-	WEATHER_NONE = 0,
-	WEATHER_RAIN,
-	WEATHER_SNOW
-}
 
 enum CsTeams
 {
@@ -606,7 +598,6 @@ public plugin_init( )
 	q_kz_register_clcmd( "say /godmode",	"clcmd_GodMode" );
 	q_kz_register_clcmd( "say /nc",		"clcmd_Noclip", _,	"Toggle noclip mode on/off. Alternative: /noclip" );
 	q_kz_register_clcmd( "say /noclip",	"clcmd_Noclip" );
-	q_kz_register_clcmd( "say /weather",	"clcmd_Weather", _,	"Change map weather (only you'll see the change)" );
 	q_kz_register_clcmd( "drop",		"clcmd_Drop" );
 	q_kz_register_clcmd( "radio1",		"clcmd_Block" );
 	q_kz_register_clcmd( "radio2",		"clcmd_Block" );
@@ -652,7 +643,6 @@ public plugin_init( )
 	g_msg_StatusIcon	= get_user_msgid( "StatusIcon" );
 	g_msg_Crosshair		= get_user_msgid( "Crosshair" );
 	g_msg_ClCorpse		= get_user_msgid( "ClCorpse" );
-	g_msg_ReceiveW		= get_user_msgid( "ReceiveW" );
 	g_msg_VGUIMenu		= get_user_msgid( "VGUIMenu" );
 	g_msg_ShowMenu		= get_user_msgid( "ShowMenu" );
 	
@@ -2009,13 +1999,6 @@ public clcmd_Noclip( id )
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_Weather( id )
-{
-	menu_Weather( id );
-	
-	return PLUGIN_HANDLED;
-}
-
 public clcmd_Drop( id )
 {
 	if( g_player_Alive[id] )
@@ -2415,34 +2398,6 @@ public menu_KZRewards_callback( id, menu, item )
 	}
 	
 	return ITEM_IGNORE;
-}
-
-public menu_Weather( id )
-{
-	new buffer[32];
-	formatex( buffer, charsmax(buffer), "QKZ %L", id, "QKZ_WEATHER" );
-	new menu = menu_create( buffer, "menu_Weather_handler" );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NONE" );
-	menu_additem( menu, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_RAIN" );
-	menu_additem( menu, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_SNOW" );
-	menu_additem( menu, buffer );
-	
-	menu_display( id, menu );
-}
-
-public menu_Weather_handler( id, menu, item )
-{
-	menu_destroy( menu );
-	
-	if( item != MENU_EXIT )
-		message_ReceiveW( id, Weather:item );
-	
-	return PLUGIN_HANDLED;
 }
 
 public menu_Weapons( id )
@@ -2885,17 +2840,6 @@ save_CFG( )
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Message Stocks
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-stock message_ReceiveW( id, Weather:mode )
-{
-	if( 1 <= id <= 32 )
-		message_begin( MSG_ONE, g_msg_ReceiveW, _, id );
-	else
-		message_begin( MSG_BROADCAST, g_msg_ReceiveW );
-	
-	write_byte( _:mode );
-	message_end( );
-}
 
 // Beam between point and entity
 stock message_te_beamentpoint( id = 0, iEnt, Float:vOrigin[3], hSprite, vColor[3], Float:iLife, iWidth )
