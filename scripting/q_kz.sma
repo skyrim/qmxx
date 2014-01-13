@@ -133,11 +133,6 @@ new g_cvars_registering;
 new Array:g_cvars_id;
 new Array:g_cvars_desc;
 
-new g_help_registering;
-new Array:g_help;
-new Array:g_help_items;
-new Array:g_help_items_content;
-
 new g_rewards_registering;
 new Array:g_rewards_name;
 new Array:g_rewards_plugin;
@@ -159,8 +154,6 @@ new g_player_Name[MAX_PLAYERS + 1][32];
 new g_player_MaxSpeed[MAX_PLAYERS + 1];
 new g_player_God[MAX_PLAYERS + 1];
 new g_player_Noclip[MAX_PLAYERS + 1];
-new g_player_help[MAX_PLAYERS + 1];
-new g_player_help_item[MAX_PLAYERS + 1];
 new g_player_CPcounter[MAX_PLAYERS + 1];
 new g_player_TPcounter[MAX_PLAYERS + 1];
 new g_player_setting_CPangles[MAX_PLAYERS + 1];
@@ -447,8 +440,6 @@ public plugin_natives( )
 	register_native( "q_kz_register_clcmd",		"_q_kz_register_clcmd" );
 	register_native( "q_kz_settings_additem",	"_q_kz_settings_additem" );
 	register_native( "q_kz_register_cvar",		"_q_kz_register_cvar" );
-	register_native( "q_kz_register_help",		"_q_kz_register_help" );
-	register_native( "q_kz_help_additem",		"_q_kz_help_additem" );
 	register_native( "q_kz_register_reward",	"_q_kz_register_reward" );
 	register_native( "q_kz_print",			"_q_kz_print" );
 	register_native( "q_kz_saytext",		"_q_kz_saytext" );
@@ -547,10 +538,6 @@ public plugin_init( )
 	g_rewards_handler = ArrayCreate( 1, 4 );
 	g_rewards_callback = ArrayCreate( 1, 4 );
 	
-	g_help = ArrayCreate( 32, 8 );
-	g_help_items = ArrayCreate( 1, 8 );
-	g_help_items_content = ArrayCreate( 1, 8 );
-	
 	g_commands = ArrayCreate( 4 );
 	
 	g_startButtonEntities = ArrayCreate( 1, 1 );
@@ -590,8 +577,6 @@ public plugin_init( )
 	q_kz_register_clcmd( "say /kzmenu",	"clcmd_kzmenu" );
 	q_kz_register_clcmd( "say /settings",	"clcmd_KZSettings", _,	"Open settings menu. Alternative: /kzsettings" );
 	q_kz_register_clcmd( "say /kzsettings",	"clcmd_KZSettings" );
-	q_kz_register_clcmd( "say /help",	"clcmd_Help" );
-	q_kz_register_clcmd( "say /kzhelp",	"clcmd_Help" );
 	q_kz_register_clcmd( "say /maxspeed",	"clcmd_MaxSpeed", _,	"Toggle weapon speed shower on/off" );
 	q_kz_register_clcmd( "say /god",	"clcmd_GodMode", _,	"Toggle god mode on/off. Alternative: /godmode" );
 	q_kz_register_clcmd( "say /godmode",	"clcmd_GodMode" );
@@ -689,12 +674,6 @@ public plugin_cfg( )
 	DestroyForward( mfwd );
 	g_cvars_registering = false;
 	
-	g_help_registering = true;
-	mfwd = CreateMultiForward( "QKZ_RegisterHelp", ET_IGNORE );
-	ExecuteForward( mfwd, ret );
-	DestroyForward( mfwd );
-	g_help_registering = false;
-	
 	g_rewards_registering = true;
 	mfwd = CreateMultiForward( "QKZ_RegisterRewards", ET_IGNORE );
 	ExecuteForward( mfwd, ret );
@@ -726,21 +705,6 @@ public plugin_end( )
 	forward_TimerPause_pre ? ArrayDestroy( forward_TimerPause_pre ) : 0;
 	forward_TimerPause_post ? ArrayDestroy( forward_TimerPause_post ) : 0;
 	
-	new Array:temp;
-	for( new i = 0, size = ArraySize( g_help_items ); i < size; ++i )
-	{
-		temp = Array:ArrayGetCell( g_help_items, i );
-		ArrayDestroy( temp );
-	}
-	for( new i = 0, size = ArraySize( g_help_items_content ); i < size; ++i )
-	{
-		temp = Array:ArrayGetCell( g_help_items_content, i );
-		ArrayDestroy( temp );
-	}
-	ArrayDestroy( g_help );
-	ArrayDestroy( g_help_items );
-	ArrayDestroy( g_help_items_content );
-	
 	ArrayDestroy( g_rewards_name );
 	ArrayDestroy( g_rewards_plugin );
 	ArrayDestroy( g_rewards_handler );
@@ -770,8 +734,6 @@ public client_putinserver( id )
 	g_player_MaxSpeed[id]		= true;
 	g_player_God[id]		= false;
 	g_player_Noclip[id]		= false;
-	g_player_help[id]		= 0;
-	g_player_help_item[id]		= 0;
 	g_player_CPcounter[id]		= 0;
 	g_player_TPcounter[id]		= 0;
 	g_player_SpecID[id]		= 0;
@@ -824,8 +786,6 @@ public client_disconnect( id )
 	g_player_MaxSpeed[id]		= true;
 	g_player_God[id]		= false;
 	g_player_Noclip[id]		= false;
-	g_player_help[id]		= 0;
-	g_player_help_item[id]		= 0;
 	g_player_CPcounter[id]		= 0;
 	g_player_TPcounter[id]		= 0;
 	g_player_SpecID[id]		= 0;
@@ -1056,39 +1016,6 @@ public fwd_ClientKill( id )
 	q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
 	
 	return FMRES_SUPERCEDE;
-}
-
-public QKZ_RegisterHelp( )
-{
-	//   1. KreedZ
-	//    1. The Genesis	| Long, long ago someone pressed jump.
-	//    2. Game objective	| Finish the map from start to finish button as fast as you can, but don't forget to have fun.
-	//    3. Moar info	| For more info about the game visit xtreme-jumps.eu.
-	q_kz_register_help( "KreedZ" );
-	q_kz_help_additem( "The Genesis", "Long, long ago someone pressed jump" );
-	q_kz_help_additem( "Game objective", "Finish the map from start to finish button as fast as you can and don't forget to have fun" );
-	q_kz_help_additem( "Moar info", "For more info about the game visit xtreme-jumps.eu" );
-	
-	q_kz_register_help( "Commands" );	
-	new cmd[32];
-	new info[128];
-	new junk;
-	new size = ArraySize( g_commands );
-	for( new i = 0; i < size; ++i )
-	{
-		get_clcmd( ArrayGetCell( g_commands, i ), cmd, charsmax(cmd), junk, info, charsmax(info), junk );
-		if( info[0] != 0 )
-			q_kz_help_additem( cmd, info );
-	}
-	
-	//   3. Checkpoints
-	//    1. How to use?	| To create checkpoint say /cp. Later, when you say /tp, you will be teleported to the last checkpoint you made.
-	//    2. Why should I?	| Checkpoints give you a possibility to jump without concequences.
-	//    3. but...		| but, relying to much on checkpoints will degrade your kreedzing skills.
-	q_kz_register_help( "Checkpoints" );
-	q_kz_help_additem( "How to use?", "To create checkpoint say /cp. Later, when you say /tp, you will be teleported to the last checkpoint you made" );
-	q_kz_help_additem( "Why should I?", "Checkpoints give you a possibility to jump without concequences" );
-	q_kz_help_additem( "but...", "Relying to much on checkpoints will degrade your kreedzing skills" );
 }
 
 public QKZ_RegisterSettings( )
@@ -1799,20 +1726,6 @@ public clcmd_Stop( id )
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_Help( id )
-{
-	if( !g_player_Alive[id] )
-	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
-		
-		return PLUGIN_HANDLED;
-	}
-	
-	menu_KZHelp( id );
-	
-	return PLUGIN_HANDLED;
-}
-
 public clcmd_Spectate( id )
 {
 	static Float:vOrigin[MAX_PLAYERS + 1][3];
@@ -2144,158 +2057,6 @@ public menu_KZSettings_handler( id, menu, item )
 			callfunc_end( );
 		}
 	}
-	
-	return PLUGIN_HANDLED;
-}
-
-public menu_KZHelp( id )
-{
-	new buffer[32];
-	formatex( buffer, charsmax(buffer), "QKZ %L", id, "QKZ_HELP" );
-	new menu = menu_create( buffer, "menu_KZHelp_handler" );
-	
-	new size = ArraySize( g_help );
-	for( new i = 0; i < size; ++i )
-	{
-		ArrayGetString( g_help, i, buffer, charsmax(buffer) );
-		LookupLangKey( buffer, charsmax(buffer), buffer, id );
-		menu_additem( menu, buffer );
-	}
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_EXIT" );
-	menu_setprop( menu, MPROP_EXITNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_BACK" );
-	menu_setprop( menu, MPROP_BACKNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NEXT" );
-	menu_setprop( menu, MPROP_NEXTNAME, buffer );
-	
-	menu_display( id, menu );
-}
-
-public menu_KZHelp_handler( id, menu, item )
-{
-	menu_destroy( menu );
-	
-	if( item != MENU_EXIT )
-		menu_KZHelpItem( id, item );
-	
-	return PLUGIN_HANDLED;
-}
-
-public menu_KZHelpItem( id, item )
-{
-	g_player_help[id] = item;
-	
-	new buffer[32];
-	ArrayGetString( g_help, item, buffer, charsmax(buffer) );
-	LookupLangKey( buffer, charsmax(buffer), buffer, id );
-	format( buffer, charsmax(buffer), "QKZ %L - %s", id, "QKZ_HELP", buffer );
-	new menu = menu_create( buffer, "menu_KZHelpItem_handler" );
-	
-	new Array:items_array = Array:ArrayGetCell( g_help_items, item );
-	new size = ArraySize( items_array );
-	for( new i = 0; i < size; ++i )
-	{
-		ArrayGetString( items_array, i, buffer, charsmax(buffer) );
-		LookupLangKey( buffer, charsmax(buffer), buffer, id );
-		menu_additem( menu, buffer );
-	}
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_EXIT" );
-	menu_setprop( menu, MPROP_EXITNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_BACK" );
-	menu_setprop( menu, MPROP_BACKNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NEXT" );
-	menu_setprop( menu, MPROP_NEXTNAME, buffer );
-	
-	menu_display( id, menu );
-}
-
-public menu_KZHelpItem_handler( id, menu, item )
-{
-	menu_destroy( menu );
-	
-	if( item == MENU_EXIT )
-		menu_KZHelp( id );
-	else
-		menu_KZHelpContent( id, item );
-	
-	return PLUGIN_HANDLED;
-}
-
-public menu_KZHelpContent( id, item )
-{
-	g_player_help_item[id] = item;
-	
-	new buffer[32];
-	ArrayGetString( g_help, g_player_help[id], buffer, charsmax(buffer) );
-	LookupLangKey( buffer, charsmax(buffer), buffer, id );
-	format( buffer, charsmax(buffer), "QKZ %L - %s", id, "QKZ_HELP", buffer );
-	new menu = menu_create( buffer, "menu_KZHelpContent_handler" );
-	
-	new Array:items_array = Array:ArrayGetCell( g_help_items, g_player_help[id] );
-	ArrayGetString( items_array, item, buffer, charsmax(buffer) );
-	LookupLangKey( buffer, charsmax(buffer), buffer, id );
-	menu_additem( menu, buffer );
-	
-	new content_buffer[128];
-	new Array:content_array = Array:ArrayGetCell( g_help_items_content, g_player_help[id] );
-	ArrayGetString( content_array, item, content_buffer, charsmax(content_buffer) );
-	LookupLangKey( content_buffer, charsmax(content_buffer), content_buffer, id );
-	
-	new iContentLen = strlen( content_buffer );
-	if( iContentLen > 30 )
-	{
-		for( new i = 30; (i < iContentLen) && (content_buffer[i] != 0); i += 30 )
-		{
-			for( new j = 0; j < 30; ++j )
-			{
-				switch( content_buffer[i - j] )
-				{
-					case ' ':
-					{
-						content_buffer[i - j] = '^n';
-						i = i - j;
-						break;
-					}
-					case '^n':
-					{
-						i = i - j;
-						break;
-					}
-				}
-			}
-		}
-	}
-	new split_buffer[31];
-	do
-	{
-		split( content_buffer, split_buffer, charsmax(split_buffer), content_buffer, charsmax(content_buffer), "^n" );
-		menu_addtext( menu, split_buffer );
-	}
-	while( content_buffer[0] != 0 );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_EXIT" );
-	menu_setprop( menu, MPROP_EXITNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_BACK" );
-	menu_setprop( menu, MPROP_BACKNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NEXT" );
-	menu_setprop( menu, MPROP_NEXTNAME, buffer );
-	
-	menu_display( id, menu );
-}
-
-public menu_KZHelpContent_handler( id, menu, item )
-{
-	menu_destroy( menu );
-	
-	menu_KZHelpItem( id, g_player_help[id] );
 	
 	return PLUGIN_HANDLED;
 }
@@ -3113,69 +2874,6 @@ public _q_kz_register_cvar( plugin, params )
 			break;
 		}
 	}
-}
-
-// qkz_register_help( name[] )
-public _q_kz_register_help( plugin, params )
-{
-	if( params != 1 )
-	{
-		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params );
-		return;
-	}
-	
-	if( !g_help_registering )
-	{
-		log_error( AMX_ERR_NATIVE, "qkz_register_help can only be called inside ^"QKZ_RegisterHelp^" forward" );
-		return;
-	}
-	
-	new helpname[32];
-	get_string( 1, helpname, charsmax(helpname) );
-	if( helpname[0] == 0 )
-	{
-		log_error( AMX_ERR_NATIVE, "Help name not given" );
-		return;
-	}
-	
-	ArrayPushString( g_help, helpname );
-	ArrayPushCell( g_help_items, ArrayCreate( 32, 8 ) );
-	ArrayPushCell( g_help_items_content, ArrayCreate( 128, 8 ) );
-}
-
-// qkz_help_additem( name[], content[] )
-public _q_kz_help_additem( plugin, params )
-{
-	if( params != 2 )
-	{
-		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
-		return;
-	}
-	
-	if( !g_help_registering )
-	{
-		log_error( AMX_ERR_NATIVE, "qkz_help_additem can only be called inside ^"QKZ_RegisterHelp^" forward" );
-		return;
-	}
-	
-	new itemname[32];
-	get_string( 1, itemname, charsmax(itemname) );
-	if( itemname[0] == 0 )
-	{
-		log_error( AMX_ERR_NATIVE, "Help item name not given" );
-		return;
-	}
-	
-	new itemcontent[128];
-	get_string( 2, itemcontent, charsmax(itemcontent) );
-	if( itemcontent[0] == 0 )
-	{
-		log_error( AMX_ERR_NATIVE, "Help item content not given" );
-		return;
-	}
-	
-	ArrayPushString( Array:ArrayGetCell( g_help_items, ArraySize( g_help_items ) - 1 ), itemname );
-	ArrayPushString( Array:ArrayGetCell( g_help_items_content, ArraySize( g_help_items_content ) - 1 ), itemcontent );
 }
 
 // qkz_register_reward( name[], handler[], callback[] = "" )
