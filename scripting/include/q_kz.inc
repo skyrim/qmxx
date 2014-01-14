@@ -112,20 +112,6 @@ native q_kz_is_user_vip( id );
 native q_kz_register_cvar( pcvar_handle, description[] = "" );
 
 /**
- *  Registers help menu in QKZ Help menu. After this func
- *  you should add help items, otherwise you'll screw up
- *  everything.
- *  NOTE: You can call this func only in QKZ_RegisteringHelp */
-native q_kz_register_help( help_name[] );
-
-/**
- *  Call this only after only after registering help.
- *  You can add up to 32 help items. Also content is
- *  limited to 128 characters, so be short and precise.
- *  NOTE: You can call this func only in QKZ_RegisteringHelp */
-native q_kz_help_additem( item_name[], item_content[] );
-
-/**
  *  Registers rewards in QKZ Rewards menu.
  *  When player finishes the map a menu with a list of
  *  all registered rewards will appear. Before displaying
@@ -151,7 +137,6 @@ native Array:q_kz_getStopButtonEntities( );
 // FORWARDS
 forward QKZ_RegisterSettings( );
 forward QKZ_RegisterCvars( );
-forward QKZ_RegisterHelp( );
 forward QKZ_RegisterRewards( );
 
 native q_kz_registerForward( Q_KZ_Forward:forwardType, callback[], _post = false );
