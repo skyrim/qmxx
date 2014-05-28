@@ -6,12 +6,11 @@
 
 #include <amxmodx>
 #include <fakemeta>
-#include <cvar_util>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::SpecKeys"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECKEYS 5700
@@ -19,7 +18,7 @@
 
 new const g_allbuttons = IN_JUMP | IN_DUCK | IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT;
 
-new g_server_speckeys;
+new g_cvar_speckeys;
 
 new g_player_speckeys[33];
 new g_player_showkeys[33];
@@ -29,7 +28,7 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	CvarCache( CvarRegister( "q_hud_keys", "1" ), CvarType_Int, g_server_speckeys );
+	g_cvar_speckeys = register_cvar("q_hud_speckeys", "1");
 	
 	register_clcmd( "say /speckeys", "clcmd_SpecKeys" );
 	register_clcmd( "say /showkeys", "clcmd_ShowKeys" );
@@ -74,7 +73,9 @@ public task_SpecKeys( )
 	static specmode;
 	static const msg_format[] = "%s^n^n%s^n^n%s^t^t^t^t^t^t^t^t%s^n^n%s^n^n%s";
 	
-	if( !g_server_speckeys ) return;
+	if( !get_pcvar_num(g_cvar_speckeys) ) {
+		return;
+	}
 	
 	for( new i = 1; i <= 32; ++i )
 	{
@@ -108,7 +109,6 @@ public task_SpecKeys( )
 			{
 				buttons = pev( i, pev_button );
 				
-				
 				if( buttons & g_allbuttons )
 				{
 					set_hudmessage( 255, 125, 0, -1.0, -1.0, 0, 0.0, 0.1, 0.0, 0.0, 3 );
@@ -124,3 +124,6 @@ public task_SpecKeys( )
 		}
 	}
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
+*/
