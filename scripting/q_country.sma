@@ -1,13 +1,10 @@
 /**
  * to do:
  * - saytext message for join and leave instead of client_print
- * - multilingual everything (even country names)
- * - looks like i'll have to make country locale (after a year or so, I cant remember what I meant by this)
  */
 
 #include <amxmodx>
 #include <geoip>
-#include <cvar_util>
 
 #include <q>
 #include <q_menu>
@@ -18,10 +15,10 @@
 #define VERSION "1.0"
 #define AUTHOR "Quaker"
 
-new cvar_joinmsg;
-new cvar_leavemsg;
+new g_cvar_joinmessage;
+new g_cvar_leavemessage;
 
-new country_menu;
+new g_menu;
 
 new player_country[33][46];
 
@@ -29,10 +26,10 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	CvarCache( register_cvar( "q_country_joinmessage", "0" ), CvarType_Int, cvar_joinmsg );
-	CvarCache( register_cvar( "q_country_leavemessage", "0" ), CvarType_Int, cvar_leavemsg );
+	g_cvar_joinmessage = register_cvar("q_counter_joinmessage", "0");
+	g_cvar_leavemessage = register_cvar("q_counter_leavemessage", "0");
 	
-	q_menu_create( "Q Countries", "menu_countries_handler" );
+	g_menu = q_menu_create( "Q Countries", "menu_countries_handler" );
 	
 	register_clcmd( "say /country", "clcmd_country" );
 }
@@ -52,14 +49,14 @@ public client_putinserver( id )
 		player_country[id] = "Unknown Country";
 	}
 	
-	if( cvar_joinmsg )
+	if( get_pcvar_num(g_cvar_joinmessage) )
 	{
 		client_print( 0, print_chat, "%s from %s entered the game", name, player_country[id] );
 	}
 	
 	new fmt[64];
-	formatex( fmt, charsmax(fmt), "\y%s \wfrom \y%s", name, player_country[id] );
-	q_menu_item_add( country_menu, fmt, name, false );
+	formatex( fmt, charsmax(fmt), "\r%s \wfrom \y%s", name, player_country[id] );
+	q_menu_item_add( g_menu, fmt, name, false );
 }
 
 public client_infochanged( id )
@@ -71,14 +68,14 @@ public client_infochanged( id )
 	get_user_info( id, "name", newname, charsmax(newname) );
 	
 	new buffer[64];
-	for( new i = 0, size = q_menu_item_count( country_menu ); i < size; ++i )
+	for( new i = 0, size = q_menu_item_count( g_menu ); i < size; ++i )
 	{
-		q_menu_item_get_data( country_menu, i, buffer, charsmax(buffer) );
+		q_menu_item_get_data( g_menu, i, buffer, charsmax(buffer) );
 		if( equal( oldname, buffer, charsmax(oldname) ) )
 		{
 			formatex( buffer, charsmax(buffer), "\y%s \wfrom \y%s", newname, player_country[id] );
-			q_menu_item_set_name( country_menu, i, buffer );
-			q_menu_item_set_data( country_menu, i, newname );
+			q_menu_item_set_name( g_menu, i, buffer );
+			q_menu_item_set_data( g_menu, i, newname );
 			break;
 		}
 	}
@@ -89,20 +86,20 @@ public client_disconnect( id )
 	new name[32];
 	get_user_name( id, name, charsmax(name) );
 	
-	if( cvar_leavemsg )
+	if( get_pcvar_num(g_cvar_leavemessage) )
 	{
 		client_print( 0, print_chat, "%s from %s left the game", name, player_country[id] );
 	}
 	
 	new i = 0;
-	new size = q_menu_item_count( country_menu );
+	new size = q_menu_item_count( g_menu );
 	new buffer[32];
 	for( ; i < size; ++i )
 	{
-		q_menu_item_get_data( country_menu, i, buffer, charsmax(buffer) );
+		q_menu_item_get_data( g_menu, i, buffer, charsmax(buffer) );
 		if( equal( buffer, name ) )
 		{
-			q_menu_item_remove( country_menu, i );
+			q_menu_item_remove( g_menu, i );
 			break;
 		}
 	}
@@ -110,7 +107,7 @@ public client_disconnect( id )
 
 public clcmd_country( id )
 {
-	q_menu_display( id, country_menu );
+	q_menu_display( id, g_menu );
 	
 	return PLUGIN_HANDLED;
 }
