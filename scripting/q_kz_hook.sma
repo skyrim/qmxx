@@ -1,8 +1,3 @@
-/**
- * to do:
- * - there's probably something that can be improved, cvar_util first comes to my mind
- */
-
 #include <amxmodx>
 #include <fakemeta>
 #include <hamsandwich>
