@@ -505,26 +505,26 @@ public plugin_init( )
 	
 	get_cvar_string( "hostname", g_server_Name, charsmax(g_server_Name) );
 	
-	cvar_Checkpoints	= register_cvar( "kzq_checkpoints",	"1" );
-	cvar_TeleportSplash	= register_cvar( "kzq_teleport_splash",	"0" );
-	cvar_Prefix		= register_cvar( "kzq_prefix",		"QKZ" );
-	cvar_Pause 		= register_cvar( "kzq_pause",		"1" );
-	cvar_GodMode 		= register_cvar( "kzq_godmode",		"1" );
-	cvar_Noclip 		= register_cvar( "kzq_noclip",		"1" );
-	cvar_Semiclip		= register_cvar( "kzq_semiclip",	"1" );
-	cvar_SemiclipAlpha	= register_cvar( "kzq_semiclip_alpha",	"80" );
-	cvar_Weapons		= register_cvar( "kzq_weapons",		"1" );
-	cvar_WeaponsAmmo	= register_cvar( "kzq_weapons_ammo",	"2" );
-	cvar_WeaponsSpeed	= register_cvar( "kzq_weapons_speed",	"1" );
-	cvar_Respawn		= register_cvar( "kzq_respawn",		"1" );
-	cvar_RespawnTime	= register_cvar( "kzq_respawn_time",	"3.0" );
-	cvar_HPBug		= register_cvar( "kzq_hpbug",		"0" );
-	cvar_PrintType		= register_cvar( "kzq_print_type",	"0" );
-	cvar_PrintColor		= register_cvar( "kzq_print_color",	"0 100 255" );
-	cvar_PrintPos		= register_cvar( "kzq_print_pos",	"-1.0 0.9" );
-	cvar_SpawnWithMenu	= register_cvar( "kzq_spawnwithmenu",	"1" );
-	cvar_VipFlags		= register_cvar( "kzq_vipflags",	"a" );
-	cvar_Rewards		= register_cvar( "kzq_rewards",		"0" );
+	cvar_Checkpoints	= register_cvar( "q_kz_checkpoints",		"1" );
+	cvar_TeleportSplash	= register_cvar( "q_kz_teleport_splash",	"0" );
+	cvar_Prefix		= register_cvar( "q_kz_prefix",			"QKZ" );
+	cvar_Pause 		= register_cvar( "q_kz_pause",			"1" );
+	cvar_GodMode 		= register_cvar( "q_kz_godmode",		"1" );
+	cvar_Noclip 		= register_cvar( "q_kz_noclip",			"1" );
+	cvar_Semiclip		= register_cvar( "q_kz_semiclip",		"1" );
+	cvar_SemiclipAlpha	= register_cvar( "q_kz_semiclip_alpha",		"80" );
+	cvar_Weapons		= register_cvar( "q_kz_weapons",		"1" );
+	cvar_WeaponsAmmo	= register_cvar( "q_kz_weapons_ammo",		"2" );
+	cvar_WeaponsSpeed	= register_cvar( "q_kz_weapons_speed",		"1" );
+	cvar_Respawn		= register_cvar( "q_kz_respawn",		"1" );
+	cvar_RespawnTime	= register_cvar( "q_kz_respawn_time",		"3.0" );
+	cvar_HPBug		= register_cvar( "q_kz_hpbug",			"0" );
+	cvar_PrintType		= register_cvar( "q_kz_print_type",		"0" );
+	cvar_PrintColor		= register_cvar( "q_kz_print_color",		"0 100 255" );
+	cvar_PrintPos		= register_cvar( "q_kz_print_pos",		"-1.0 0.9" );
+	cvar_SpawnWithMenu	= register_cvar( "q_kz_spawnwithmenu",		"1" );
+	cvar_VipFlags		= register_cvar( "q_kz_vipflags",		"a" );
+	cvar_Rewards		= register_cvar( "q_kz_rewards",		"0" );
 	
 	g_settings_itemname = ArrayCreate( 32, 8 );
 	g_settings_itemplugin = ArrayCreate( 1, 8 );

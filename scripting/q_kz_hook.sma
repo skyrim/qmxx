@@ -1,3 +1,8 @@
+/**
+ * to do:
+ * - there's probably something that can be improved, cvar_util first comes to my mind
+ */
+
 #include <amxmodx>
 #include <fakemeta>
 #include <hamsandwich>
@@ -78,18 +83,18 @@ public plugin_init( )
 	
 	register_dictionary( "q_kz_hook.txt" );
 	
-	cvar_hook = register_cvar( "kzq_hook", "3" );
-	cvar_hook_color = register_cvar( "kzq_hook_color", "255 128 64" );
-	cvar_hook_color_random = register_cvar( "kzq_hook_color_random", "1" );
-	cvar_hook_speed = register_cvar( "kzq_hook_speed", "600.0" );
+	cvar_hook 			= register_cvar( "q_kz_hook", 			"3" );
+	cvar_hook_color 		= register_cvar( "q_kz_hook_color",		"255 128 64" );
+	cvar_hook_color_random 		= register_cvar( "q_kz_hook_color_random",	"1" );
+	cvar_hook_speed 		= register_cvar( "q_kz_hook_speed", 		"600.0" );
 	
-	register_clcmd( "say /hook",	"clcmd_Hook" );
+	register_clcmd( "say /hook",		"clcmd_Hook" );
 	register_clcmd( "say /hookmenu",	"clcmd_Hook" );
 	register_clcmd( "say /givehook",	"clcmd_GiveHook" );
 	register_clcmd( "+hook",		"clcmd_HookOn" );
 	register_clcmd( "-hook",		"clcmd_HookOff" );
-	register_clcmd( "HookSpeed",	"messagemode_HookSpeed" );
-	register_clcmd( "HookColor",	"messagemode_HookColor" );
+	register_clcmd( "HookSpeed",		"messagemode_HookSpeed" );
+	register_clcmd( "HookColor",		"messagemode_HookColor" );
 	
 	register_forward( FM_PlayerPreThink, "fwd_PlayerPreThink" );
 	
