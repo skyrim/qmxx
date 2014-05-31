@@ -26,8 +26,8 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	g_cvar_joinmessage = register_cvar("q_counter_joinmessage", "0");
-	g_cvar_leavemessage = register_cvar("q_counter_leavemessage", "0");
+	g_cvar_joinmessage = register_cvar("q_country_joinmessage", "0");
+	g_cvar_leavemessage = register_cvar("q_country_leavemessage", "0");
 	
 	g_menu = q_menu_create( "Q Countries", "menu_countries_handler" );
 	
