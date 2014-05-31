@@ -1,22 +1,20 @@
 /**
- * to do:
- * - flashlight message, gtfo
+ * TODO:
+ * - flashlight message
  */
 
 #include <amxmodx>
 #include <fakemeta>
-#include <cvar_util>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::Flashlight"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "Quaker"
 
 new g_msg_Flashlight;
 
-new g_fwd_cmdstart;
-new g_fwd_addtofullpack;
+new g_cvar_flashlight;
 
 new g_player_flashlight[33];
 
@@ -24,26 +22,12 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	new cvar_pointer = get_cvar_pointer( "mp_flashlight" );
-	CvarSetBounds( cvar_pointer, CvarBound_Lower, true, 0.0 );
-	CvarSetBounds( cvar_pointer, CvarBound_Upper, true, 1.0 );
-	CvarHookChange( cvar_pointer, "cvarhook_flashlight" );
+	register_forward(FM_CmdStart, "fwd_CmdStart");
+	register_forward(FM_AddToFullPack, "fwd_AddToFullPack", true);
+	
+	g_cvar_flashlight = get_cvar_pointer("mp_flashlight");
 	
 	g_msg_Flashlight = get_user_msgid( "Flashlight" );
-}
-
-public cvarhook_flashlight( cvar_handle, old_value[], new_value[], cvar_name[] )
-{
-	if( str_to_num( new_value ) )
-	{
-		g_fwd_cmdstart = register_forward( FM_CmdStart, "fwd_CmdStart" );
-		g_fwd_addtofullpack = register_forward( FM_AddToFullPack, "fwd_AddToFullPack", true );
-	}
-	else
-	{
-		unregister_forward( FM_CmdStart, g_fwd_cmdstart );
-		unregister_forward( FM_AddToFullPack, g_fwd_addtofullpack, true );
-	}
 }
 
 public fwd_CmdStart( id, uc_handle, seed )
@@ -70,6 +54,17 @@ public fwd_AddToFullPack( es_handle, e, ent, host, hostflags, player, pset )
 
 public clcmd_Flashlight( id )
 {
+	if(!get_pcvar_num(g_cvar_flashlight)) {
+		// TODO: print "Flashlight disabled by the server"
+		
+		if(g_player_flashlight[id]) {
+			g_player_flashlight[id] = false;
+			message_Flashlight(id, 0, 100);
+		}
+		
+		return PLUGIN_HANDLED;
+	}
+	
 	g_player_flashlight[id] = !g_player_flashlight[id];
 	
 	if( g_player_flashlight[id] )
