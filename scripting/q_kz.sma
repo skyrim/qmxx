@@ -1539,6 +1539,11 @@ public clcmd_Stuck( id )
 		return PLUGIN_HANDLED;
 	}
 	
+	if(g_player_CPcounter[id] < 2) {
+		q_kz_print(id, "%L", id, "QKZ_NOT_ENOUGH_CHECKPOINTS");
+		return PLUGIN_HANDLED;
+	}
+	
 	set_pev( id, pev_gravity, 1.0 );
 	set_pev( id, pev_velocity, Float:{ 0.0, 0.0, 0.0 } );
 	set_pev( id, pev_flags, pev( id, pev_flags ) | FL_DUCKING );
