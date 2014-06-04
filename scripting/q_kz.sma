@@ -609,6 +609,8 @@ public plugin_init( )
 	RegisterHam( Ham_Touch, "trigger_hurt", "fwd_Touch_hurt" );
 	
 	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
+	q_kz_registerForward( Q_KZ_OnCheckpoint, "forward_KZOnCheckpoint", true);
+	q_kz_registerForward( Q_KZ_OnTeleport, "forward_KZOnTeleport", true);
 	
 	register_event( "ResetHUD",	"event_ResetHUD", "b" );
 	register_event( "SpecHealth2",	"event_SpecHealth2", "bd" );
@@ -728,7 +730,7 @@ public client_putinserver( id )
 	new menu = q_menu_create( "KZ Menu", "menu_kzmenu_handler" );
 	q_menu_item_add( menu, "Checkpoint - #0" );
 	q_menu_item_add( menu, "Teleport - #0" );
-	q_menu_item_add( menu, "Stuck" );
+	q_menu_item_add( menu, "Unstuck" );
 	q_menu_item_add( menu, "Start" );
 	q_menu_item_add( menu, "Pause" );
 	q_menu_item_add( menu, "Stop" );
@@ -1059,6 +1061,18 @@ public forward_KZTimerStop( id, successful )
 {
 	if( successful && get_pcvar_num( cvar_Rewards ) ) {
 		menu_KZRewards( id );
+	}
+}
+
+public forward_KZOnCheckpoint(id) {
+	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+		menu_kzmenu(id);
+	}
+}
+
+public forward_KZOnTeleport(id) {
+	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+		menu_kzmenu(id);
 	}
 }
 
@@ -2005,6 +2019,17 @@ public menu_Chooseteam_handler( id, menu, item )
 
 public menu_kzmenu( id )
 {
+	new checkpoints[32];
+	formatex(checkpoints, charsmax(checkpoints), "Checkpoint / \y#%d", g_player_CPcounter[id]);
+	q_menu_item_set_name(g_player_kzmenu[id], 0, checkpoints);
+	
+	new teleports[32];
+	formatex(teleports, charsmax(teleports), "Teleport / \y#%d", g_player_TPcounter[id]);
+	q_menu_item_set_name(g_player_kzmenu[id], 1, teleports);
+	q_menu_item_set_enabled(g_player_kzmenu[id], 1, g_player_CPcounter[id] > 0 ? true : false);
+	
+	q_menu_item_set_enabled(g_player_kzmenu[id], 2, g_player_CPcounter[id] > 1 ? true : false);
+	
 	q_menu_display( id, g_player_kzmenu[id] );
 }
 
