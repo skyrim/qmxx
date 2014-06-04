@@ -175,6 +175,10 @@ new Array:forward_TimerStop_pre;
 new Array:forward_TimerStop_post;
 new Array:forward_TimerPause_pre;
 new Array:forward_TimerPause_post;
+new Array:forward_OnCheckpoint_pre;
+new Array:forward_OnCheckpoint_post;
+new Array:forward_OnTeleport_pre;
+new Array:forward_OnTeleport_post;
 
 new g_msg_Health;
 new g_msg_SayText;
@@ -549,6 +553,10 @@ public plugin_init( )
 	forward_TimerStop_post = ArrayCreate( 1, 1 );
 	forward_TimerPause_pre = ArrayCreate( 1, 1 );
 	forward_TimerPause_post = ArrayCreate( 1, 1 );
+	forward_OnCheckpoint_pre = ArrayCreate(1, 1);
+	forward_OnCheckpoint_post = ArrayCreate(1, 1);
+	forward_OnTeleport_pre = ArrayCreate(1, 1);
+	forward_OnTeleport_post = ArrayCreate(1, 1);
 	
 	q_kz_register_clcmd( "/cp",		"clcmd_Checkpoint" );
 	q_kz_register_clcmd( "say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check" );
@@ -1414,6 +1422,14 @@ public clcmd_Checkpoint( id )
 		return PLUGIN_HANDLED;
 	}
 	
+	for(new i = 0, size = ArraySize(forward_OnCheckpoint_pre); i < size; ++i) {
+		new ret;
+		ExecuteForward(ArrayGetCell(forward_OnCheckpoint_pre, i), ret, id);
+		if(ret == PLUGIN_HANDLED) {
+			return PLUGIN_HANDLED;
+		}
+	}
+	
 	g_player_CPorigin[id][1] = g_player_CPorigin[id][0];
 	g_player_CPangles[id][1] = g_player_CPangles[id][0];
 	
@@ -1422,6 +1438,14 @@ public clcmd_Checkpoint( id )
 	
 	++g_player_CPcounter[id];
 	q_kz_print( id, "%L #%d", id, "QKZ_CHECKPOINT", g_player_CPcounter[id] );
+	
+	for(new i = 0, size = ArraySize(forward_OnCheckpoint_post); i < size; ++i) {
+		new ret;
+		ExecuteForward(ArrayGetCell(forward_OnCheckpoint_post, i), ret, id);
+		if(ret == PLUGIN_HANDLED) {
+			return PLUGIN_HANDLED;
+		}
+	}
 	
 	return PLUGIN_HANDLED;
 }
@@ -1449,6 +1473,14 @@ public clcmd_Teleport( id )
 		return PLUGIN_HANDLED;
 	}
 	
+	for(new i = 0, size = ArraySize(forward_OnTeleport_pre); i < size; ++i) {
+		new ret;
+		ExecuteForward(ArrayGetCell(forward_OnTeleport_pre, i), ret, id);
+		if(ret == PLUGIN_HANDLED) {
+			return PLUGIN_HANDLED;
+		}
+	}
+	
 	set_pev( id, pev_gravity, 1.0 );
 	set_pev( id, pev_velocity, Float:{ 0.0, 0.0, 0.0 } );
 	set_pev( id, pev_flags, pev( id, pev_flags ) | FL_DUCKING );
@@ -1465,6 +1497,14 @@ public clcmd_Teleport( id )
 
 	++g_player_TPcounter[id];
 	q_kz_print( id, "%L #%d", id, "QKZ_TELEPORT", g_player_TPcounter[id] );
+	
+	for(new i = 0, size = ArraySize(forward_OnTeleport_post); i < size; ++i) {
+		new ret;
+		ExecuteForward(ArrayGetCell(forward_OnTeleport_post, i), ret, id);
+		if(ret == PLUGIN_HANDLED) {
+			return PLUGIN_HANDLED;
+		}
+	}
 	
 	return PLUGIN_HANDLED;
 }
@@ -2988,6 +3028,14 @@ public _q_kz_registerForward( plugin, params ) {
 	case Q_KZ_TimerPause: {
 		new phandler = CreateOneForward( plugin, handler, FP_CELL, FP_CELL );
 		ArrayPushCell( isForwardPost ? forward_TimerPause_post : forward_TimerPause_pre, phandler );
+	}
+	case Q_KZ_OnCheckpoint: {
+		new phandler = CreateOneForward(plugin, handler, FP_CELL);
+		ArrayPushCell(isForwardPost ? forward_OnCheckpoint_post : forward_OnCheckpoint_pre, phandler);
+	}
+	case Q_KZ_OnTeleport: {
+		new phandler = CreateOneForward(plugin, handler, FP_CELL);
+		ArrayPushCell(isForwardPost ? forward_OnTeleport_post : forward_OnTeleport_pre, phandler);
 	}
 	default: {
 		log_error( AMX_ERR_NATIVE, "Unknown forward type" );
