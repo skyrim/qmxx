@@ -608,9 +608,10 @@ public plugin_init( )
 	RegisterHam( Ham_Touch, "weaponbox", "fwd_Touch_weaponbox", 1 );
 	RegisterHam( Ham_Touch, "trigger_hurt", "fwd_Touch_hurt" );
 	
-	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
-	q_kz_registerForward( Q_KZ_OnCheckpoint, "forward_KZOnCheckpoint", true);
-	q_kz_registerForward( Q_KZ_OnTeleport, "forward_KZOnTeleport", true);
+	q_kz_registerForward(Q_KZ_TimerStart, "forward_KZTimerStart", true);
+	q_kz_registerForward(Q_KZ_TimerStop, "forward_KZTimerStop", true);
+	q_kz_registerForward(Q_KZ_OnCheckpoint, "forward_KZOnCheckpoint", true);
+	q_kz_registerForward(Q_KZ_OnTeleport, "forward_KZOnTeleport", true);
 	
 	register_event( "ResetHUD",	"event_ResetHUD", "b" );
 	register_event( "SpecHealth2",	"event_SpecHealth2", "bd" );
@@ -1057,11 +1058,17 @@ public QKZ_RegisterCvars( )
 	q_kz_register_cvar( cvar_Rewards, "Enable/disable KZ rewards" );
 }
 
+public forward_KZTimerStart(id) {
+	menu_kzmenu(id);
+}
+
 public forward_KZTimerStop( id, successful )
 {
 	if( successful && get_pcvar_num( cvar_Rewards ) ) {
 		menu_KZRewards( id );
 	}
+	
+	menu_kzmenu(id);
 }
 
 public forward_KZOnCheckpoint(id) {
@@ -2034,6 +2041,9 @@ public menu_kzmenu( id )
 	q_menu_item_set_enabled(g_player_kzmenu[id], 1, g_player_CPcounter[id] > 0 ? true : false);
 	
 	q_menu_item_set_enabled(g_player_kzmenu[id], 2, g_player_CPcounter[id] > 1 ? true : false);
+	
+	q_menu_item_set_enabled(g_player_kzmenu[id], 4, g_player_run_Running[id] ? true : false);
+	q_menu_item_set_enabled(g_player_kzmenu[id], 5, g_player_run_Running[id] ? true : false);
 	
 	q_menu_display( id, g_player_kzmenu[id] );
 }
