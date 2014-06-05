@@ -41,7 +41,7 @@ public plugin_precache( ) {
 public plugin_init( ) {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	q_kz_get_datadir( g_demoDirectory, charsmax(g_demoDirectory) );
+	q_kz_getDataDirectory( g_demoDirectory, charsmax(g_demoDirectory) );
 	formatex( g_demoDirectory, charsmax(g_demoDirectory), "%s/demos/", g_demoDirectory );
 	if( !dir_exists(g_demoDirectory) ) {
 		mkdir( g_demoDirectory );

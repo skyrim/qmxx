@@ -21,19 +21,19 @@
 
 /**
  *  Gets qkz version. */
-native q_kz_version( version[], len );
+native q_kz_getVersion( version[], len );
 
 /**
  *  Gets qkz data folder path. */
-native q_kz_get_datadir( path[], len );
+native q_kz_getDataDirectory( path[], len );
 
 /**
  *  Gets qkz config folder path. */
-native q_kz_get_configdir( path[], len );
+native q_kz_getConfigDirectory( path[], len );
 
 /**
- *  Gets commonly used kzq_prefix cvar string */
-native q_kz_get_prefix( output[], len );
+ *  Gets commonly used q_kz_prefix cvar string */
+native q_kz_getPrefix( output[], len );
 
 /**
  *  Prints message to user in QKZ style. */
@@ -45,71 +45,56 @@ native q_kz_saytext( id, message[], any:... );
 
 /**
  *  Terminates player's run by given id only if player is actually in a run. */
-native q_kz_terminate_run( id, reason[], any:... );
+native q_kz_player_stopTimer( id, reason[], any:... );
 
 /**
  *  Retrieves hud color from main QKZ plugin. */
-native q_kz_get_hud_color( &red, &green, &blue );
+native q_kz_getHudColor( &red, &green, &blue );
 
 /**
  *  Returns 1 or 0 */
-native q_kz_is_user_running( id );
+native q_kz_player_isTimerStarted( id );
 
 /**
  *  Returns how much time has passed since run started. */
-native Float:q_kz_get_user_runtime( id );
+native Float:q_kz_player_getTimer( id );
 
 /**
  *  Returns number of checpoints user set */
-native q_kz_get_user_cps( id );
+native q_kz_player_getCheckpoints( id );
 
 /**
  *  Returns number of teleports user did */
-native q_kz_get_user_tps( id );
+native q_kz_player_getTeleports( id );
 
 /**
  *  Returns 1 if start position is set or 0 otherwise */
-native q_kz_is_start_set( );
+native q_kz_isStartOriginFound( );
 
 /**
  *  Gets start origin if set */
-native q_kz_get_start_pos( Float:origin[3] );
+native q_kz_getStartOrigin( Float:origin[3] );
 
 /**
  *  Returns 1 if end position is set or 0 otherwise */
-native q_kz_is_end_set( );
+native q_kz_isStopOriginFound( );
 
 /**
  *  Get end origin if set */
-native q_kz_get_end_pos( Float:origin[3] );
-
-/**
- *  Returns 1 if its time for daily update or 0 otherwise */
-native q_kz_daily_update( );
+native q_kz_getStopOrigin( Float:origin[3] );
 
 /**
  *  Safer way to register clcmds for qkz extension plugins */
-native q_kz_register_clcmd( command[], handler[], flags = -1, description[] = "" );
+native q_kz_registerClcmd( command[], handler[], flags = -1, description[] = "" );
 
 /**
  *  Exactly the same as kzmenu, except that this here
  *  is for settings menu  */
-native q_kz_settings_additem( name[], handler[] );
+native q_kz_settings_add( name[], handler[] );
 
 /**
  *  Returns 1 if user is vip or 0 otherwise */
-native q_kz_is_user_vip( id );
-
-/**
- *  This seems like a cool feature to me.
- *  How it works? Well, you pass pcvar handle of cvar
- *  you wish to register and description (optional).
- *  Later when map changes or server shuts down,
- *  all registered cvars are saved automaticly
- *  in amxx_qkz.cfg. No need to worry about
- *  making cfg generator anymore. Awesome, huh?
- *  NOTE: You can register cvar only in QKZ_RegisteringCvars */
-native q_kz_register_cvar( pcvar_handle, description[] = "" );
+native q_kz_player_isVip( id );
 
 /**
  *  Registers rewards in QKZ Rewards menu.
@@ -128,7 +113,7 @@ native q_kz_register_cvar( pcvar_handle, description[] = "" );
  *  In handler function you should enable user's reward or
  *  do some weird stuff I haven't predicted.
  *  NOTE: You can call this func only in QKZ_RegisteringRewards */
-native q_kz_register_reward( name[], handler[], callback[] = "" );
+native q_kz_registerReward( name[], handler[], callback[] = "" );
 
 native Array:q_kz_getStartButtonEntities( );
 
@@ -136,7 +121,6 @@ native Array:q_kz_getStopButtonEntities( );
 
 // FORWARDS
 forward QKZ_RegisterSettings( );
-forward QKZ_RegisterCvars( );
 forward QKZ_RegisterRewards( );
 
 native q_kz_registerForward( Q_KZ_Forward:forwardType, callback[], _post = false );

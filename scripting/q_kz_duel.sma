@@ -112,7 +112,7 @@ public clcmd_duel( id, level, cid )
 		return PLUGIN_HANDLED;
 	}
 	
-	if( !q_kz_is_start_set( ) )
+	if( !q_kz_isStartOriginFound( ) )
 	{
 		client_print( id, print_chat, "Start button not found. Find and press the start button, then try duel again." );
 		return PLUGIN_HANDLED;
@@ -270,7 +270,7 @@ duel_start( duel_id )
 	g_duel_status[duel_id] = Q_KZ_DS_PREPARING;
 	
 	new Float:origin[3];
-	q_kz_get_start_pos( origin );
+	q_kz_getStartOrigin( origin );
 	
 	set_pev( g_duel_players[duel_id][0], pev_origin, origin );
 	set_pev( g_duel_players[duel_id][0], pev_flags, pev( g_duel_players[duel_id][0], pev_flags ) | FL_FROZEN );

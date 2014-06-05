@@ -28,7 +28,7 @@ public plugin_init( )
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
 	new datadir[128];
-	q_kz_get_datadir( datadir, charsmax(datadir) );
+	q_kz_getDataDirectory( datadir, charsmax(datadir) );
 	add( datadir, charsmax(datadir), "/records" );
 	
 	if( !dir_exists( datadir ) )

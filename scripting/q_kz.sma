@@ -129,10 +129,6 @@ new Array:g_settings_itemname;
 new Array:g_settings_itemplugin;
 new Array:g_settings_itemhandler;
 
-new g_cvars_registering;
-new Array:g_cvars_id;
-new Array:g_cvars_desc;
-
 new g_rewards_registering;
 new Array:g_rewards_name;
 new Array:g_rewards_plugin;
@@ -436,31 +432,30 @@ public plugin_natives( )
 	set_native_filter( "native_filter" );
 	set_module_filter( "module_filter" );
 	
-	register_library( "q_kz" );
-	register_native( "q_kz_version",		"_q_kz_version" );
-	register_native( "q_kz_get_datadir",		"_q_kz_get_datadir" );
-	register_native( "q_kz_get_configdir",		"_q_kz_get_configdir" );
-	register_native( "q_kz_get_prefix",		"_q_kz_get_prefix" );
-	register_native( "q_kz_register_clcmd",		"_q_kz_register_clcmd" );
-	register_native( "q_kz_settings_additem",	"_q_kz_settings_additem" );
-	register_native( "q_kz_register_cvar",		"_q_kz_register_cvar" );
-	register_native( "q_kz_register_reward",	"_q_kz_register_reward" );
-	register_native( "q_kz_print",			"_q_kz_print" );
-	register_native( "q_kz_saytext",		"_q_kz_saytext" );
-	register_native( "q_kz_get_hud_color",		"_q_kz_get_hud_color" );
-	register_native( "q_kz_get_user_cps",		"_q_kz_get_user_cps" );
-	register_native( "q_kz_get_user_tps",		"_q_kz_get_user_tps" );
-	register_native( "q_kz_is_user_vip",		"_q_kz_is_user_vip" );
-	register_native( "q_kz_is_user_running",	"_q_kz_is_user_running" );
-	register_native( "q_kz_terminate_run",		"_q_kz_terminate_run" );
-	register_native( "q_kz_get_user_runtime",	"_q_kz_get_user_runtime" );
-	register_native( "q_kz_is_start_set",		"_q_kz_is_start_set" );
-	register_native( "q_kz_get_start_pos",		"_q_kz_get_start_pos" );
-	register_native( "q_kz_is_end_set",		"_q_kz_is_end_set" );
-	register_native( "q_kz_get_end_pos",		"_q_kz_get_end_pos" );
-	register_native( "q_kz_getStartButtonEntities",	"_q_kz_getStartButtonEntities" );
-	register_native( "q_kz_getStopButtonEntities",	"_q_kz_getStopButtonEntities" );
-	register_native( "q_kz_registerForward",	"_q_kz_registerForward" );
+	register_library("q_kz");
+	register_native("q_kz_getVersion",			"_q_kz_getVersion");
+	register_native("q_kz_getDataDirectory",		"_q_kz_getDataDirectory");
+	register_native("q_kz_getConfigDirectory",		"_q_kz_getConfigDirectory");
+	register_native("q_kz_getPrefix",			"_q_kz_getPrefix");
+	register_native("q_kz_registerClcmd",			"_q_kz_registerClcmd");
+	register_native("q_kz_settings_add",			"_q_kz_settings_add");
+	register_native("q_kz_registerReward",			"_q_kz_registerReward");
+	register_native("q_kz_print",				"_q_kz_print");
+	register_native("q_kz_saytext",				"_q_kz_saytext");
+	register_native("q_kz_getHudColor",			"_q_kz_getHudColor");
+	register_native("q_kz_player_getCheckpoints",		"_q_kz_player_getCheckpoints");
+	register_native("q_kz_player_getTeleports",		"_q_kz_player_getTeleports");
+	register_native("q_kz_player_isVip",			"_q_kz_player_isVip");
+	register_native("q_kz_player_isTimerStarted",		"_q_kz_player_isTimerStarted");
+	register_native("q_kz_player_stopTimer",		"_q_kz_player_stopTimer");
+	register_native("q_kz_player_getTimer",			"_q_kz_player_getTimer");
+	register_native("q_kz_isStartOriginFound",		"_q_kz_isStartOriginFound");
+	register_native("q_kz_getStartOrigin",			"_q_kz_getStartOrigin");
+	register_native("q_kz_isStopOriginFound",		"_q_kz_isStopOriginFound");
+	register_native("q_kz_getStopOrigin",			"_q_kz_getStopOrigin");
+	register_native("q_kz_getStartButtonEntities",		"_q_kz_getStartButtonEntities");
+	register_native("q_kz_getStopButtonEntities",		"_q_kz_getStopButtonEntities");
+	register_native("q_kz_registerForward",			"_q_kz_registerForward");
 }
 
 public module_filter( module[] )
@@ -534,9 +529,6 @@ public plugin_init( )
 	g_settings_itemplugin = ArrayCreate( 1, 8 );
 	g_settings_itemhandler = ArrayCreate( 1, 8 );
 	
-	g_cvars_id = ArrayCreate( 1, 32 );
-	g_cvars_desc = ArrayCreate( 128, 32 );
-	
 	g_rewards_name = ArrayCreate( 32, 4 );
 	g_rewards_plugin = ArrayCreate( 1, 4 );
 	g_rewards_handler = ArrayCreate( 1, 4 );
@@ -558,43 +550,43 @@ public plugin_init( )
 	forward_OnTeleport_pre = ArrayCreate(1, 1);
 	forward_OnTeleport_post = ArrayCreate(1, 1);
 	
-	q_kz_register_clcmd( "/cp",		"clcmd_Checkpoint" );
-	q_kz_register_clcmd( "say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check" );
-	q_kz_register_clcmd( "say /check",	"clcmd_Checkpoint" );
-	q_kz_register_clcmd( "/tp",		"clcmd_Teleport" );
-	q_kz_register_clcmd( "say /tp",		"clcmd_Teleport", _,	"Teleports you back to your last saved position. Alternatives: /tele, /gc, /gocheck" );
-	q_kz_register_clcmd( "say /tele",	"clcmd_Teleport" );
-	q_kz_register_clcmd( "/gc",		"clcmd_Teleport" );
-	q_kz_register_clcmd( "say /gc",		"clcmd_Teleport" );
-	q_kz_register_clcmd( "say /gocheck",	"clcmd_Teleport" );
-	q_kz_register_clcmd( "say /stuck",	"clcmd_Stuck", _,	"Teleports you 2 checkpoints back. Alternative: /unstuck" );
-	q_kz_register_clcmd( "say /unstuck",	"clcmd_Stuck" );
-	q_kz_register_clcmd( "say /start",	"clcmd_Start", _,	"Teleport to start button position. Alternative: /begin" );
-	q_kz_register_clcmd( "say /begin",	"clcmd_Start" );
-	q_kz_register_clcmd( "say /end",	"clcmd_End", _,		"Teleport to end button position. Alternative: /finish" );
-	q_kz_register_clcmd( "say /finish",	"clcmd_End" );
-	q_kz_register_clcmd( "say /setstart",	"clcmd_SetStart", _,	"Set custom start position" );
-	q_kz_register_clcmd( "say /unsetstart",	"clcmd_UnsetStart", _,	"Remove custom start position" );
-	q_kz_register_clcmd( "say /pause",	"clcmd_Pause", _,	"Pause your current run" );
-	q_kz_register_clcmd( "say /stop",	"clcmd_Stop", _,	"Ends your current run" );
-	q_kz_register_clcmd( "say /spec",	"clcmd_Spectate", _,	"Switch to and out of spectators. Alternative: /ct" );
-	q_kz_register_clcmd( "say /unspec",	"clcmd_Spectate" );
-	q_kz_register_clcmd( "say /ct",		"clcmd_Spectate" );
-	q_kz_register_clcmd( "chooseteam",	"clcmd_Chooseteam" );
-	q_kz_register_clcmd( "say /menu",	"clcmd_kzmenu", _,	"Open menu with common commands. Alternative: /kzmenu" );
-	q_kz_register_clcmd( "say /kzmenu",	"clcmd_kzmenu" );
-	q_kz_register_clcmd( "say /settings",	"clcmd_KZSettings", _,	"Open settings menu. Alternative: /kzsettings" );
-	q_kz_register_clcmd( "say /kzsettings",	"clcmd_KZSettings" );
-	q_kz_register_clcmd( "say /maxspeed",	"clcmd_MaxSpeed", _,	"Toggle weapon speed shower on/off" );
-	q_kz_register_clcmd( "say /god",	"clcmd_GodMode", _,	"Toggle god mode on/off. Alternative: /godmode" );
-	q_kz_register_clcmd( "say /godmode",	"clcmd_GodMode" );
-	q_kz_register_clcmd( "say /nc",		"clcmd_Noclip", _,	"Toggle noclip mode on/off. Alternative: /noclip" );
-	q_kz_register_clcmd( "say /noclip",	"clcmd_Noclip" );
-	q_kz_register_clcmd( "drop",		"clcmd_Drop" );
-	q_kz_register_clcmd( "radio1",		"clcmd_Block" );
-	q_kz_register_clcmd( "radio2",		"clcmd_Block" );
-	q_kz_register_clcmd( "radio3",		"clcmd_Block" );
-	q_kz_register_clcmd( "jointeam",	"clcmd_Block" );
+	q_kz_registerClcmd( "/cp",		"clcmd_Checkpoint" );
+	q_kz_registerClcmd( "say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check" );
+	q_kz_registerClcmd( "say /check",	"clcmd_Checkpoint" );
+	q_kz_registerClcmd( "/tp",		"clcmd_Teleport" );
+	q_kz_registerClcmd( "say /tp",		"clcmd_Teleport", _,	"Teleports you back to your last saved position. Alternatives: /tele, /gc, /gocheck" );
+	q_kz_registerClcmd( "say /tele",	"clcmd_Teleport" );
+	q_kz_registerClcmd( "/gc",		"clcmd_Teleport" );
+	q_kz_registerClcmd( "say /gc",		"clcmd_Teleport" );
+	q_kz_registerClcmd( "say /gocheck",	"clcmd_Teleport" );
+	q_kz_registerClcmd( "say /stuck",	"clcmd_Stuck", _,	"Teleports you 2 checkpoints back. Alternative: /unstuck" );
+	q_kz_registerClcmd( "say /unstuck",	"clcmd_Stuck" );
+	q_kz_registerClcmd( "say /start",	"clcmd_Start", _,	"Teleport to start button position. Alternative: /begin" );
+	q_kz_registerClcmd( "say /begin",	"clcmd_Start" );
+	q_kz_registerClcmd( "say /end",		"clcmd_End", _,		"Teleport to end button position. Alternative: /finish" );
+	q_kz_registerClcmd( "say /finish",	"clcmd_End" );
+	q_kz_registerClcmd( "say /setstart",	"clcmd_SetStart", _,	"Set custom start position" );
+	q_kz_registerClcmd( "say /unsetstart",	"clcmd_UnsetStart", _,	"Remove custom start position" );
+	q_kz_registerClcmd( "say /pause",	"clcmd_Pause", _,	"Pause your current run" );
+	q_kz_registerClcmd( "say /stop",	"clcmd_Stop", _,	"Ends your current run" );
+	q_kz_registerClcmd( "say /spec",	"clcmd_Spectate", _,	"Switch to and out of spectators. Alternative: /ct" );
+	q_kz_registerClcmd( "say /unspec",	"clcmd_Spectate" );
+	q_kz_registerClcmd( "say /ct",		"clcmd_Spectate" );
+	q_kz_registerClcmd( "chooseteam",	"clcmd_Chooseteam" );
+	q_kz_registerClcmd( "say /menu",	"clcmd_kzmenu", _,	"Open menu with common commands. Alternative: /kzmenu" );
+	q_kz_registerClcmd( "say /kzmenu",	"clcmd_kzmenu" );
+	q_kz_registerClcmd( "say /settings",	"clcmd_KZSettings", _,	"Open settings menu. Alternative: /kzsettings" );
+	q_kz_registerClcmd( "say /kzsettings",	"clcmd_KZSettings" );
+	q_kz_registerClcmd( "say /maxspeed",	"clcmd_MaxSpeed", _,	"Toggle weapon speed shower on/off" );
+	q_kz_registerClcmd( "say /god",		"clcmd_GodMode", _,	"Toggle god mode on/off. Alternative: /godmode" );
+	q_kz_registerClcmd( "say /godmode",	"clcmd_GodMode" );
+	q_kz_registerClcmd( "say /nc",		"clcmd_Noclip", _,	"Toggle noclip mode on/off. Alternative: /noclip" );
+	q_kz_registerClcmd( "say /noclip",	"clcmd_Noclip" );
+	q_kz_registerClcmd( "drop",		"clcmd_Drop" );
+	q_kz_registerClcmd( "radio1",		"clcmd_Block" );
+	q_kz_registerClcmd( "radio2",		"clcmd_Block" );
+	q_kz_registerClcmd( "radio3",		"clcmd_Block" );
+	q_kz_registerClcmd( "jointeam",	"clcmd_Block" );
 	
 	register_forward( FM_EmitSound, "fwd_EmitSound" );
 	register_forward( FM_ClientKill, "fwd_ClientKill" );
@@ -679,12 +671,6 @@ public plugin_cfg( )
 	DestroyForward( mfwd );
 	g_settings_registering = false;
 	
-	g_cvars_registering = true;
-	mfwd = CreateMultiForward( "QKZ_RegisterCvars", ET_IGNORE );
-	ExecuteForward( mfwd, ret );
-	DestroyForward( mfwd );
-	g_cvars_registering = false;
-	
 	g_rewards_registering = true;
 	mfwd = CreateMultiForward( "QKZ_RegisterRewards", ET_IGNORE );
 	ExecuteForward( mfwd, ret );
@@ -694,7 +680,6 @@ public plugin_cfg( )
 
 public plugin_end( )
 {
-	save_CFG( );
 	save_ButtonPositions( );
 	
 	ArrayDestroy( g_commands );
@@ -705,9 +690,6 @@ public plugin_end( )
 	ArrayDestroy( g_settings_itemname );
 	ArrayDestroy( g_settings_itemplugin );
 	ArrayDestroy( g_settings_itemhandler );
-	
-	ArrayDestroy( g_cvars_id );
-	ArrayDestroy( g_cvars_desc );
 	
 	forward_TimerStart_pre ? ArrayDestroy( forward_TimerStart_pre ) : 0;
 	forward_TimerStart_post ? ArrayDestroy( forward_TimerStart_post ) : 0;
@@ -1031,31 +1013,7 @@ public fwd_ClientKill( id )
 
 public QKZ_RegisterSettings( )
 {
-	q_kz_settings_additem( "CP Angles", "kzsetting_CPAngles" );
-}
-
-public QKZ_RegisterCvars( )
-{
-	q_kz_register_cvar( cvar_Semiclip, "Toggle semiclip" );
-	q_kz_register_cvar( cvar_SemiclipAlpha, "Semiclip transparency value" );
-	q_kz_register_cvar( cvar_Checkpoints, "Toggle checkpoint system (cps, tps, stuck)" );
-	q_kz_register_cvar( cvar_TeleportSplash, "Toggle splash effect when teleporting (idea by fshiju)" );
-	q_kz_register_cvar( cvar_Pause, "Toggle pause command" );
-	q_kz_register_cvar( cvar_Weapons, "Toggle weapons command" );
-	q_kz_register_cvar( cvar_GodMode, "Toggle godmode command" );
-	q_kz_register_cvar( cvar_Noclip, "Toggle noclip command" );
-	q_kz_register_cvar( cvar_HPBug, "Toggle HPbug fixer" );
-	q_kz_register_cvar( cvar_PrintType, "Set messages print type: 0 - HUD; 1 - center; 2 - chat" );
-	q_kz_register_cvar( cvar_PrintPos, "If kzq_print_type is 0 (HUD) you can set message position on screen" );
-	q_kz_register_cvar( cvar_PrintColor, "If kzq_print_type is 0 (HUD) you can also set message color" );
-	q_kz_register_cvar( cvar_Prefix, "If kzq_print_type is 2, will display prefix in chat" );
-	q_kz_register_cvar( cvar_Respawn, "Toggle respawn" );
-	q_kz_register_cvar( cvar_RespawnTime, "If respawn is enabled, sets respawn time" );
-	q_kz_register_cvar( cvar_WeaponsAmmo, "Set weapons ammo: 0 - no ammo; 1 - 2 clips; 2 - full ammo" );
-	q_kz_register_cvar( cvar_WeaponsSpeed, "Toggle weapon speed shower" );
-	q_kz_register_cvar( cvar_SpawnWithMenu, "Will kzmenu be opened on player's first spawn?" );
-	q_kz_register_cvar( cvar_VipFlags, "Set what admin flags are considered as VIP" );
-	q_kz_register_cvar( cvar_Rewards, "Enable/disable KZ rewards" );
+	q_kz_settings_add( "CP Angles", "kzsetting_CPAngles" );
 }
 
 public forward_KZTimerStart(id) {
@@ -1227,7 +1185,7 @@ public event_CurWeapon( id )
 	&& iCurWeapon != g_player_run_WeaponID[id]
 	&& !( ( iCurWeapon == CSW_USP && g_player_run_WeaponID[id] == CSW_KNIFE ) || ( iCurWeapon == CSW_KNIFE && g_player_run_WeaponID[id] == CSW_USP ) ) )
 	{
-		q_kz_terminate_run( id, "" ); // FIX!
+		q_kz_player_stopTimer( id, "" ); // FIX!
 		//q_kz_print( id, "Run terminated because of weapon change" );
 		
 		run_reset( id );
@@ -1594,7 +1552,7 @@ public clcmd_Start( id )
 		set_pev( id, pev_velocity, Float:{ 0.0, 0.0, 0.0 } );
 		set_pev( id, pev_flags, pev( id, pev_flags ) | FL_DUCKING );
 		
-		q_kz_terminate_run( id, "" ); // FIX!
+		q_kz_player_stopTimer( id, "" ); // FIX!
 		//q_kz_print( id, "Custom Start - Run Terminated" );
 		
 		run_reset( id );
@@ -1773,7 +1731,7 @@ public clcmd_Stop( id )
 	
 	if( g_player_run_Running[id] )
 	{
-		q_kz_terminate_run( id, "" );
+		q_kz_player_stopTimer( id, "" );
 		
 		q_kz_print( id, "%L", id, "QKZ_RUN_STOPPED" );
 	}
@@ -2294,48 +2252,6 @@ SetWeapon( id, iWeapon = 0, bDeployAnim = false )
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-* CFG
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-save_CFG( )
-{
-	new f = fopen( g_file_config, "wt" );
-	if( !f )
-		return;
-	
-	new cvar_plugin[32];
-	new cvar_lastpluginid;
-	new cvar_pluginid;
-	new cvar_name[64];
-	new cvar_value[64];
-	new cvar_handle;
-	
-	fputs( f, "// Quaker's KZ Mod Configuration File^n" );
-	
-	new tempdesc[128];
-	for( new i = 0, size = ArraySize( g_cvars_id ); i < size; ++i )
-	{
-		new tempid = ArrayGetCell( g_cvars_id, i );
-		get_plugins_cvar( tempid, cvar_name, charsmax(cvar_name), _, cvar_pluginid, cvar_handle );
-		
-		if( cvar_pluginid != cvar_lastpluginid )
-		{
-			get_plugin( cvar_pluginid, _, _, cvar_plugin, charsmax(cvar_plugin) );
-			fprintf( f, "^n//-----------------------^n// %s^n//-----------------------^n^n", cvar_plugin );
-			
-			cvar_lastpluginid = cvar_pluginid;
-		}
-		
-		get_pcvar_string( cvar_handle, cvar_value, charsmax(cvar_value) );
-		
-		ArrayGetString( g_cvars_desc, i, tempdesc, charsmax(tempdesc) );
-		fprintf( f, "// %s^n%s ^"%s^"^n^n", tempdesc, cvar_name, cvar_value );
-	}
-	
-	fclose( f );
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Message Stocks
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -2546,8 +2462,8 @@ stock message_HostagePos( id, flag, hostageid, Float:origin[3] )
 * Natives
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// qkz_version( version[], len )
-public _q_kz_version( plugin, params )
+// q_kz_getVersion( version[], len )
+public _q_kz_getVersion( plugin, params )
 {
 	if( params != 2 )
 		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
@@ -2555,8 +2471,8 @@ public _q_kz_version( plugin, params )
 		set_string( 1, VERSION, get_param( 2 ) );
 }
 
-// qkz_get_datadir( path[], len )
-public _q_kz_get_datadir( plugin, params )
+// q_kz_getDataDirectory( path[], len )
+public _q_kz_getDataDirectory( plugin, params )
 {
 	if( params != 2 )
 		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
@@ -2564,8 +2480,8 @@ public _q_kz_get_datadir( plugin, params )
 		set_string( 1, g_dir_data, get_param( 2 ) );
 }
 
-// qkz_get_configdir( path[], len )
-public _q_kz_get_configdir( plugin, params )
+// q_kz_getConfigDirectory( path[], len )
+public _q_kz_getConfigDirectory( plugin, params )
 {
 	if( params != 2 )
 		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
@@ -2573,8 +2489,8 @@ public _q_kz_get_configdir( plugin, params )
 		set_string( 1, g_dir_config, get_param( 2 ) );
 }
 
-// qkz_get_prefix( output[], len )
-public _q_kz_get_prefix( plugin, params )
+// q_kz_getPrefix( output[], len )
+public _q_kz_getPrefix( plugin, params )
 {
 	if( params != 2 )
 	{
@@ -2640,8 +2556,8 @@ public _q_kz_print( plugin, params )
 	}
 }
 
-// qkz_terminate_run( id, reason_fmt[], any:... )
-public _q_kz_terminate_run( plugin, params )
+// q_kz_player_stopTimer( id, reason_fmt[], any:... )
+public _q_kz_player_stopTimer( plugin, params )
 {
 	if( params < 2 )
 	{
@@ -2677,7 +2593,7 @@ public _q_kz_terminate_run( plugin, params )
 	}
 }
 
-// qkz_saytext( id, msg_fmt[], any:... )
+// q_kz_saytext( id, msg_fmt[], any:... )
 public _q_kz_saytext( plugin, params )
 {
 	if( params < 2 )
@@ -2700,8 +2616,8 @@ public _q_kz_saytext( plugin, params )
 	message_SayText( id, buffer );
 }
 
-// qkz_is_user_running( id )
-public _q_kz_is_user_running( plugin, params )
+// q_kz_player_isTimerStarted( id )
+public _q_kz_player_isTimerStarted( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2720,8 +2636,8 @@ public _q_kz_is_user_running( plugin, params )
 	return g_player_run_Running[id];
 }
 
-// Float:qkz_get_user_runtime( id )
-public Float:_q_kz_get_user_runtime( plugin, params )
+// Float:q_kz_player_getTimer( id )
+public Float:_q_kz_player_getTimer( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2743,8 +2659,8 @@ public Float:_q_kz_get_user_runtime( plugin, params )
 	return 0.0;
 }
 
-// qkz_get_hud_color( &r, &g, &b )
-public _q_kz_get_hud_color( plugin, params )
+// q_kz_getHudColor( &r, &g, &b )
+public _q_kz_getHudColor( plugin, params )
 {
 	if( params != 3 )
 	{
@@ -2761,8 +2677,8 @@ public _q_kz_get_hud_color( plugin, params )
 	set_param_byref( 3, str_to_num( blue ) );
 }
 
-// qkz_settings_additem( name[], handler[] )
-public _q_kz_settings_additem( plugin, params )
+// q_kz_settings_add( name[], handler[] )
+public _q_kz_settings_add( plugin, params )
 {
 	if( params != 2 )
 	{
@@ -2804,14 +2720,14 @@ public _q_kz_settings_additem( plugin, params )
 	ArrayPushCell( g_settings_itemhandler, phandler );
 }
 
-// qkz_is_start_set( )
-public _q_kz_is_start_set( plugin, params )
+// q_kz_isStartOriginFound( )
+public _q_kz_isStartOriginFound( plugin, params )
 {
 	return g_start_bDefault;
 }
 
-// qkz_get_start_pos( Float:origin[3] )
-public _q_kz_get_start_pos( plugin, params )
+// q_kz_getStartOrigin( Float:origin[3] )
+public _q_kz_getStartOrigin( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2829,14 +2745,14 @@ public _q_kz_get_start_pos( plugin, params )
 	return 0;
 }
 
-// qkz_is_end_set( )
-public _q_kz_is_end_set( plugin, params )
+// q_kz_isStopOriginFound( )
+public _q_kz_isStopOriginFound( plugin, params )
 {
 	return g_end_bDefault;
 }
 
-// qkz_get_end_pos( Float:origin[3] )
-public _q_kz_get_end_pos( plugin, params )
+// q_kz_getStopOrigin( Float:origin[3] )
+public _q_kz_getStopOrigin( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2854,8 +2770,8 @@ public _q_kz_get_end_pos( plugin, params )
 	return 0;
 }
 
-// qkz_is_user_vip( id )
-public _q_kz_is_user_vip( plugin, params )
+// q_kz_player_isVip( id )
+public _q_kz_player_isVip( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2874,8 +2790,8 @@ public _q_kz_is_user_vip( plugin, params )
 	return g_player_VIP[id];
 }
 
-// qkz_get_user_cps( id )
-public _q_kz_get_user_cps( plugin, params )
+// q_kz_player_getCheckpoints( id )
+public _q_kz_player_getCheckpoints( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2894,8 +2810,8 @@ public _q_kz_get_user_cps( plugin, params )
 	return g_player_CPcounter[id];
 }
 
-// qkz_get_user_tps( id )
-public _q_kz_get_user_tps( plugin, params )
+// q_kz_player_getTeleports( id )
+public _q_kz_player_getTeleports( plugin, params )
 {
 	if( params != 1 )
 	{
@@ -2914,43 +2830,8 @@ public _q_kz_get_user_tps( plugin, params )
 	return g_player_TPcounter[id];
 }
 
-// qkz_register_cvars( pcvar_handle, description = "" )
-public _q_kz_register_cvar( plugin, params )
-{
-	if( params < 1 )
-	{
-		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params );
-		return;
-	}
-	
-	if( !g_cvars_registering )
-	{
-		log_error( AMX_ERR_NATIVE, "qkz_register_cvar can only be called inside ^"QKZ_RegisterCvars^" forward" );
-		return;
-	}
-	
-	new pcvar = get_param( 1 );
-	
-	new junk[1];
-	new cvar_handle;
-	for( new i = 0; i < get_plugins_cvarsnum( ); ++i )
-	{
-		get_plugins_cvar( i, junk, junk[0], _, _, cvar_handle );
-		if( cvar_handle == pcvar )
-		{
-			ArrayPushCell( g_cvars_id, i );
-			
-			new desc[128];
-			get_string( 2, desc, charsmax(desc) );
-			ArrayPushString( g_cvars_desc, desc );
-			
-			break;
-		}
-	}
-}
-
-// qkz_register_reward( name[], handler[], callback[] = "" )
-public _q_kz_register_reward( plugin, params )
+// q_kz_registerReward( name[], handler[], callback[] = "" )
+public _q_kz_registerReward( plugin, params )
 {
 	if( (params < 2) || (params > 3) )
 	{
@@ -2995,8 +2876,8 @@ public _q_kz_register_reward( plugin, params )
 	ArrayPushCell( g_rewards_callback, get_func_id( callback, plugin ) );
 }
 
-// qkz_register_clcmd( command[], handler[], flags = -1, description[] = "" );
-public _q_kz_register_clcmd( plugin, params )
+// q_kz_registerClcmd( command[], handler[], flags = -1, description[] = "" );
+public _q_kz_registerClcmd( plugin, params )
 {
 	if( params != 4 )
 	{

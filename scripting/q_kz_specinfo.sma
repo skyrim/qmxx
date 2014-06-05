@@ -84,7 +84,7 @@ public task_SpecInfo( )
 	}
 	
 	new red, green, blue;
-	q_kz_get_hud_color( red, green, blue );
+	q_kz_getHudColor( red, green, blue );
 	
 	new sz_pos[10];
 	get_pcvar_string( cvar_specinfo_pos, sz_pos, charsmax(sz_pos) );
@@ -105,8 +105,8 @@ public task_SpecInfo( )
 				if( (i == g_player_SpecID[i]) || (g_player_SpecID[i] == 0) )
 					continue;
 				
-				if( q_kz_is_user_running( g_player_SpecID[i] ) )
-					runtime = floatround( q_kz_get_user_runtime( g_player_SpecID[i] ) );
+				if( q_kz_player_isTimerStarted( g_player_SpecID[i] ) )
+					runtime = floatround( q_kz_player_getTimer( g_player_SpecID[i] ) );
 				else
 					runtime = 0;
 				
@@ -116,8 +116,8 @@ public task_SpecInfo( )
 					g_player_Country[g_player_SpecID[i]],
 					(runtime/60),
 					(runtime%60),
-					q_kz_get_user_cps( g_player_SpecID[i] ),
-					q_kz_get_user_tps( g_player_SpecID[i] ) );
+					q_kz_player_getCheckpoints( g_player_SpecID[i] ),
+					q_kz_player_getTeleports( g_player_SpecID[i] ) );
 			}
 		}
 	}

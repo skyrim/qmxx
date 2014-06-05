@@ -115,7 +115,7 @@ public client_putinserver( id ) // DRY principle died in this function
 		}
 		case 1, 2:
 		{
-			if( q_kz_is_user_vip( id ) )
+			if( q_kz_player_isVip( id ) )
 			{
 				g_player_hook[id] = HOOK_YES;
 			}
@@ -167,7 +167,7 @@ public client_putinserver( id ) // DRY principle died in this function
 public client_infochanged( id )
 {
 	new hook = get_pcvar_num( cvar_hook );
-	if( ( hook == 3 ) || ( ( hook != 0 ) && q_kz_is_user_vip( id ) ) )
+	if( ( hook == 3 ) || ( ( hook != 0 ) && q_kz_player_isVip( id ) ) )
 	{
 		g_player_hook[id] = HOOK_YES;
 	}
@@ -224,18 +224,6 @@ public forward_KZTimerStart( id ) {
 	return PLUGIN_CONTINUE;
 }
 
-public QKZ_RegisterHelp( )
-{
-	q_kz_register_help( "QKZ_HOOK" );
-	q_kz_help_additem( "QKZ_HOOK_HOWTOUSE", "QKZ_HOOK_HOWTOUSE_DESC" );
-	q_kz_help_additem( "QKZ_HOOK_HOWTOGET", "QKZ_HOOK_HOWTOGET_DESC" );
-}
-
-public QKZ_RegisterRewards( )
-{
-	q_kz_register_reward( "QKZ_HOOK", "reward_Hook_handler", "reward_HookItem_callback" );
-}
-
 public reward_Hook_handler( id )
 {
 	g_player_hook[id] = HOOK_YES;
@@ -263,7 +251,7 @@ public clcmd_HookOn( id )
 	}
 	
 	new hook = get_pcvar_num( cvar_hook );
-	if( ( hook == 0 ) || ( ( hook == 1 ) && !q_kz_is_user_vip( id ) ) )
+	if( ( hook == 0 ) || ( ( hook == 1 ) && !q_kz_player_isVip( id ) ) )
 	{
 		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
 		
@@ -277,7 +265,7 @@ public clcmd_HookOn( id )
 		return PLUGIN_HANDLED;
 	}
 	
-	q_kz_terminate_run( id, "%L", id, "QKZ_HOOK_TERMINATERUN" );
+	q_kz_player_stopTimer( id, "%L", id, "QKZ_HOOK_TERMINATERUN" );
 	
 	g_player_hook_lastused[id] = get_gametime( );
 	
@@ -312,7 +300,7 @@ public clcmd_Hook( id )
 
 public clcmd_GiveHook( id )
 {
-	if( !q_kz_is_user_vip( id ) )
+	if( !q_kz_player_isVip( id ) )
 		return PLUGIN_CONTINUE;
 	
 	if( get_pcvar_num( cvar_hook ) != 2 )

@@ -133,7 +133,7 @@ public plugin_cfg( )
 	get_mapname( g_map_Name, charsmax(g_map_Name) );
 	strtolower( g_map_Name );
 	
-	q_kz_get_datadir( g_dir_Rank, charsmax(g_dir_Rank) );
+	q_kz_getDataDirectory( g_dir_Rank, charsmax(g_dir_Rank) );
 	add( g_dir_Rank, charsmax(g_dir_Rank), "/rank" );
 	if( !dir_exists( g_dir_Rank ) )
 		mkdir( g_dir_Rank );
@@ -229,9 +229,9 @@ public forward_KZTimerStop( id, successful )
 		return;
 	}
 	
-	new Float:time = q_kz_get_user_runtime( id );
-	new cps = q_kz_get_user_cps( id );
-	new tps = q_kz_get_user_tps( id );
+	new Float:time = q_kz_player_getTimer( id );
+	new cps = q_kz_player_getCheckpoints( id );
+	new tps = q_kz_player_getTeleports( id );
 	new weapon = get_user_weapon( id );
 	
 	if( tps ) {
@@ -250,7 +250,7 @@ public forward_KZTimerStop( id, successful )
 
 public rank_updateNoob( id, Float:rtime, weapon, cps, tps )
 {
-	q_kz_get_prefix( g_plugin_Prefix, charsmax(g_plugin_Prefix) );
+	q_kz_getPrefix( g_plugin_Prefix, charsmax(g_plugin_Prefix) );
 	
 	// if player had no record (time == 0.0 or pos == -1) or his record is slower than this one
 	if( ( g_player_rank_NoobPos[id] == -1 ) || ( g_player_rank_NoobTime[id] > rtime ) )
@@ -331,7 +331,7 @@ public rank_updateNoob( id, Float:rtime, weapon, cps, tps )
 
 public rank_updatePro( id, Float:rtime, weapon )
 {
-	q_kz_get_prefix( g_plugin_Prefix, charsmax(g_plugin_Prefix) );
+	q_kz_getPrefix( g_plugin_Prefix, charsmax(g_plugin_Prefix) );
 	
 	// if player had no record (cached pos == -1) or hes record is slower than this one
 	if( ( g_player_rank_ProPos[id] == -1 ) || ( g_player_rank_ProTime[id] > rtime ) )
@@ -807,7 +807,7 @@ public clcmd_Noob10( id, level, cid )
 
 public clcmd_Rank( id, level, cid )
 {	
-	q_kz_get_prefix( g_plugin_Prefix, charsmax(g_plugin_Prefix) );
+	q_kz_getPrefix( g_plugin_Prefix, charsmax(g_plugin_Prefix) );
 	
 	new iWeapon;
 	new Float:flTime, minutes, Float:seconds;
@@ -893,6 +893,3 @@ plural( num )
 	
 	return 3;
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
