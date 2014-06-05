@@ -2664,16 +2664,16 @@ public _q_kz_terminate_run( plugin, params )
 			ExecuteForward( ArrayGetCell( forward_TimerStop_pre, i ), ret, id, false );
 		}
 		
-		for( new i = 0, size = ArraySize( forward_TimerStop_post ); i < size; ++i ) {
-			new ret;
-			ExecuteForward( ArrayGetCell( forward_TimerStop_post, i ), ret, id, false );
-		}
-		
 		run_reset( id );
 		
 		new buffer[192];
 		vdformat( buffer, charsmax(buffer), 2, 3 );
 		q_kz_print( id, buffer );
+		
+		for( new i = 0, size = ArraySize( forward_TimerStop_post ); i < size; ++i ) {
+			new ret;
+			ExecuteForward( ArrayGetCell( forward_TimerStop_post, i ), ret, id, false );
+		}
 	}
 }
 
