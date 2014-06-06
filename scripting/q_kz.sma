@@ -77,6 +77,7 @@
 new g_cookies_failed;
 
 new cvar_Checkpoints;
+new cvar_CheckpointAngles;
 new cvar_TeleportSplash;
 new cvar_Pause;
 new cvar_GodMode;
@@ -505,6 +506,7 @@ public plugin_init( )
 	get_cvar_string( "hostname", g_server_Name, charsmax(g_server_Name) );
 	
 	cvar_Checkpoints	= register_cvar( "q_kz_checkpoints",		"1" );
+	cvar_CheckpointAngles	= register_cvar("q_kz_checkpointangles",	"1");
 	cvar_TeleportSplash	= register_cvar( "q_kz_teleport_splash",	"0" );
 	cvar_Prefix		= register_cvar( "q_kz_prefix",			"QKZ" );
 	cvar_Pause 		= register_cvar( "q_kz_pause",			"1" );
@@ -738,7 +740,7 @@ public client_putinserver( id )
 	{
 		if( !q_get_cookie_num( id, "save_cp_angles", g_player_setting_CPangles[id] ) )
 		{
-			g_player_setting_CPangles[id] = false;
+			g_player_setting_CPangles[id] = get_pcvar_num(cvar_CheckpointAngles);
 		}
 	}
 	
