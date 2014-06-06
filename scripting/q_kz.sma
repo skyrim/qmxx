@@ -1019,7 +1019,9 @@ public QKZ_RegisterSettings( )
 }
 
 public forward_KZTimerStart(id) {
-	menu_kzmenu(id);
+	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+		menu_kzmenu(id);
+	}
 }
 
 public forward_KZTimerStop( id, successful )
@@ -1028,7 +1030,9 @@ public forward_KZTimerStop( id, successful )
 		menu_KZRewards( id );
 	}
 	
-	menu_kzmenu(id);
+	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+		menu_kzmenu(id);
+	}
 }
 
 public forward_KZOnCheckpoint(id) {
