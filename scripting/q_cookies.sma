@@ -17,7 +17,7 @@ public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	q_get_datadir( g_dir_cookies, charsmax(g_dir_cookies) );
+	q_getDataDirectory( g_dir_cookies, charsmax(g_dir_cookies) );
 	add( g_dir_cookies, charsmax(g_dir_cookies), "/cookies" );
 	if( !dir_exists( g_dir_cookies ) ) mkdir( g_dir_cookies );
 }

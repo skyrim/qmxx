@@ -484,7 +484,7 @@ public plugin_precache( )
 	get_mapname( g_map_Name, charsmax(g_map_Name) );
 	strtolower( g_map_Name );
 	
-	q_get_datadir( g_dir_data, charsmax(g_dir_data) );
+	q_getDataDirectory( g_dir_data, charsmax(g_dir_data) );
 	add( g_dir_data, charsmax(g_dir_data), "/kz" );
 	if( !dir_exists( g_dir_data ) ) mkdir( g_dir_data );
 	

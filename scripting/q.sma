@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "Q"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "Quaker"
 
 new g_dir_data[128];
@@ -13,12 +13,23 @@ new Array:g_cvar_name;
 new Array:g_cvar_defaultValue;
 new Array:g_cvar_description;
 
-public plugin_natives( )
-{
-	register_library( "q" );
+public plugin_natives( ) {
+	register_library("q");
 	
-	register_native( "q_get_datadir", "_q_get_datadir" );
+	register_native("q_getDataDirectory", "_q_getDataDirectory");
 	register_native("q_registerCvar", "_q_registerCvar");
+}
+
+public plugin_precache() {
+	get_localinfo("amxx_datadir", g_dir_data, charsmax(g_dir_data));
+	add(g_dir_data, charsmax(g_dir_data), "/q");
+	if(!dir_exists(g_dir_data)) {
+		mkdir(g_dir_data);
+	}
+}
+
+public plugin_init() {
+	register_plugin(PLUGIN, VERSION, AUTHOR);
 	
 	g_cvar_plugin = ArrayCreate(1, 8);
 	g_cvar_pluginCvarIndices = ArrayCreate(1, 8);
@@ -26,18 +37,6 @@ public plugin_natives( )
 	g_cvar_name = ArrayCreate(32, 8);
 	g_cvar_defaultValue = ArrayCreate(128, 8);
 	g_cvar_description = ArrayCreate(256, 8);
-}
-
-public plugin_precache( )
-{
-	get_localinfo( "amxx_datadir", g_dir_data, charsmax(g_dir_data) );
-	add( g_dir_data, charsmax(g_dir_data), "/q" );
-	if( !dir_exists( g_dir_data ) ) mkdir( g_dir_data );
-}
-
-public plugin_init( )
-{
-	register_plugin( PLUGIN, VERSION, AUTHOR );
 }
 
 public plugin_end() {
@@ -82,9 +81,9 @@ writeConfig() {
 	fclose(f);
 }
 
-public _q_get_datadir( plugin, params )
-{
-	if( params != 2 )
+// q_getDataDirectory(path[], len)
+public _q_getDataDirectory(plugin, params) {
+	if(params != 2)
 	{
 		log_error( AMX_ERR_NATIVE, "error" );
 	}
