@@ -678,6 +678,32 @@ public plugin_cfg( )
 	ExecuteForward( mfwd, ret );
 	DestroyForward( mfwd );
 	g_rewards_registering = false;
+	
+	cvar_SpawnWithMenu	= register_cvar( "q_kz_spawnwithmenu",		"1" );
+	cvar_VipFlags		= register_cvar( "q_kz_vipflags",		"a" );
+	cvar_Rewards		= register_cvar( "q_kz_rewards",		"0" );
+	
+	q_registerCvar(cvar_Checkpoints, "1", "Toggle checkpoints and checkpoint related commands.");
+	q_registerCvar(cvar_CheckpointAngles, "1", "Default toggle value for checkpoint angles setting.");
+	q_registerCvar(cvar_TeleportSplash, "0", "Toggle teleport splash effect.");
+	q_registerCvar(cvar_Prefix, "QKZ", "Prefix goes in various plugin notifications and messages.");
+	q_registerCvar(cvar_Pause, "1", "Toggle pause command.");
+	q_registerCvar(cvar_GodMode, "1", "Toggle god mode command.");
+	q_registerCvar(cvar_Noclip, "1", "Toggle noclip command.");
+	q_registerCvar(cvar_Semiclip, "1", "Toggle semiclip.");
+	q_registerCvar(cvar_SemiclipAlpha, "80", "Ammount of semiclip transparency.");
+	q_registerCvar(cvar_Weapons, "1", "Not used for now.");
+	q_registerCvar(cvar_WeaponsAmmo, "2", "Set ammo in backpack (after spawn, starting timer, ...): 0 - regular, 1 - double the ammount of bullets, 2 - full backpack");
+	q_registerCvar(cvar_WeaponsSpeed, "1", "Toggle weapon speed notification when taking a weapon.");
+	q_registerCvar(cvar_Respawn, "1", "Toggle respawn.");
+	q_registerCvar(cvar_RespawnTime, "3.0", "Time before respawning player.");
+	q_registerCvar(cvar_HPBug, "0", "Toggle hp bug fixer.");
+	q_registerCvar(cvar_PrintType, "0", "Set how to display plugin messages: 0 - HUD, 1 - chat, 2 - center screen text");
+	q_registerCvar(cvar_PrintColor, "0 100 255", "If q_kz_print_type is set to 0 (HUD), this sets color of the HUD.");
+	q_registerCvar(cvar_PrintPos, "-1.0 0.9", "If q_kz_print_type is to 0 (HUD), this sets messages position on the screen.");
+	q_registerCvar(cvar_SpawnWithMenu, "1", "Toggle if menu should appear when player spawns.");
+	q_registerCvar(cvar_VipFlags, "a", "Set flag that will treat players as VIP.");
+	q_registerCvar(cvar_Rewards, "0", "Toggle rewards for finishing the map. (There are no plugins that use this. (Yet.))");
 }
 
 public plugin_end( )

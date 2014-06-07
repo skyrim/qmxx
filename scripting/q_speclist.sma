@@ -7,13 +7,14 @@
 #include <amxmodx>
 #include <fakemeta>
 
+#include <q>
 #include <q_cookies>
 #include <q_menu>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::Speclist"
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECLIST	5750
@@ -71,6 +72,12 @@ public plugin_init() {
 	register_clcmd("speclist_color", "clcmd_speclist_color");
 	
 	set_task(TASKTIME_SPECLIST, "task_SpecList", TASKID_SPECLIST, _, _, "b");
+}
+
+public plugin_cfg() {
+	q_registerCvar(g_cvar_speclist, "1", "Toggle speclist plugin.");
+	q_registerCvar(g_cvar_speclist_position, "0.8 0.15", "Set speclist HUD position.");
+	q_registerCvar(g_cvar_speclist_color, "0 125 255", "Set speclist HUD color.");
 }
 
 public client_putinserver(id) {

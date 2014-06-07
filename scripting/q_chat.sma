@@ -2,6 +2,8 @@
 #include <fakemeta>
 #include <geoip>
 
+#include <q>
+
 #pragma semicolon 1
 
 #define PLUGIN "Q::Chat"
@@ -47,6 +49,12 @@ public plugin_cfg( )
 {
 	register_clcmd( "say", "clcmd_say" );
 	register_clcmd( "say_team", "clcmd_say" );
+	
+	q_registerCvar(cvar_allchat, "0", "Toggle allchat.");
+	q_registerCvar(cvar_teamchat, "1", "Toggle teamchat. Turning off teamchat will make all messages as allchat.");
+	q_registerCvar(cvar_countrytag, "0", "Toggle country tag in chat next to player name.");
+	q_registerCvar(cvar_deadtag, "1", "Toggle dead tag.");
+	q_registerCvar(cvar_teamtag, "1", "Toggle team tag.");
 }
 
 public client_putinserver( id )

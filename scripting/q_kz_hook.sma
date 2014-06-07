@@ -8,13 +8,14 @@
 #include <hamsandwich>
 #include <xs>
 
+#include <q>
 #include <q_kz>
 #include <q_cookies>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::KZ::Hook"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "Quaker"
 
 #define TASKID_HOOKBEAM 4817923
@@ -99,6 +100,13 @@ public plugin_init( )
 	register_forward( FM_PlayerPreThink, "fwd_PlayerPreThink" );
 	
 	q_kz_registerForward( Q_KZ_TimerStart, "forward_KZTimerStart" );
+}
+
+public plugin_cfg() {
+	q_registerCvar(cvar_hook, "3", "Set hook mode: 0 - disabled, 1 - vip only, 2 - vip and after finishing map, 3 - always available.");
+	q_registerCvar(cvar_hook_color, "255 128 64", "Default hook color.");
+	q_registerCvar(cvar_hook_color_random, "1", "Toggle random hook color for players that haven't set it yet.");
+	q_registerCvar(cvar_hook_speed, "600.0", "Default hook speed.");
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

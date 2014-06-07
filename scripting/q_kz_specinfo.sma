@@ -2,12 +2,13 @@
 #include <fakemeta>
 #include <geoip>
 
+#include <q>
 #include <q_kz>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::KZ::SpecInfo"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECINFO 5650
@@ -27,7 +28,7 @@ public plugin_init( )
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
 	cvar_specinfo = register_cvar( "q_kz_specinfo", "1" );
-	cvar_specinfo_pos = register_cvar( "q_kz_specinfo_pos_x", "-1.0 0.15" );
+	cvar_specinfo_pos = register_cvar( "q_kz_specinfo_pos", "-1.0 0.15" );
 	
 	register_event( "SpecHealth2", "event_SpecHealth2", "bd" );
 	
@@ -35,6 +36,11 @@ public plugin_init( )
 	register_clcmd( "say /kzspecinfo", "clcmd_SpecInfo" );
 	
 	set_task( TASKTIME_SPECINFO, "task_SpecInfo", TASKID_SPECINFO, _, _, "b" );
+}
+
+public plugin_cfg() {
+	q_registerCvar(cvar_specinfo, "1", "Toggle specinfo plugin.");
+	q_registerCvar(cvar_specinfo_pos, "-1.0 0.15", "Set specinfo HUD position.");
 }
 
 public setting_SpecInfo( id )

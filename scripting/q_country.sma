@@ -34,6 +34,11 @@ public plugin_init( )
 	register_clcmd( "say /country", "clcmd_country" );
 }
 
+public plugin_cfg() {
+	q_registerCvar(g_cvar_joinmessage, "0", "Toggle join message.");
+	q_registerCvar(g_cvar_leavemessage, "0", "Toggle leave message.");
+}
+
 public client_putinserver( id )
 {
 	new name[32];
