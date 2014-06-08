@@ -74,7 +74,7 @@ writeConfig() {
 			new cvarDescription[256];
 			ArrayGetString(g_cvar_description, cvarIndex, cvarDescription, charsmax(cvarDescription));
 			
-			fprintf(f, "// %s (Default: %s)^n%s %s^n^n", cvarDescription, cvarDefaultValue, cvarName, cvarValue);
+			fprintf(f, "// %s (Default: ^"%s^")^n%s ^"%s^"^n^n", cvarDescription, cvarDefaultValue, cvarName, cvarValue);
 		}
 	}
 	
@@ -127,8 +127,10 @@ public _q_registerCvar(plugin, params) {
 	
 	new defaultValue[128];
 	get_string(2, defaultValue, charsmax(defaultValue));
+	replace_all(defaultValue, charsmax(defaultValue), "^n", "");
 	new description[256];
 	get_string(3, description, charsmax(description));
+	replace_all(description, charsmax(description), "^n", "^n// ");
 	
 	new name[32];
 	new tempPointer;
