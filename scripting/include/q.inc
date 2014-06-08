@@ -19,6 +19,6 @@
 	#pragma library q
 #endif
 
-native q_get_datadir(path[], len);
+native q_getDataDirectory(path[], len);
 
 native q_registerCvar(cvarHandle, defaultValue[], description[]);
