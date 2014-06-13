@@ -34,8 +34,6 @@ public plugin_natives( )
 {
 	register_library( "q_menu" );
 	
-	register_dictionary("q_menu.txt");
-	
 	register_native( "q_menu_is_displayed", "_q_menu_is_displayed" );
 	register_native( "q_menu_current", "_q_menu_current" );
 	register_native( "q_menu_simple", "_q_menu_simple" );
@@ -71,6 +69,8 @@ public plugin_natives( )
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
+	
+	register_dictionary("q_menu.txt");
 	
 	g_menu_title = ArrayCreate( 32, 8 );
 	g_menu_subtitle = ArrayCreate( 32, 8 );

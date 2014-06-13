@@ -16,8 +16,6 @@ new Array:g_cvar_description;
 public plugin_natives() {
 	register_library("q");
 	
-	register_dictionary("q.txt");
-	
 	register_native("q_getDataDirectory", "_q_getDataDirectory");
 	register_native("q_registerCvar", "_q_registerCvar");
 }
@@ -32,6 +30,8 @@ public plugin_precache() {
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
+	
+	register_dictionary("q.txt");
 	
 	g_cvar_plugin = ArrayCreate(1, 8);
 	g_cvar_pluginCvarIndices = ArrayCreate(1, 8);
