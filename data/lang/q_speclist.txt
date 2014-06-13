@@ -1,5 +1,9 @@
 [en]
-QKZ_SL_SPECTATORLIST = Spectator list
+Q_SL_SPECLIST = Spectator list
+Q_SL_TOGGLE = Toggle spectator list
+Q_SL_SETCOLOR = Set color
 
 [sr]
-QKZ_SL_SPECTATORLIST = Lista posmatraca
+Q_SL_SPECLIST = Lista posmatraca
+Q_SL_TOGGLE = Uključi listu posmatrača
+Q_SL_SETCOLOR = Postavi boju
