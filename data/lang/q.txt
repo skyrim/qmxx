@@ -21,6 +21,7 @@ Q_NIGHTVISION = Nightvision
 Q_COLOR = Color
 Q_ALPHA = Alpha
 Q_SET = Set
+Q_CURRENT = Current
 
 [sr]
 Q_YES = Da
@@ -45,3 +46,4 @@ Q_NIGHTVISION = Nightvision
 Q_COLOR = Boja
 Q_ALPHA = Alpha
 Q_SET = Postavi
+Q_CURRENT = Trenutno
