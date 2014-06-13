@@ -13,8 +13,10 @@ new Array:g_cvar_name;
 new Array:g_cvar_defaultValue;
 new Array:g_cvar_description;
 
-public plugin_natives( ) {
+public plugin_natives() {
 	register_library("q");
+	
+	register_dictionary("q.txt");
 	
 	register_native("q_getDataDirectory", "_q_getDataDirectory");
 	register_native("q_registerCvar", "_q_registerCvar");
@@ -83,12 +85,11 @@ writeConfig() {
 
 // q_getDataDirectory(path[], len)
 public _q_getDataDirectory(plugin, params) {
-	if(params != 2)
-	{
-		log_error( AMX_ERR_NATIVE, "error" );
+	if(params != 2) {
+		log_error(AMX_ERR_NATIVE, "error");
 	}
 	
-	set_string( 1, g_dir_data, get_param( 2 ) );
+	set_string(1, g_dir_data, get_param(2));
 }
 
 // q_registerCvar(cvarPointer, defaultValue[], description[])
