@@ -1,7 +1,6 @@
 /**
  * to do:
  * - q_print instead of qkz_print
- * - hud color!
  */
 
 #include <amxmodx>
@@ -14,7 +13,7 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Speclist"
-#define VERSION "1.2"
+#define VERSION "1.3"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECLIST	5750
@@ -30,7 +29,7 @@ new g_player_name[33][32];
 new g_player_speclist[33];
 new g_player_speclist_color[33][3];
 
-new QMenu:g_menu;
+new QMenu:g_player_menu[33];
 
 public plugin_natives() {
 	set_module_filter("module_filter");
@@ -64,10 +63,6 @@ public plugin_init() {
 	g_cvar_speclist_position = register_cvar("q_speclist_position", "0.8 0.15");
 	g_cvar_speclist_color = register_cvar("q_speclist_color", "0 125 255");
 	
-	g_menu = q_menu_create("QKZ / Speclist", "menu_speclist");
-	q_menu_item_add(g_menu, "Turn on/off");
-	q_menu_item_add(g_menu, "Set color");
-	
 	register_clcmd("say /speclist", "clcmd_speclist");
 	register_clcmd("speclist_color", "clcmd_speclist_color");
 	
@@ -77,29 +72,35 @@ public plugin_init() {
 public plugin_cfg() {
 	q_registerCvar(g_cvar_speclist, "1", "Toggle speclist plugin.");
 	q_registerCvar(g_cvar_speclist_position, "0.8 0.15", "Set speclist HUD position.");
-	q_registerCvar(g_cvar_speclist_color, "0 125 255", "Set speclist HUD color.");
+	q_registerCvar(g_cvar_speclist_color, "0 125 255", "Set default speclist HUD color.");
 }
 
 public client_putinserver(id) {
 	get_user_name(id, g_player_name[id], charsmax(g_player_name[]));
 	
-	if(!g_cookies_failed) {
-		if(!q_get_cookie_num(id, "speclist_enabled", g_player_speclist[id])) {
-			g_player_speclist[id] = false;
-		}
-		
-		new color[12];
-		if(!q_get_cookie_string(id, "speclist_color", color)) {
-			get_pcvar_string(g_cvar_speclist_color, color, charsmax(color));
-		}
-		
-		new r[4], g[4], b[4];
-		parse(color, r, 4, g, 4, b, 4);
-		
-		g_player_speclist_color[id][0] = str_to_num(r);
-		g_player_speclist_color[id][1] = str_to_num(g);
-		g_player_speclist_color[id][2] = str_to_num(b);
+	if(g_cookies_failed) {
+		return;
 	}
+	
+	if(!q_get_cookie_num(id, "speclist_enabled", g_player_speclist[id])) {
+		g_player_speclist[id] = false;
+	}
+	
+	new color[12];
+	if(!q_get_cookie_string(id, "speclist_color", color)) {
+		get_pcvar_string(g_cvar_speclist_color, color, charsmax(color));
+	}
+	
+	new r[4], g[4], b[4];
+	parse(color, r, 4, g, 4, b, 4);
+	
+	g_player_speclist_color[id][0] = str_to_num(r);
+	g_player_speclist_color[id][1] = str_to_num(g);
+	g_player_speclist_color[id][2] = str_to_num(b);
+	
+	g_player_menu[id] = q_menu_create("Q::Speclist", "menu_speclist_handler");
+	q_menu_item_add(g_player_menu[id], "");
+	q_menu_item_add(g_player_menu[id], "");
 }
 
 public client_infochanged(id) {
@@ -107,33 +108,56 @@ public client_infochanged(id) {
 }
 
 public client_disconnect(id) {
-	if(!g_cookies_failed) {
-		q_set_cookie_num(id, "speclist_enabled", g_player_speclist[id]);
-		
-		new color[12];
-		formatex(color, charsmax(color), "%d %d %d",
-			g_player_speclist_color[id][0],
-			g_player_speclist_color[id][1],
-			g_player_speclist_color[id][2]);
-		q_set_cookie_string(id, "speclist_color", color);
+	if(g_cookies_failed) {
+		return;
 	}
+	
+	q_set_cookie_num(id, "speclist_enabled", g_player_speclist[id]);
+	
+	new color[12];
+	formatex(color, charsmax(color), "%d %d %d",
+		g_player_speclist_color[id][0],
+		g_player_speclist_color[id][1],
+		g_player_speclist_color[id][2]);
+	q_set_cookie_string(id, "speclist_color", color);
 }
 
 public clcmd_speclist(id, level, cid)
 {
-	q_menu_display(id, g_menu);
+	menu_speclist(id);
 	
 	return PLUGIN_HANDLED;
 }
 
-public menu_speclist(id, menu, item) {
+menu_speclist(id) {
+	new item1[32];
+	formatex(item1, charsmax(item1), "Toggle speclist: \y%s", (g_player_speclist[id] ? "ON" : "OFF"));
+	q_menu_item_set_name(g_player_menu[id], 0, item1);
+	
+	new item2[48];
+	formatex(item2, charsmax(item2), "Set color (current: \y%d %d %d\w)",
+		g_player_speclist_color[id][0],
+		g_player_speclist_color[id][1],
+		g_player_speclist_color[id][2]);
+	q_menu_item_set_name(g_player_menu[id], 1, item2);
+	q_menu_display(id, g_player_menu[id]);
+}
+
+public menu_speclist_handler(id, menu, item) {
 	switch(item) {
 		case 0: {
 			g_player_speclist[id] = !g_player_speclist[id];
 			client_print(id, print_chat, "%L: %L", id, "QKZ_SL_SPECTATORLIST", id, (g_player_speclist[id] ? "QKZ_ON" : "QKZ_OFF"));
+			
+			menu_speclist(id);
 		}
 		case 1: {
 			client_cmd(id, "messagemode speclist_color");
+			
+			menu_speclist(id);
+		}
+		default: {
+			return PLUGIN_HANDLED;
 		}
 	}
 	
@@ -152,6 +176,10 @@ public clcmd_speclist_color(id, level, cid) {
 	g_player_speclist_color[id][0] = str_to_num(r);
 	g_player_speclist_color[id][1] = str_to_num(g);
 	g_player_speclist_color[id][2] = str_to_num(b);
+	
+	if(q_menu_current(id) == g_player_menu[id]) {
+		menu_speclist(id);
+	}
 	
 	return PLUGIN_HANDLED;
 }
