@@ -130,12 +130,18 @@ public clcmd_speclist(id, level, cid)
 }
 
 menu_speclist(id) {
-	new item1[32];
-	formatex(item1, charsmax(item1), "Toggle speclist: \y%s", (g_player_speclist[id] ? "ON" : "OFF"));
+	new title[48];
+	formatex(title, charsmax(title), "Q::%L", id, "Q_SL_SPECLIST");
+	q_menu_set_title(g_player_menu[id], title);
+	
+	new item1[64];
+	formatex(item1, charsmax(item1), "%L: \y%L", id, "Q_SL_TOGGLE", id, (g_player_speclist[id] ? "Q_ON" : "Q_OFF"));
 	q_menu_item_set_name(g_player_menu[id], 0, item1);
 	
-	new item2[48];
-	formatex(item2, charsmax(item2), "Set color (current: \y%d %d %d\w)",
+	new item2[64];
+	formatex(item2, charsmax(item2), "%L (%L: \y%d %d %d\w)",
+		id, "Q_SL_SETCOLOR",
+		id, "Q_CURRENT",
 		g_player_speclist_color[id][0],
 		g_player_speclist_color[id][1],
 		g_player_speclist_color[id][2]);
@@ -147,7 +153,7 @@ public menu_speclist_handler(id, menu, item) {
 	switch(item) {
 		case 0: {
 			g_player_speclist[id] = !g_player_speclist[id];
-			client_print(id, print_chat, "%L: %L", id, "QKZ_SL_SPECTATORLIST", id, (g_player_speclist[id] ? "QKZ_ON" : "QKZ_OFF"));
+			client_print(id, print_chat, "%L: %L", id, "Q_SL_SPECLIST", id, (g_player_speclist[id] ? "Q_ON" : "Q_OFF"));
 			
 			menu_speclist(id);
 		}
