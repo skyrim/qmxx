@@ -86,7 +86,8 @@ writeConfig() {
 // q_getDataDirectory(path[], len)
 public _q_getDataDirectory(plugin, params) {
 	if(params != 2) {
-		log_error(AMX_ERR_NATIVE, "error");
+		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params);
+		return;
 	}
 	
 	set_string(1, g_dir_data, get_param(2));
