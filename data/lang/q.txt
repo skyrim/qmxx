@@ -20,6 +20,7 @@ Q_SNOW = Snow
 Q_NIGHTVISION = Nightvision
 Q_COLOR = Color
 Q_ALPHA = Alpha
+Q_SET = Set
 
 [sr]
 Q_YES = Da
@@ -43,3 +44,4 @@ Q_SNOW = Sneg
 Q_NIGHTVISION = Nightvision
 Q_COLOR = Boja
 Q_ALPHA = Alpha
+Q_SET = Postavi
