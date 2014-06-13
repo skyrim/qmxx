@@ -164,7 +164,7 @@ public clcmd_kzghost( id ) {
 }
 
 menu_kzghost( id ) {
-	new menu = q_menu_create( "KZ Ghost", "menu_kzghost_handler" );
+	new QMenu:menu = q_menu_create( "KZ Ghost", "menu_kzghost_handler" );
 	
 	if( g_player_Demo[id] != 0 ) {
 		new demoName[128] = "Select demo^nDemo: ";
@@ -200,7 +200,7 @@ public menu_kzghost_handler( id, menu, item ) {
 }
 
 menu_demolist( id ) {
-	new menu = q_menu_create( "KZ Ghost", "menu_demolist_handler" );
+	new QMenu:menu = q_menu_create( "KZ Ghost", "menu_demolist_handler" );
 	
 	new size = ArraySize( g_demoFileName );
 	if( size == 0 ) {

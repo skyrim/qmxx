@@ -23,9 +23,9 @@
 
 /**
  * @param   id  player id
- * @return      boolean value is menu currently displayed
+ * @return      true if player has any menu opened, false otherwise.
  */
-native q_menu_is_displayed( id );
+native q_menu_is_displayed(id);
 
 /**
  * Returns menu id of the currently displayed menu to a given player id.
@@ -36,7 +36,7 @@ native q_menu_is_displayed( id );
  *              QMenu_Simple = simple menu
  *              0 or greater = menu created with q_menu_create (complex menu?)
  */
-native QMenu:q_menu_current( id );
+native QMenu:q_menu_current(id);
 
 /**
  * @param  id       player id to whom the menu will be displayed or 0 for all
@@ -47,62 +47,62 @@ native QMenu:q_menu_current( id );
  *                  prototype:
  *                  public handler_func_name( id, item )
  */
-native q_menu_simple( id, keys, time, menu[], handler[] );
+native q_menu_simple(id, keys, time, menu[], handler[]);
 
-native q_menu_create( title[], handler[] );
+native QMenu:q_menu_create(title[], handler[]);
 
-native q_menu_destroy( menu_id );
+native q_menu_destroy(QMenu:menu_handle);
 
-native q_menu_display( id, menu_id, menu_time = -1, page = 0 );
+native q_menu_display(id, QMenu:menu_handle, menu_time = -1, page = 0);
 
-native q_menu_get_handler( menu_id );
+native q_menu_get_handler(QMenu:menu_handle);
 
-native q_menu_set_handler( menu_id, handler[] );
+native q_menu_set_handler(QMenu:menu_handle, handler[]);
 
-native q_menu_get_title(menu_handle, title[], len);
+native q_menu_get_title(QMenu:menu_handle, title[], len);
 
-native q_menu_set_title(menu_handle, title[]);
+native q_menu_set_title(QMenu:menu_handle, title[]);
 
-native q_menu_get_subtitle( menu_id, subtitle[], len );
+native q_menu_get_subtitle(QMenu:menu_handle, subtitle[], len);
 
-native q_menu_set_subtitle( menu_id, subtitle[] );
+native q_menu_set_subtitle(QMenu:menu_handle, subtitle[]);
 
-native q_menu_get_items_per_page( menu_id );
+native q_menu_get_items_per_page(QMenu:menu_handle);
 
-native q_menu_set_items_per_page( menu_id, per_page );
+native q_menu_set_items_per_page(QMenu:menu_handle, per_page);
 
-native q_menu_page_count( menu_id );
+native q_menu_page_count(QMenu:menu_handle);
 
-native q_menu_item_add( menu_id, name[], data[] = "", bool:pickable = true, bool:enabled = true );
+native q_menu_item_add(QMenu:menu_handle, name[], data[] = "", bool:pickable = true, bool:enabled = true);
 
-native q_menu_item_remove( menu_id, item_position );
+native q_menu_item_remove(QMenu:menu_handle, item_position);
 
-native q_menu_item_count( menu_id );
+native q_menu_item_count(QMenu:menu_handle);
 
-native q_menu_item_clear(menu_handle);
+native q_menu_item_clear(QMenu:menu_handle);
 
-native q_menu_item_get_name( menu_id, item_position, item_name[], len );
+native q_menu_item_get_name(QMenu:menu_handle, item_position, item_name[], len);
 
-native q_menu_item_set_name( menu_id, item_position, item_name[] );
+native q_menu_item_set_name(QMenu:menu_handle, item_position, item_name[]);
 
-native q_menu_item_get_data( menu_id, item_position, item_data[], len );
+native q_menu_item_get_data(QMenu:menu_handle, item_position, item_data[], len);
 
-native q_menu_item_set_data( menu_id, item_position, item_data[] );
+native q_menu_item_set_data(QMenu:menu_handle, item_position, item_data[]);
 
-native q_menu_item_get_type( menu_id, item_position );
+native q_menu_item_get_type(QMenu:menu_handle, item_position);
 
-native q_menu_item_set_type( menu_id, item_position, type );
+native q_menu_item_set_type(QMenu:menu_handle, item_position, type);
 
-native q_menu_item_get_enabled( menu_id, item_position );
+native q_menu_item_get_enabled(QMenu:menu_handle, item_position);
 
-native q_menu_item_set_enabled( menu_id, item_position, bool:enabled );
+native q_menu_item_set_enabled(QMenu:menu_handle, item_position, bool:enabled);
 
-native q_menu_item_get_pickable( menu_id, item_position );
+native q_menu_item_get_pickable(QMenu:menu_handle, item_position);
 
-native q_menu_item_set_pickable( menu_id, item_position, bool:pickable );
+native q_menu_item_set_pickable(QMenu:menu_handle, item_position, bool:pickable);
 
 /**
  * @param   title  menu title
  * @return         menu id or -1 if not found
  */
-native q_menu_find_by_title( title[] );
+native QMenu:q_menu_find_by_title(title[]);

@@ -18,7 +18,7 @@
 new g_cvar_joinmessage;
 new g_cvar_leavemessage;
 
-new g_menu;
+new QMenu:g_menu;
 
 new player_country[33][46];
 

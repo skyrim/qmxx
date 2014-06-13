@@ -164,7 +164,7 @@ new g_player_run_Paused[MAX_PLAYERS + 1];
 new g_player_run_WeaponID[MAX_PLAYERS + 1];
 new Float:g_player_run_StartTime[MAX_PLAYERS + 1];
 new Float:g_player_run_PauseTime[MAX_PLAYERS + 1];
-new g_player_kzmenu[33];
+new QMenu:g_player_kzmenu[33];
 
 new Array:forward_TimerStart_pre;
 new Array:forward_TimerStart_post;
@@ -738,7 +738,7 @@ public plugin_end( )
 
 public client_putinserver( id )
 {
-	new menu = q_menu_create( "KZ Menu", "menu_kzmenu_handler" );
+	new QMenu:menu = q_menu_create( "KZ Menu", "menu_kzmenu_handler" );
 	q_menu_item_add( menu, "Checkpoint - #0" );
 	q_menu_item_add( menu, "Teleport - #0" );
 	q_menu_item_add( menu, "Unstuck" );
@@ -1045,7 +1045,7 @@ public QKZ_RegisterSettings( )
 }
 
 public forward_KZTimerStart(id) {
-	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+	if(q_menu_current(id) == g_player_kzmenu[id]) {
 		menu_kzmenu(id);
 	}
 }
@@ -1056,19 +1056,19 @@ public forward_KZTimerStop( id, successful )
 		menu_KZRewards( id );
 	}
 	
-	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+	if(q_menu_current(id) == g_player_kzmenu[id]) {
 		menu_kzmenu(id);
 	}
 }
 
 public forward_KZOnCheckpoint(id) {
-	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+	if(q_menu_current(id) == g_player_kzmenu[id]) {
 		menu_kzmenu(id);
 	}
 }
 
 public forward_KZOnTeleport(id) {
-	if(_:q_menu_current(id) == g_player_kzmenu[id]) {
+	if(q_menu_current(id) == g_player_kzmenu[id]) {
 		menu_kzmenu(id);
 	}
 }
@@ -1942,7 +1942,7 @@ public clcmd_Drop( id )
 
 public menu_welcome( id )
 {
-	new menu = q_menu_create( "Welcome", "menu_welcome_handler" );
+	new QMenu:menu = q_menu_create( "Welcome", "menu_welcome_handler" );
 	
 	q_menu_item_add( menu, "Play" );
 	q_menu_item_add( menu, "Spec" );
@@ -1950,7 +1950,7 @@ public menu_welcome( id )
 	q_menu_display( id, menu );
 }
 
-public menu_welcome_handler( id, menu, item )
+public menu_welcome_handler( id, QMenu:menu, item )
 {
 	q_menu_destroy( menu );
 	

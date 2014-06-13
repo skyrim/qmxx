@@ -15,8 +15,8 @@
 #define VERSION "3.0"
 #define AUTHOR "Quaker"
 
-new g_menu_communities;
-new g_menu_record;
+new QMenu:g_menu_communities;
+new QMenu:g_menu_record;
 new Trie:g_recordcomm_cmd2id;
 new Array:g_recordcomm_name;
 new Array:g_recordcomm_way;

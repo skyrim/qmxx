@@ -30,7 +30,7 @@ new g_player_name[33][32];
 new g_player_speclist[33];
 new g_player_speclist_color[33][3];
 
-new g_menu;
+new QMenu:g_menu;
 
 public plugin_natives() {
 	set_module_filter("module_filter");
