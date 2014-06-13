@@ -34,6 +34,8 @@ public plugin_natives( )
 {
 	register_library( "q_menu" );
 	
+	register_dictionary("q_menu.txt");
+	
 	register_native( "q_menu_is_displayed", "_q_menu_is_displayed" );
 	register_native( "q_menu_current", "_q_menu_current" );
 	register_native( "q_menu_simple", "_q_menu_simple" );
@@ -140,7 +142,7 @@ public clcmd_menuselect( id, level, cid )
 			}
 			else
 			{
-				new menu = _:g_player_menu_id[id];
+				new QMenu:menu = g_player_menu_id[id];
 				new page = g_player_menu_page[id];
 				
 				new item;
@@ -173,7 +175,7 @@ public clcmd_menuselect( id, level, cid )
 				g_player_menu_page[id] = 0;
 				
 				new ret;
-				ExecuteForward( ArrayGetCell( g_menu_forward, menu ), ret, id, menu, item );
+				ExecuteForward( ArrayGetCell( g_menu_forward, _:menu ), ret, id, _:menu, item );
 				
 				if( ret != PLUGIN_HANDLED )
 				{
@@ -696,8 +698,8 @@ public _q_menu_page_count( plugin, params )
 		return 0;
 	}
 	
-	new menu_id = get_param( 1 );
-	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
+	new QMenu:menu_id = QMenu:get_param( 1 );
+	if( ( _:menu_id < 0 ) || ( _:menu_id >= ArraySize( g_menu_title ) ) )
 	{
 		log_error( AMX_ERR_NATIVE, "Invalid menu id %d", menu_id );
 		return -1;
@@ -763,8 +765,8 @@ public _q_menu_display( plugin, params )
 	}
 	
 	new id = get_param( 1 );
-	new menu_id = get_param( 2 );
-	if( ( menu_id < 0 ) || ( menu_id >= ArraySize( g_menu_title ) ) )
+	new QMenu:menu_id = QMenu:get_param( 2 );
+	if( ( _:menu_id < 0 ) || ( _:menu_id >= ArraySize( g_menu_title ) ) )
 	{
 		log_error( AMX_ERR_NATIVE, "Invalid menu id %d", menu_id );
 		return;
@@ -786,18 +788,18 @@ public _q_menu_display( plugin, params )
 	new menu_len;
 	
 	new menu_title[32];
-	ArrayGetString( g_menu_title, menu_id, menu_title, charsmax(menu_title) );
+	ArrayGetString( g_menu_title, _:menu_id, menu_title, charsmax(menu_title) );
 	menu_len = formatex( menu, charsmax(menu), "\r%s^n", menu_title );
 	
 	new menu_subtitle[32];
-	ArrayGetString( g_menu_subtitle, menu_id, menu_subtitle, charsmax(menu_subtitle) );
+	ArrayGetString( g_menu_subtitle, _:menu_id, menu_subtitle, charsmax(menu_subtitle) );
 	menu_len += formatex( menu[menu_len], charsmax(menu) - menu_len, "\w%s^n", menu_subtitle );
 	
 	new keys;
 	new item[64];
-	new Array:arr_items = ArrayGetCell( g_menu_item_name, menu_id );
-	new Array:arr_items_enabled = ArrayGetCell( g_menu_item_enabled, menu_id );
-	new Array:arr_items_pickable = ArrayGetCell( g_menu_item_pickable, menu_id );
+	new Array:arr_items = ArrayGetCell( g_menu_item_name, _:menu_id );
+	new Array:arr_items_enabled = ArrayGetCell( g_menu_item_enabled, _:menu_id );
+	new Array:arr_items_pickable = ArrayGetCell( g_menu_item_pickable, _:menu_id );
 	
 	new c;
 	new i = 3;
@@ -941,7 +943,7 @@ public _q_menu_display( plugin, params )
 		g_player_menu_expire[id] = Float:0xffffffff;
 	else
 		g_player_menu_expire[id] = get_gametime( ) + float(menu_time);
-	g_player_menu_forward[id] = ArrayGetCell( g_menu_forward, menu_id );
+	g_player_menu_forward[id] = ArrayGetCell( g_menu_forward, _:menu_id );
 	g_player_menu_page[id] = page;
 	
 	q_message_ShowMenu( id, MSG_ONE, _, keys, menu_time, menu );
