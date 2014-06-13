@@ -59,6 +59,10 @@ native q_menu_get_handler( menu_id );
 
 native q_menu_set_handler( menu_id, handler[] );
 
+native q_menu_get_title(menu_handle, title[], len);
+
+native q_menu_set_title(menu_handle, title[]);
+
 native q_menu_get_subtitle( menu_id, subtitle[], len );
 
 native q_menu_set_subtitle( menu_id, subtitle[] );
@@ -74,6 +78,8 @@ native q_menu_item_add( menu_id, name[], data[] = "", bool:pickable = true, bool
 native q_menu_item_remove( menu_id, item_position );
 
 native q_menu_item_count( menu_id );
+
+native q_menu_item_clear(menu_handle);
 
 native q_menu_item_get_name( menu_id, item_position, item_name[], len );
 
@@ -100,6 +106,3 @@ native q_menu_item_set_pickable( menu_id, item_position, bool:pickable );
  * @return         menu id or -1 if not found
  */
 native q_menu_find_by_title( title[] );
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
