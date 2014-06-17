@@ -13,7 +13,7 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Speclist"
-#define VERSION "1.3"
+#define VERSION "1.3.1"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECLIST	5750
@@ -23,6 +23,7 @@ new g_cookies_failed;
 
 new g_cvar_speclist;
 new g_cvar_speclist_position;
+new g_cvar_speclist_channel;
 new g_cvar_speclist_color;
 
 new g_player_name[33][32];
@@ -62,6 +63,7 @@ public plugin_init() {
 	g_cvar_speclist = register_cvar("q_speclist", "1");
 	g_cvar_speclist_position = register_cvar("q_speclist_position", "0.8 0.15");
 	g_cvar_speclist_color = register_cvar("q_speclist_color", "0 125 255");
+	g_cvar_speclist_channel = register_cvar("q_speclist_channel", "-1");
 	
 	register_clcmd("say /speclist", "clcmd_speclist");
 	register_clcmd("speclist_color", "clcmd_speclist_color");
@@ -73,6 +75,7 @@ public plugin_cfg() {
 	q_registerCvar(g_cvar_speclist, "1", "Toggle speclist plugin.");
 	q_registerCvar(g_cvar_speclist_position, "0.8 0.15", "Set speclist HUD position.");
 	q_registerCvar(g_cvar_speclist_color, "0 125 255", "Set default speclist HUD color.");
+	q_registerCvar(g_cvar_speclist_channel, "-1", "Set speclist HUD channel, so that it does not interfere with other plugins.^n(Don't touch if you don't know what you're doing)");
 }
 
 public client_putinserver(id) {
@@ -230,13 +233,15 @@ public task_SpecList(task_id) {
 	new Float:x = str_to_float(position_x);
 	new Float:y = str_to_float(position_y);
 	
+	new channel = get_pcvar_num(g_cvar_speclist_channel);
+	
 	for(new i = 1; i <= 32; ++i) {
 		set_hudmessage(
 			g_player_speclist_color[i][0],
 			g_player_speclist_color[i][1],
 			g_player_speclist_color[i][2],
 			x, y,
-			0, 0.0, 1.0, _, _, 4);
+			0, 0.0, 1.0, _, _, channel);
 		
 		if(spectated[i] && g_player_speclist[i]) {
 			show_hudmessage(i, buffer[i - 1]);
