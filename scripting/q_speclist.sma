@@ -200,6 +200,11 @@ public task_SpecList(task_id) {
 	
 	new spectated[33];
 	new spectator[33];
+	new spectatorCount[33];
+	
+	for(new i = 1; i <= 32; ++i) {
+		spectatorCount[pev(i, pev_iuser2)]++;
+	}
 	
 	new speced = 0;
 	for(new i = 1; i <= 32; ++i) {
@@ -212,7 +217,7 @@ public task_SpecList(task_id) {
 			spectator[i] = speced;
 			
 			if(buffer_len[speced] == 0) {
-				buffer_len[speced] = formatex(buffer[speced - 1], charsmax(buffer[]), "> %.12s <", g_player_name[speced]);
+				buffer_len[speced] = formatex(buffer[speced - 1], charsmax(buffer[]), "%.12s (%d):", g_player_name[speced], spectatorCount[speced]);
 			}
 			buffer_len[speced] += formatex(buffer[speced - 1][buffer_len[speced]], charsmax(buffer[]) - buffer_len[speced], "^n%.15s", g_player_name[i]);
 		}
