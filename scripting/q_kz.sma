@@ -845,7 +845,7 @@ public fwd_PlayerPreThink( id )
 {
 	if( get_pcvar_num( cvar_Semiclip ) && g_player_Alive[id] )
 	{
-		for( new i = 1; i <= 32; i++ )
+		for( new i = 1, playerCount = get_maxplayers(); i <= playerCount; i++ )
 			if( g_player_Alive[i] && ( id != i ) )
 				set_pev( i, pev_solid, SOLID_NOT );
 	}
@@ -857,7 +857,7 @@ public fwd_PlayerPostThink( id )
 {	
 	if( get_pcvar_num( cvar_Semiclip ) && g_player_Alive[id] )
 	{
-		for( new i = 1; i <= 32; i++ )
+		for( new i = 1, playerCount = get_maxplayers(); i <= playerCount; i++ )
 			if( g_player_Alive[i] && ( id != i ) )
 				set_pev( i, pev_solid, SOLID_SLIDEBOX );
 	}
@@ -2423,7 +2423,7 @@ stock message_SayText( id, const message[], any:... )
 	
 	if( id == 0 )
 	{
-		for( new i = 1; i <= 32; ++i )
+		for( new i = 1, playerCount = get_maxplayers(); i <= playerCount; ++i )
 		{
 			if( g_player_Connected[i] )
 			{
