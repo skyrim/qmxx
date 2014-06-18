@@ -38,7 +38,7 @@ new mfwd_duel_end;
 
 new QMenu:g_menu;
 
-new g_player_menuPosition[33];
+new g_player_menuPosition[33] = { -1, ... };
 
 public plugin_init( )
 {
