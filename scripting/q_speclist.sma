@@ -13,7 +13,7 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Speclist"
-#define VERSION "1.3.1"
+#define VERSION "1.3.2"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECLIST	5750
@@ -25,10 +25,13 @@ new g_cvar_speclist;
 new g_cvar_speclist_position;
 new g_cvar_speclist_channel;
 new g_cvar_speclist_color;
+new g_cvar_speclist_immunityFlags;
 
 new g_player_name[33][32];
 new g_player_speclist[33];
 new g_player_speclist_color[33][3];
+new g_player_flags[33];
+new bool:g_player_speclist_immunity[33];
 
 new QMenu:g_player_menu[33];
 
@@ -64,6 +67,7 @@ public plugin_init() {
 	g_cvar_speclist_position = register_cvar("q_speclist_position", "0.8 0.15");
 	g_cvar_speclist_color = register_cvar("q_speclist_color", "0 125 255");
 	g_cvar_speclist_channel = register_cvar("q_speclist_channel", "-1");
+	g_cvar_speclist_immunityFlags = register_cvar("q_speclist_immunityflags", "");
 	
 	register_clcmd("say /speclist", "clcmd_speclist");
 	register_clcmd("speclist_color", "clcmd_speclist_color");
@@ -76,6 +80,7 @@ public plugin_cfg() {
 	q_registerCvar(g_cvar_speclist_position, "0.8 0.15", "Set speclist HUD position.");
 	q_registerCvar(g_cvar_speclist_color, "0 125 255", "Set default speclist HUD color.");
 	q_registerCvar(g_cvar_speclist_channel, "-1", "Set speclist HUD channel, so that it does not interfere with other plugins.^n(Don't touch if you don't know what you're doing)");
+	q_registerCvar(g_cvar_speclist_immunityFlags, "", "Set which flags will admin not appear in speclist.^nAdmin has to turn on immunity with /speclist command.");
 }
 
 public client_putinserver(id) {
@@ -101,7 +106,12 @@ public client_putinserver(id) {
 	g_player_speclist_color[id][1] = str_to_num(g);
 	g_player_speclist_color[id][2] = str_to_num(b);
 	
+	g_player_flags[id] = get_user_flags(id);
+	new immunityFlags[28];
+	get_pcvar_string(g_cvar_speclist_immunityFlags, immunityFlags, charsmax(immunityFlags));
+	
 	g_player_menu[id] = q_menu_create("Q::Speclist", "menu_speclist_handler");
+	q_menu_item_add(g_player_menu[id], "");
 	q_menu_item_add(g_player_menu[id], "");
 	q_menu_item_add(g_player_menu[id], "");
 }
@@ -123,6 +133,8 @@ public client_disconnect(id) {
 		g_player_speclist_color[id][1],
 		g_player_speclist_color[id][2]);
 	q_set_cookie_string(id, "speclist_color", color);
+	
+	g_player_flags[id] = 0;
 }
 
 public clcmd_speclist(id, level, cid)
@@ -149,6 +161,23 @@ menu_speclist(id) {
 		g_player_speclist_color[id][1],
 		g_player_speclist_color[id][2]);
 	q_menu_item_set_name(g_player_menu[id], 1, item2);
+	
+	new immunityFlags[28];
+	new item3[64];
+	get_pcvar_string(g_cvar_speclist_immunityFlags, immunityFlags, charsmax(immunityFlags));
+	if(g_player_flags[id] & read_flags(immunityFlags)) {
+		formatex(item3, charsmax(item3), "%L: \y%L",
+			id, "Q_SL_TOGGLEIMMUNITY",
+			id, (g_player_speclist_immunity[id] ? "Q_ON" : "Q_OFF"));
+		q_menu_item_set_name(g_player_menu[id], 2, item3);
+		q_menu_item_set_enabled(g_player_menu[id], 2, true);
+	}
+	else {
+		formatex(item3, charsmax(item3), "%L", id, "Q_SL_NOIMMUNITYPRIVILEGE");
+		q_menu_item_set_name(g_player_menu[id], 2, item3);
+		q_menu_item_set_enabled(g_player_menu[id], 2, false);
+	}
+	
 	q_menu_display(id, g_player_menu[id]);
 }
 
@@ -162,6 +191,11 @@ public menu_speclist_handler(id, menu, item) {
 		}
 		case 1: {
 			client_cmd(id, "messagemode speclist_color");
+			
+			menu_speclist(id);
+		}
+		case 2: {
+			g_player_speclist_immunity[id] = !g_player_speclist_immunity[id];
 			
 			menu_speclist(id);
 		}
@@ -211,7 +245,7 @@ public task_SpecList(task_id) {
 	
 	new speced = 0;
 	for(new i = 1; i <= 32; ++i) {
-		if(!is_user_connected(i)) {
+		if(!is_user_connected(i) || g_player_speclist_immunity[i]) {
 			continue;
 		}
 		
