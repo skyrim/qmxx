@@ -1,12 +1,14 @@
 #include <amxmodx>
 #include <fakemeta>
 
+#include <q>
+#include <q_menu>
 #include <q_kz>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::KZ::Duel"
-#define VERSION "1.0"
+#define VERSION "0.9 alpha"
 #define AUTHOR "Quaker"
 
 #define MAX_DUELS 16
@@ -14,6 +16,8 @@
 #define DUEL_CONSIDERING_TIME 10.0
 
 #define TASKID_DUEL_TIMEOUT 489234
+
+//#define DEBUG
 
 enum Q_KZ_DuelStatus
 {
@@ -32,6 +36,10 @@ new g_player_duel[33];
 new mfwd_duel_start;
 new mfwd_duel_end;
 
+new QMenu:g_menu;
+
+new g_player_menuPosition[33];
+
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
@@ -49,11 +57,18 @@ public plugin_init( )
 	mfwd_duel_end = CreateMultiForward( "q_kz_duel_end", ET_IGNORE, FP_CELL, FP_CELL );
 	
 	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
+	
+	g_menu = q_menu_create("Q KZ Duel", "menu_duel_handler");
 }
 
 public client_connect( id )
 {
 	g_player_duel[id] = -1;
+	
+	new name[32];
+	get_user_name(id, name, charsmax(name));
+	g_player_menuPosition[id] = q_menu_item_count(g_menu);
+	q_menu_item_add(g_menu, name);
 }
 
 public client_disconnect( id )
@@ -78,62 +93,94 @@ public client_disconnect( id )
 			duel_disconnect( id );
 		}
 	}
+	
+	q_menu_item_remove(g_menu, g_player_menuPosition[id]);
+	for(new i = 1, size = get_maxplayers(); i <= size; ++i) {
+		if(g_player_menuPosition[i] > g_player_menuPosition[id]) {
+			g_player_menuPosition[i]--;
+		}
+	}
+	g_player_menuPosition[id] = -1;
 }
 
-public clcmd_duel( id, level, cid )
-{
-	new target;
-	new body;
-	get_user_aiming( id, target, body );
+public menu_duel(id) {
+	q_menu_item_set_enabled(g_menu, g_player_menuPosition[id], false);
 	
-	if( g_player_duel[id] > -1 )
-	{
-		if( g_duel_status[g_player_duel[id]] == Q_KZ_DS_CONSIDERING )
-		{
-			client_print( id, print_chat, "You already challenged someone to duel. Wait for response." );
-			return PLUGIN_HANDLED;
-		}
-		else
-		{
-			client_print( id, print_chat, "You already dueling. Finish the duel or surrender, then try again." );
-			return PLUGIN_HANDLED;
+	q_menu_display(id, g_menu);
+	
+	q_menu_item_set_enabled(g_menu, g_player_menuPosition[id], true);
+}
+
+public menu_duel_handler(id, menu, item) {
+	new opponentPicked;
+	for(new i = 1, size = get_maxplayers(); i < size; ++i) {
+		if(g_player_menuPosition[i] == item) {
+			opponentPicked = i;
 		}
 	}
 	
-	if( !is_user_connected( target ) )
-	{
-		client_print( id, print_chat, "You must aim at someone you want to duel." );
-		return PLUGIN_HANDLED;
-	}
-	
-	if( g_player_duel[target] > -1 )
-	{
-		client_print( id, print_chat, "He is already in a duel." );
-		return PLUGIN_HANDLED;
-	}
-	
-	if( !q_kz_isStartOriginFound( ) )
-	{
-		client_print( id, print_chat, "Start button not found. Find and press the start button, then try duel again." );
-		return PLUGIN_HANDLED;
-	}
-		
-	duel_create( id, target );
-	
-	new name[32];
-	get_user_name( id, name, charsmax(name) );
-	client_print( target, print_chat, "%s challenges you in a duel. Say /accept, /reject or ignore this message.", name );
-	
-	if( is_user_bot( target ) )
-		set_task( 2.0, "wtf", target );
+	challenge(id, opponentPicked);
 	
 	return PLUGIN_HANDLED;
 }
 
+challenge(id, opponent) {
+	if(g_player_duel[id] > -1) {
+		if(g_duel_status[g_player_duel[id]] == Q_KZ_DS_CONSIDERING) {
+			client_print(id, print_chat, "You already challenged someone to duel. Wait for response.");
+			return PLUGIN_HANDLED;
+		}
+		else {
+			client_print(id, print_chat, "You already dueling. Finish the duel or surrender, then try again.");
+			return PLUGIN_HANDLED;
+		}
+	}
+	
+	if(!is_user_connected(opponent)) {
+		client_print(id, print_chat, "You must aim at someone you want to duel.");
+		return PLUGIN_HANDLED;
+	}
+	
+	if(g_player_duel[opponent] > -1) {
+		client_print(id, print_chat, "He is already in a duel.");
+		return PLUGIN_HANDLED;
+	}
+	
+	if(!q_kz_isStartOriginFound()) {
+		client_print(id, print_chat, "Start button not found. Find and press the start button, then try duel again.");
+		return PLUGIN_HANDLED;
+	}
+		
+	duel_create(id, opponent);
+	
+	new name[32];
+	get_user_name(id, name, charsmax(name));
+	client_print(opponent, print_chat, "%s challenges you in a duel. Say /accept, /reject or ignore this message.", name);
+	
+	if(is_user_bot(opponent)) {
+#if defined DEBUG
+		set_task(2.0, "wtf", opponent);
+#else
+		client_print(id, print_chat, "You cannot challenge a bot.");
+#endif
+	}
+
+	return PLUGIN_HANDLED;
+}
+
+#if defined DEBUG
 public wtf( id )
 {
 	if( is_user_connected( id ) )
 		clcmd_accept( id, 0, 0 );
+}
+#endif
+
+public clcmd_duel( id, level, cid )
+{
+	menu_duel(id);
+	
+	return PLUGIN_HANDLED;
 }
 
 public clcmd_accept( id, level, cid )
