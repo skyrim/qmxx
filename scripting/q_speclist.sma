@@ -23,6 +23,7 @@ new g_cookies_failed;
 
 new g_cvar_speclist;
 new g_cvar_speclist_position;
+new g_cvar_speclist_positioninspec;
 new g_cvar_speclist_channel;
 new g_cvar_speclist_color;
 new g_cvar_speclist_immunityFlags;
@@ -64,7 +65,8 @@ public plugin_init() {
 	register_dictionary("q_speclist.txt");
 	
 	g_cvar_speclist = register_cvar("q_speclist", "1");
-	g_cvar_speclist_position = register_cvar("q_speclist_position", "0.8 0.15");
+	g_cvar_speclist_position = register_cvar("q_speclist_position", "0.8 0.1");
+	g_cvar_speclist_positioninspec = register_cvar("q_speclist_positioninspec", "0.8 0.15");
 	g_cvar_speclist_color = register_cvar("q_speclist_color", "0 125 255");
 	g_cvar_speclist_channel = register_cvar("q_speclist_channel", "-1");
 	g_cvar_speclist_immunityFlags = register_cvar("q_speclist_immunityflags", "");
@@ -271,6 +273,11 @@ public task_SpecList(task_id) {
 	new Float:x = str_to_float(position_x);
 	new Float:y = str_to_float(position_y);
 	
+	get_pcvar_string(g_cvar_speclist_positioninspec, position, charsmax(position));
+	parse(position, position_x, charsmax(position_x), position_y, charsmax(position_y));
+	new Float:xInSpec = str_to_float(position_x);
+	new Float:yInSpec = str_to_float(position_y);
+	
 	new channel = get_pcvar_num(g_cvar_speclist_channel);
 	
 	for(new i = 1; i <= maxplayers; ++i) {
@@ -282,9 +289,21 @@ public task_SpecList(task_id) {
 			0, 0.0, 1.0, _, _, channel);
 		
 		if(spectated[i] && g_player_speclist[i]) {
+			set_hudmessage(
+				g_player_speclist_color[i][0],
+				g_player_speclist_color[i][1],
+				g_player_speclist_color[i][2],
+				x, y,
+				0, 0.0, 1.0, _, _, channel);
 			show_hudmessage(i, buffer[i - 1]);
 		}
 		else if(spectator[i] && g_player_speclist[i]) {
+			set_hudmessage(
+				g_player_speclist_color[i][0],
+				g_player_speclist_color[i][1],
+				g_player_speclist_color[i][2],
+				xInSpec, yInSpec,
+				0, 0.0, 1.0, _, _, channel);
 			show_hudmessage(i, buffer[spectator[i] - 1]);
 		}
 	}
