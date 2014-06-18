@@ -59,6 +59,10 @@ public plugin_init( )
 	q_kz_registerForward( Q_KZ_TimerStop, "forward_KZTimerStop", true );
 	
 	g_menu = q_menu_create("Q KZ Duel", "menu_duel_handler");
+	
+	for(new i = 0; i < sizeof(g_player_menuPosition); ++i) {
+		g_player_menuPosition[i] = -1;
+	}
 }
 
 public client_connect( id )
