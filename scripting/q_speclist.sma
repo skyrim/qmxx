@@ -207,7 +207,7 @@ public menu_speclist_handler(id, menu, item) {
 }
 
 public clcmd_speclist_color(id, level, cid) {
-	new color[12];
+	new color[16];
 	
 	read_args(color, charsmax(color));
 	remove_quotes(color);
