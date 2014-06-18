@@ -555,9 +555,11 @@ public plugin_init( )
 	q_kz_registerClcmd( "/cp",		"clcmd_Checkpoint" );
 	q_kz_registerClcmd( "say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check" );
 	q_kz_registerClcmd( "say /check",	"clcmd_Checkpoint" );
+	q_kz_registerClcmd("say /checkpoint",	"clcmd_Checkpoint");
 	q_kz_registerClcmd( "/tp",		"clcmd_Teleport" );
 	q_kz_registerClcmd( "say /tp",		"clcmd_Teleport", _,	"Teleports you back to your last saved position. Alternatives: /tele, /gc, /gocheck" );
 	q_kz_registerClcmd( "say /tele",	"clcmd_Teleport" );
+	q_kz_registerClcmd("say /teleport",	"clcmd_Teleport");
 	q_kz_registerClcmd( "/gc",		"clcmd_Teleport" );
 	q_kz_registerClcmd( "say /gc",		"clcmd_Teleport" );
 	q_kz_registerClcmd( "say /gocheck",	"clcmd_Teleport" );
@@ -571,11 +573,13 @@ public plugin_init( )
 	q_kz_registerClcmd( "say /unsetstart",	"clcmd_UnsetStart", _,	"Remove custom start position" );
 	q_kz_registerClcmd( "say /pause",	"clcmd_Pause", _,	"Pause your current run" );
 	q_kz_registerClcmd( "say /stop",	"clcmd_Stop", _,	"Ends your current run" );
+	q_kz_registerClcmd("say /reset",	"clcmd_Stop");
 	q_kz_registerClcmd( "say /spec",	"clcmd_Spectate", _,	"Switch to and out of spectators. Alternative: /ct" );
 	q_kz_registerClcmd( "say /unspec",	"clcmd_Spectate" );
 	q_kz_registerClcmd( "say /ct",		"clcmd_Spectate" );
 	q_kz_registerClcmd( "chooseteam",	"clcmd_Chooseteam" );
 	q_kz_registerClcmd( "say /menu",	"clcmd_kzmenu", _,	"Open menu with common commands. Alternative: /kzmenu" );
+	q_kz_registerClcmd("say /kz",		"clcmd_kzmenu");
 	q_kz_registerClcmd( "say /kzmenu",	"clcmd_kzmenu" );
 	q_kz_registerClcmd( "say /settings",	"clcmd_KZSettings", _,	"Open settings menu. Alternative: /kzsettings" );
 	q_kz_registerClcmd( "say /kzsettings",	"clcmd_KZSettings" );
