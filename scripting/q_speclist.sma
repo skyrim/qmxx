@@ -79,7 +79,8 @@ public plugin_init() {
 
 public plugin_cfg() {
 	q_registerCvar(g_cvar_speclist, "1", "Toggle speclist plugin.");
-	q_registerCvar(g_cvar_speclist_position, "0.8 0.15", "Set speclist HUD position.");
+	q_registerCvar(g_cvar_speclist_position, "0.8 0.1", "Set speclist HUD position.");
+	q_registerCvar(g_cvar_speclist_positioninspec, "0.8 0.15", "Set speclist HUD position for spectators.");
 	q_registerCvar(g_cvar_speclist_color, "0 125 255", "Set default speclist HUD color.");
 	q_registerCvar(g_cvar_speclist_channel, "-1", "Set speclist HUD channel, so that it does not interfere with other plugins.^n(Don't touch if you don't know what you're doing)");
 	q_registerCvar(g_cvar_speclist_immunityFlags, "", "Set which flags will admin not appear in speclist.^nAdmin has to turn on immunity with /speclist command.");
