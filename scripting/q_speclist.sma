@@ -13,7 +13,7 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Speclist"
-#define VERSION "1.3.2"
+#define VERSION "1.3.3"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPECLIST	5750
@@ -145,37 +145,36 @@ public clcmd_speclist(id, level, cid)
 }
 
 menu_speclist(id) {
-	new title[48];
-	formatex(title, charsmax(title), "Q::%L", id, "Q_SL_SPECLIST");
-	q_menu_set_title(g_player_menu[id], title);
+	static buffer[64];
 	
-	new item1[64];
-	formatex(item1, charsmax(item1), "%L: \y%L", id, "Q_SL_TOGGLE", id, (g_player_speclist[id] ? "Q_ON" : "Q_OFF"));
-	q_menu_item_set_name(g_player_menu[id], 0, item1);
+	new QMenu:menu = g_player_menu[id];
 	
-	new item2[64];
-	formatex(item2, charsmax(item2), "%L (%L: \y%d %d %d\w)",
+	formatex(buffer, charsmax(buffer), "Q::%L", id, "Q_SL_SPECLIST");
+	q_menu_set_title(menu, buffer);
+	
+	formatex(buffer, charsmax(buffer), "%L: \y%L", id, "Q_SL_TOGGLE", id, (g_player_speclist[id] ? "Q_ON" : "Q_OFF"));
+	q_menu_item_set_name(menu, 0, buffer);
+	
+	formatex(buffer, charsmax(buffer), "%L (%L: \y%d %d %d\w)",
 		id, "Q_SL_SETCOLOR",
 		id, "Q_CURRENT",
 		g_player_speclist_color[id][0],
 		g_player_speclist_color[id][1],
 		g_player_speclist_color[id][2]);
-	q_menu_item_set_name(g_player_menu[id], 1, item2);
+	q_menu_item_set_name(menu, 1, buffer);
 	
-	new immunityFlags[28];
-	new item3[64];
-	get_pcvar_string(g_cvar_speclist_immunityFlags, immunityFlags, charsmax(immunityFlags));
-	if(g_player_flags[id] & read_flags(immunityFlags)) {
-		formatex(item3, charsmax(item3), "%L: \y%L",
+	get_pcvar_string(g_cvar_speclist_immunityFlags, buffer, charsmax(buffer));
+	if(g_player_flags[id] & read_flags(buffer)) {
+		formatex(buffer, charsmax(buffer), "%L: \y%L",
 			id, "Q_SL_TOGGLEIMMUNITY",
 			id, (g_player_speclist_immunity[id] ? "Q_ON" : "Q_OFF"));
-		q_menu_item_set_name(g_player_menu[id], 2, item3);
-		q_menu_item_set_enabled(g_player_menu[id], 2, true);
+		q_menu_item_set_name(menu, 2, buffer);
+		q_menu_item_set_enabled(menu, 2, true);
 	}
 	else {
-		formatex(item3, charsmax(item3), "%L", id, "Q_SL_NOIMMUNITYPRIVILEGE");
-		q_menu_item_set_name(g_player_menu[id], 2, item3);
-		q_menu_item_set_enabled(g_player_menu[id], 2, false);
+		formatex(buffer, charsmax(buffer), "%L", id, "Q_SL_NOIMMUNITYPRIVILEGE");
+		q_menu_item_set_name(menu, 2, buffer);
+		q_menu_item_set_enabled(menu, 2, false);
 	}
 	
 	q_menu_display(id, g_player_menu[id]);
@@ -229,22 +228,27 @@ public clcmd_speclist_color(id, level, cid) {
 
 public task_SpecList(task_id) {
 	static buffer[32][512];
-	new buffer_len[33];
 	
 	if(!get_pcvar_num(g_cvar_speclist)) {
 		return;
 	}
 	
+	new buffer_len[33];
+	
 	new spectated[33];
 	new spectator[33];
 	new spectatorCount[33];
 	
-	for(new i = 1; i <= 32; ++i) {
-		spectatorCount[pev(i, pev_iuser2)]++;
+	new maxplayers = get_maxplayers();
+	
+	for(new i = 1; i <= maxplayers; ++i) {
+		if(is_user_connected(i)) {
+			spectatorCount[pev(i, pev_iuser2)]++;
+		}
 	}
 	
 	new speced = 0;
-	for(new i = 1; i <= 32; ++i) {
+	for(new i = 1; i <= maxplayers; ++i) {
 		if(!is_user_connected(i) || g_player_speclist_immunity[i]) {
 			continue;
 		}
@@ -269,7 +273,7 @@ public task_SpecList(task_id) {
 	
 	new channel = get_pcvar_num(g_cvar_speclist_channel);
 	
-	for(new i = 1; i <= 32; ++i) {
+	for(new i = 1; i <= maxplayers; ++i) {
 		set_hudmessage(
 			g_player_speclist_color[i][0],
 			g_player_speclist_color[i][1],
