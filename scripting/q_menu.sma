@@ -64,13 +64,6 @@ public plugin_natives( )
 	register_native( "q_menu_item_set_pickable", "_q_menu_item_set_pickable" );
 	register_native( "q_menu_item_get_enabled", "_q_menu_item_get_enabled" );
 	register_native( "q_menu_item_set_enabled", "_q_menu_item_set_enabled" );
-}
-
-public plugin_init( )
-{
-	register_plugin( PLUGIN, VERSION, AUTHOR );
-	
-	register_dictionary("q_menu.txt");
 	
 	g_menu_title = ArrayCreate( 32, 8 );
 	g_menu_subtitle = ArrayCreate( 32, 8 );
@@ -80,7 +73,13 @@ public plugin_init( )
 	g_menu_item_data = ArrayCreate( 1, 8 );
 	g_menu_item_enabled = ArrayCreate( 1, 8 );
 	g_menu_item_pickable = ArrayCreate( 1, 8 );
+}
+
+public plugin_init( )
+{
+	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
+	register_dictionary("q_menu.txt");
 	
 	register_clcmd( "menuselect", "clcmd_menuselect" );
 }
