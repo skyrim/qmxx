@@ -2761,8 +2761,14 @@ public Float:_q_kz_player_getTimer( plugin, params )
 		return 0.0;
 	}
 	
-	if( g_player_run_Running[id] )
-		return ( get_gametime( ) - g_player_run_StartTime[id] );
+	if(g_player_run_Running[id]) {
+		if(g_player_run_Paused[id]) {
+			return (g_player_run_PauseTime[id] - g_player_run_StartTime[id]);
+		}
+		else {
+			return (get_gametime() - g_player_run_StartTime[id]);
+		}
+	}
 	
 	return 0.0;
 }
