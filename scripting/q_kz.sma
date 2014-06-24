@@ -3355,6 +3355,9 @@ run_reset( id )
 	g_player_CPcounter[id]		 = 0;
 	g_player_TPcounter[id]		 = 0;
 	g_player_run_Running[id]	 = false;
+	if(g_player_run_Paused[id]) {
+		set_pev(id, pev_flags, pev(id, pev_flags) & ~FL_FROZEN);
+	}
 	g_player_run_Paused[id]		 = false;
 	g_player_run_WeaponID[id]	 = 0;
 	g_player_run_StartTime[id]	 = 0.0;
