@@ -20,7 +20,7 @@
 #pragma semicolon 1
 
 #define PLUGIN  "Q::KZ"
-#define VERSION "1.0"
+#define VERSION "1.1b"
 #define AUTHOR  "Quaker"
 
 #define SET_BITVECTOR(%1,%2) (%1[%2>>5] |=  (1<<(%2 & 31)))
@@ -97,6 +97,7 @@ new cvar_HPBug;
 new cvar_SpawnWithMenu;
 new cvar_VipFlags;
 new cvar_Rewards;
+new g_cvar_command_save;
 
 new g_dir_data[128];
 new g_dir_config[128];
@@ -165,6 +166,12 @@ new g_player_run_WeaponID[MAX_PLAYERS + 1];
 new Float:g_player_run_StartTime[MAX_PLAYERS + 1];
 new Float:g_player_run_PauseTime[MAX_PLAYERS + 1];
 new QMenu:g_player_kzmenu[33];
+new bool:g_player_psave_exists[33];
+new Float:g_player_psave_time[33];
+new g_player_psave_checkpoints[33];
+new g_player_psave_teleports[33];
+new g_player_psave_weapon[33];
+new Float:g_player_psave_origin[33][3];
 
 new Array:forward_TimerStart_pre;
 new Array:forward_TimerStart_post;
@@ -526,6 +533,7 @@ public plugin_init( )
 	cvar_SpawnWithMenu	= register_cvar( "q_kz_spawnwithmenu",		"1" );
 	cvar_VipFlags		= register_cvar( "q_kz_vipflags",		"a" );
 	cvar_Rewards		= register_cvar( "q_kz_rewards",		"0" );
+	g_cvar_command_save	= register_cvar("q_kz_command_save",		"1");
 	
 	g_settings_itemname = ArrayCreate( 32, 8 );
 	g_settings_itemplugin = ArrayCreate( 1, 8 );
@@ -576,6 +584,8 @@ public plugin_init( )
 	q_kz_registerClcmd("say /reset",	"clcmd_Stop");
 	q_kz_registerClcmd( "say /spec",	"clcmd_Spectate", _,	"Switch to and out of spectators. Alternative: /ct" );
 	q_kz_registerClcmd( "say /unspec",	"clcmd_Spectate" );
+	q_kz_registerClcmd("say /save",		"clcmd_save");
+	q_kz_registerClcmd("say /restore",	"clcmd_restore");
 	q_kz_registerClcmd( "say /ct",		"clcmd_Spectate" );
 	q_kz_registerClcmd( "chooseteam",	"clcmd_Chooseteam" );
 	q_kz_registerClcmd( "say /menu",	"clcmd_kzmenu", _,	"Open menu with common commands. Alternative: /kzmenu" );
@@ -608,6 +618,7 @@ public plugin_init( )
 	
 	q_kz_registerForward(Q_KZ_TimerStart, "forward_KZTimerStart", true);
 	q_kz_registerForward(Q_KZ_TimerStop, "forward_KZTimerStop", true);
+	q_kz_registerForward(Q_KZ_TimerStop, "psave_onTimerStop", true);
 	q_kz_registerForward(Q_KZ_OnCheckpoint, "forward_KZOnCheckpoint", true);
 	q_kz_registerForward(Q_KZ_OnTeleport, "forward_KZOnTeleport", true);
 	
@@ -659,6 +670,8 @@ public plugin_init( )
 	load_ButtonPositions( );
 	find_Buttons( );
 	find_Healer( );
+	
+	psave_onPluginInit();
 }
 
 public plugin_cfg( )
@@ -708,6 +721,7 @@ public plugin_cfg( )
 	q_registerCvar(cvar_SpawnWithMenu, "1", "Toggle if menu should appear when player spawns.");
 	q_registerCvar(cvar_VipFlags, "a", "Set flag that will treat players as VIP.");
 	q_registerCvar(cvar_Rewards, "0", "Toggle rewards for finishing the map. (There are no plugins that use this. (Yet.))");
+	q_registerCvar(g_cvar_command_save, "1", "Toggle /save command.");
 }
 
 public plugin_end( )
@@ -734,6 +748,8 @@ public plugin_end( )
 	ArrayDestroy( g_rewards_plugin );
 	ArrayDestroy( g_rewards_handler );
 	ArrayDestroy( g_rewards_callback );
+	
+	psave_onPluginEnd();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -780,6 +796,8 @@ public client_putinserver( id )
 	{
 		g_player_VIP[id] = true;
 	}
+	
+	psave_onPlayerJoin(id);
 }
 
 public client_infochanged( id )
@@ -822,6 +840,8 @@ public client_disconnect( id )
 	{
 		q_set_cookie_num( id, "save_cp_angles", g_player_setting_CPangles[id] );
 	}
+	
+	psave_onPlayerLeave(id);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -1936,6 +1956,58 @@ public clcmd_Drop( id )
 	{
 		q_kz_print( id, "%L", id, "QKZ_DROP" );
 	}
+	
+	return PLUGIN_HANDLED;
+}
+
+public clcmd_save(id, level, cid) {
+	if(!get_pcvar_num(g_cvar_command_save)) {
+		q_kz_print(id, "%L", id, "Q_KZ_CMD_DISABLED");
+		return PLUGIN_HANDLED;
+	}
+	
+	if(!g_player_Alive[id]) {
+		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		return PLUGIN_HANDLED;
+	}
+	
+	if(!(pev(id, pev_flags) & FL_ONGROUND2)) {
+		q_kz_print(id, "%L", id, "QKZ_NOT_ONGROUND");
+		return PLUGIN_HANDLED;
+	}
+	
+	if(!g_player_run_Running[id]) {
+		q_kz_print(id, "%L", id, "QKZ_NOT_IN_RUN");
+		return PLUGIN_HANDLED;
+	}
+	
+	psave_save(id);
+	
+	return PLUGIN_HANDLED;
+}
+
+public clcmd_restore(id, level, cid) {
+	if(!get_pcvar_num(g_cvar_command_save)) {
+		q_kz_print(id, "%L", id, "Q_KZ_CMD_DISABLED");
+		return PLUGIN_HANDLED;
+	}
+	
+	if(!g_player_Alive[id]) {
+		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		return PLUGIN_HANDLED;
+	}
+	
+	if(g_player_run_Running[id]) {
+		q_kz_print(id, "Not allowed in run");
+		return PLUGIN_HANDLED;
+	}
+	
+	if(!g_player_psave_exists[id]) {
+		q_kz_print(id, "You don't have a saved timer to restore");
+		return PLUGIN_HANDLED;
+	}
+	
+	psave_restore(id);
 	
 	return PLUGIN_HANDLED;
 }
@@ -3287,6 +3359,205 @@ run_reset( id )
 	
 	if( task_exists( TASKID_ROUNDTIME + id ) )
 		remove_task( TASKID_ROUNDTIME + id );
+}
+
+psave_save(id) {
+	g_player_psave_time[id] = q_kz_player_getTimer(id);
+	g_player_psave_checkpoints[id] = g_player_CPcounter[id];
+	g_player_psave_teleports[id] = g_player_TPcounter[id];
+	g_player_psave_weapon[id] = g_player_run_WeaponID[id];
+	pev(id, pev_origin, g_player_psave_origin[id]);
+	
+	q_kz_player_stopTimer(id, "Timer saved");
+	
+	g_player_psave_exists[id] = true;
+}
+
+psave_restore(id) {
+	if(!g_player_psave_exists[id]) {
+		return;
+	}
+	
+	fm_give_item(id, g_sz_WeaponEntName[g_player_psave_weapon[id]]);
+	event_RunStart(id);
+	g_player_run_StartTime[id] = get_gametime() - g_player_psave_time[id];
+	g_player_CPcounter[id] = g_player_psave_checkpoints[id];
+	g_player_TPcounter[id] = g_player_psave_teleports[id];
+	g_player_CPorigin[id][0] = g_player_psave_origin[id];
+	g_player_CPorigin[id][1] = g_player_psave_origin[id];
+	set_pev(id, pev_gravity, 1.0);
+	set_pev(id, pev_velocity, Float:{0.0, 0.0, 0.0});
+	set_pev(id, pev_flags, pev(id, pev_flags) | FL_DUCKING);
+	set_pev(id, pev_origin, g_player_CPorigin[id][0]);
+	clcmd_Pause(id);
+	
+	g_player_psave_exists[id] = false;
+}
+
+psave_onPlayerJoin(id) {
+	g_player_psave_exists[id] = false;
+	
+	new filePath[128];
+	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
+	new f = fopen(filePath, "r+b");
+	if(!f) {
+		return;
+	}
+	
+	new authId[40];
+	get_user_authid(id, authId, charsmax(authId));
+	
+	new headerLength;
+	fread(f, headerLength, BLOCK_INT);
+	fseek(f, headerLength, SEEK_CUR); // skip header content
+	
+	new entryCount;
+	fread(f, entryCount, BLOCK_INT);
+	new mapName[32];
+	new playerAuthId[40];
+	for(new i = 0; i < entryCount; ++i) {
+		fread_blocks(f, mapName, sizeof(mapName), BLOCK_BYTE);
+		if(!equali(mapName, g_map_Name)) {
+			fseek(f, 68, SEEK_CUR);
+			continue;
+		}
+		
+		fread_blocks(f, playerAuthId, sizeof(playerAuthId), BLOCK_BYTE);
+		if(!equali(authId, playerAuthId)) {
+			fseek(f, 28, SEEK_CUR);
+			continue;
+		}
+		
+		g_player_psave_exists[id] = true;
+		fread(f, _:g_player_psave_time[id], BLOCK_INT);
+		fread(f, g_player_psave_checkpoints[id], BLOCK_INT);
+		fread(f, g_player_psave_teleports[id], BLOCK_INT);
+		fread(f, g_player_psave_weapon[id], BLOCK_INT);
+		fread_blocks(f, _:g_player_psave_origin[id], sizeof(g_player_psave_origin[]), BLOCK_INT);
+		
+		fseek(f, -100, SEEK_CUR);
+		fwrite(f, 0, BLOCK_BYTE); // nullify last entry
+		
+		break;
+	}
+	
+	fclose(f);
+}
+
+psave_onPlayerLeave(id) {
+	if(!g_player_psave_exists[id]) {
+		return;
+	}
+	
+	g_player_psave_exists[id] = false;
+	
+	new filePath[128];
+	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
+	new f = fopen(filePath, "r+b");
+	if(!f) {
+		// log weird error?
+		return;
+	}
+	
+	// skip header
+	new headerLength;
+	fread(f, headerLength, BLOCK_INT);
+	fseek(f, headerLength, SEEK_CUR);
+	
+	// increment entry count
+	new entryCount;
+	fread(f, entryCount, BLOCK_INT);
+	fseek(f, -4, SEEK_CUR);
+	fwrite(f, ++entryCount, BLOCK_INT);
+	
+	// goto end of the file
+	fseek(f, 0, SEEK_END);
+	
+	new authId[40];
+	get_user_authid(id, authId, charsmax(authId));
+	
+	// add another entry
+	fwrite_blocks(f, g_map_Name, sizeof(g_map_Name), BLOCK_BYTE);
+	fwrite_blocks(f, authId, sizeof(authId), BLOCK_BYTE);
+	fwrite(f, _:g_player_psave_time[id], BLOCK_INT);
+	fwrite(f, g_player_psave_checkpoints[id], BLOCK_INT);
+	fwrite(f, g_player_psave_teleports[id], BLOCK_INT);
+	fwrite(f, g_player_psave_weapon[id], BLOCK_INT);
+	fwrite_blocks(f, _:g_player_psave_origin[id], sizeof(g_player_psave_origin[]), BLOCK_INT);
+	
+	fclose(f);
+}
+
+psave_onPluginInit() {
+	new filePath[128];
+	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
+	if(file_exists(filePath)) {
+		return;
+	}
+	
+	new f = fopen(filePath, "wb");
+	if(!f) {
+		// log weird error?
+		return;
+	}
+	
+	fwrite(f, 0, BLOCK_INT); // header length
+	fwrite(f, 0, BLOCK_INT); // entry count
+	
+	fclose(f);
+}
+
+psave_onPluginEnd() {
+	new oldFilePath[128];
+	formatex(oldFilePath, charsmax(oldFilePath), "%s/psave.dat", g_dir_data);
+	
+	new newFilePath[128];
+	formatex(newFilePath, charsmax(newFilePath), "%s/psave_temp.dat", g_dir_data);
+	
+	new of = fopen(oldFilePath, "rb");
+	new nf = fopen(newFilePath, "w+b");
+	if(!of || !nf) {
+		// log weird error?
+		return;
+	}
+	
+	new headerLength;
+	fread(of, headerLength, BLOCK_INT);
+	fwrite(nf, headerLength, BLOCK_INT);
+	new headerData;
+	for(new i = 0; i < headerLength; ++i) {
+		fread(of, headerData, BLOCK_BYTE);
+		fwrite(nf, headerData, BLOCK_BYTE);
+	}
+	
+	new entryCount;
+	fread(of, entryCount, BLOCK_INT);
+	fwrite(nf, 0, BLOCK_INT); // will be set at the end
+	
+	new entry[100];
+	for(new i = 0, count = entryCount; i < count; ++i) {
+		fread_blocks(of, entry, sizeof(entry), BLOCK_BYTE);
+		if(entry[0] == 0) {
+			--entryCount;
+		}
+		else {
+			fwrite_blocks(nf, entry, sizeof(entry), BLOCK_BYTE);
+		}
+	}
+	
+	fseek(nf, 4 + headerLength, SEEK_SET);
+	fwrite(nf, entryCount, BLOCK_INT);
+	
+	fclose(of);
+	fclose(nf);
+	delete_file(oldFilePath);
+	rename_file(newFilePath, oldFilePath, true);
+}
+
+public psave_onTimerStop(id, bool:successful) {
+	if(g_player_psave_exists[id]) {
+		g_player_psave_exists[id] = false;
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
