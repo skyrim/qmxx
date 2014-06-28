@@ -22,6 +22,3 @@
 #include <q_cstrike_const>
 
 native q_message_TeamInfo( msg_type, msg_dest, msg_origin[3] = {0, 0, 0}, id, CsTeams:team );
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/

@@ -24,6 +24,3 @@
 forward q_js_jumpstart( id );
 forward q_js_jumpend( id, type, Float:distance, Float:prestrafe, Float:gain, strafes, sync );
 forward q_js_jumpillegal( id );
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
