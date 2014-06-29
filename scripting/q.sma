@@ -76,7 +76,7 @@ writeConfig() {
 			new cvarDescription[256];
 			ArrayGetString(g_cvar_description, cvarIndex, cvarDescription, charsmax(cvarDescription));
 			
-			fprintf(f, "// %s (Default: ^"%s^")^n%s ^"%s^"^n^n", cvarDescription, cvarDefaultValue, cvarName, cvarValue);
+			fprintf(f, "// %s^n(Default: ^"%s^")^n%s ^"%s^"^n^n", cvarDescription, cvarDefaultValue, cvarName, cvarValue);
 		}
 	}
 	
