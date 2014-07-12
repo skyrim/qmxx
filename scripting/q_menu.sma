@@ -3,6 +3,7 @@
 #include <q_menu>
 
 /* todo
+- menu_destroy crashes if called right after menu_display
 - item renderer, menu renderer
 - menu parent, menu stack, item access maybe
 - remove hacks in the near future
@@ -11,12 +12,14 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Menu"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "Quaker"
 
 new g_player_menu[33];
-new QMenu:g_player_menu_id[33] = { QMenu_None, ... };
-new g_player_menu_forward[33];
+new QMenu:g_player_menu_id[33] = {QMenu_None, ...};
+new g_player_menu_forward[33] = {-1, ...};
+new g_player_menu_forwardPlugin[33] = {-1, ...};
+new g_player_menu_forwardOverride[33] = {-1, ...};
 new g_player_menu_keys[33];
 new g_player_menu_page[33];
 new Float:g_player_menu_expire[33];
@@ -136,7 +139,8 @@ public clcmd_menuselect( id, level, cid )
 				g_player_menu_id[id] = QMenu_None;
 				g_player_menu_keys[id] = 0;
 				g_player_menu_expire[id] = 0.0;
-				g_player_menu_forward[id] = 0;
+				g_player_menu_forward[id] = -1;
+				g_player_menu_forwardOverride[id] = -1;
 				g_player_menu_page[id] = 0;
 			}
 			else
@@ -166,22 +170,52 @@ public clcmd_menuselect( id, level, cid )
 					}
 				}
 				
+				new forwardOverride = g_player_menu_forwardOverride[id];
+				new forwardPlugin = g_player_menu_forwardPlugin[id];
+				
 				g_player_menu[id] = false;
 				g_player_menu_id[id] = QMenu_None;
 				g_player_menu_keys[id] = 0;
 				g_player_menu_expire[id] = 0.0;
-				g_player_menu_forward[id] = 0;
+				g_player_menu_forward[id] = -1;
+				g_player_menu_forwardPlugin[id] = -1;
+				g_player_menu_forwardOverride[id] = -1;
 				g_player_menu_page[id] = 0;
 				
 				new ret;
-				ExecuteForward( ArrayGetCell( g_menu_forward, _:menu ), ret, id, _:menu, item );
+				if(forwardOverride > -1) {
+					callfunc_begin_i(forwardOverride, forwardPlugin);
+					callfunc_push_int(id);
+					callfunc_push_int(_:menu);
+					callfunc_push_int(item);
+					ret = callfunc_end();
+				}
+				else {
+					new fwd = ArrayGetCell(g_menu_forward, _:menu);
+					if(fwd != -1) {
+						ExecuteForward(fwd, ret, id, _:menu, item);
+					}
+				}
 				
-				if( ret != PLUGIN_HANDLED )
-				{
-					if( item == QMenuItem_Back )
-						q_menu_display( id, menu, -1, page - 1 );
-					else if( item == QMenuItem_Next )
-						q_menu_display( id, menu, -1, page + 1 );
+				if(ret != PLUGIN_HANDLED) {
+					if(item == QMenuItem_Back) {
+						if(forwardOverride > -1) {
+							g_player_menu_forwardPlugin[id] = forwardPlugin;
+							g_player_menu_forwardOverride[id] = forwardOverride;
+						}
+						
+						// TODO: what if menutime is not -1?
+						q_menu_display(id, menu, -1, page - 1);
+					}
+					else if(item == QMenuItem_Next) {
+						if(forwardOverride > -1) {
+							g_player_menu_forwardPlugin[id] = forwardPlugin;
+							g_player_menu_forwardOverride[id] = forwardOverride;
+						}
+						
+						// TODO: what if menutime is not -1?
+						q_menu_display(id, menu, -1, page + 1);
+					}
 				}
 			}
 			
@@ -243,6 +277,7 @@ public _q_menu_simple( plugin, params )
 	g_player_menu[id] = true;
 	g_player_menu_id[id] = QMenu_Simple;
 	g_player_menu_forward[id] = fwd;
+	g_player_menu_forwardOverride[id] = -1;
 	g_player_menu_keys[id] = keys;
 	if( menutime == -1 )
 		g_player_menu_expire[id] = Float:0xffffffff;
@@ -265,12 +300,17 @@ public _q_menu_create( plugin, params )
 	get_string( 1, title, charsmax(title) );
 	
 	new handler[32];
-	get_string( 2, handler, charsmax(handler) );
-	new fwd = CreateOneForward( plugin, handler, FP_CELL, FP_CELL, FP_CELL );
-	if( fwd == -1 )
-	{
-		log_error( AMX_ERR_NATIVE, "Function ^"%s^" was not found", handler );
-		return -1;
+	get_string(2, handler, charsmax(handler));
+	new fwd;
+	if(strlen(handler) != 0) {
+		fwd = CreateOneForward(plugin, handler, FP_CELL, FP_CELL, FP_CELL);
+		if(fwd == -1) {
+			log_error(AMX_ERR_NATIVE, "Function ^"%s^" was not found", handler);
+			return -1;
+		}
+	}
+	else {
+		fwd = -1;
 	}
 	
 	new Array:item_name = ArrayCreate( 64, 2 );
@@ -754,12 +794,11 @@ public _q_menu_set_items_per_page( plugin, params )
 	ArraySetCell( g_menu_items_per_page, menu_id, per_page );
 }
 
-// q_menu_display( id, menu_id, menu_time, page )
+// q_menu_display( id, menu_id, menu_time, page, handler[] )
 public _q_menu_display( plugin, params )
 {
-	if( params != 4 )
-	{
-		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params );
+	if(params != 5) {
+		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 5, found %d", params);
 		return;
 	}
 	
@@ -782,6 +821,19 @@ public _q_menu_display( plugin, params )
 		page = 0;
 	else if( page >= page_count )
 		page = page_count - 1;
+	
+	new handler[32];
+	get_string(5, handler, charsmax(handler));
+	new fwd = -1;
+	if(strlen(handler) != 0) {
+		fwd = get_func_id(handler, plugin);
+		if(fwd == -1) {
+			log_error(AMX_ERR_NATIVE, "Function ^"%s^" was not found", handler);
+			return;
+		}
+		g_player_menu_forwardPlugin[id] = plugin;
+		g_player_menu_forwardOverride[id] = fwd;
+	}
 	
 	new menu[1024];
 	new menu_len;
@@ -938,10 +990,14 @@ public _q_menu_display( plugin, params )
 	g_player_menu[id] = true;
 	g_player_menu_id[id] = QMenu:menu_id;
 	g_player_menu_keys[id] = keys;
-	if( menu_time == -1 )
+	
+	if( menu_time == -1 ) {
 		g_player_menu_expire[id] = Float:0xffffffff;
-	else
+	}
+	else {
 		g_player_menu_expire[id] = get_gametime( ) + float(menu_time);
+	}
+	
 	g_player_menu_forward[id] = ArrayGetCell( g_menu_forward, _:menu_id );
 	g_player_menu_page[id] = page;
 	

@@ -49,11 +49,24 @@ native QMenu:q_menu_current(id);
  */
 native q_menu_simple(id, keys, time, menu[], handler[]);
 
-native QMenu:q_menu_create(title[], handler[]);
+/**
+ * @param  title
+ * @param  handler  Set default menu handler or empty string for none.
+ * @return          Menu handle or -1 if error happened.
+ */
+native QMenu:q_menu_create(title[], handler[] =  "");
 
 native q_menu_destroy(QMenu:menu_handle);
 
-native q_menu_display(id, QMenu:menu_handle, menu_time = -1, page = 0);
+/**
+ * @param  id
+ * @param  menu_handle
+ * @param  menu_time
+ * @param  page
+ * @param  handler      Override default menu handler, otherwise pass empty string.
+ * @return void
+ */
+native q_menu_display(id, QMenu:menu_handle, menu_time = -1, page = 0, handler[] = "");
 
 native q_menu_get_handler(QMenu:menu_handle);
 
