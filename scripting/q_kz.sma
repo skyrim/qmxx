@@ -2072,10 +2072,10 @@ public menu_Chooseteam( id )
 	formatex( buffer, charsmax(buffer), "QKZ %L", id, g_player_Alive[id] ? "QKZ_ENTER_SPEC" : "QKZ_ENTER_GAME" );
 	new menu = menu_create( buffer, "menu_Chooseteam_handler" );
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_YES" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_YES" );
 	menu_additem( menu, buffer );
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NO" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_NO" );
 	menu_additem( menu, buffer );
 	
 	menu_setprop( menu, MPROP_EXIT, MEXIT_NEVER );
@@ -2167,13 +2167,13 @@ public menu_KZSettings( id )
 		menu_additem( menu, buffer );
 	}
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_EXIT" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_EXIT" );
 	menu_setprop( menu, MPROP_EXITNAME, buffer );
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_BACK" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_BACK" );
 	menu_setprop( menu, MPROP_BACKNAME, buffer );
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NEXT" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_NEXT" );
 	menu_setprop( menu, MPROP_NEXTNAME, buffer );
 	
 	menu_display( id, menu );
@@ -2220,13 +2220,13 @@ public menu_KZRewards( id )
 		menu_additem( menu, buffer, _, _, callback );
 	}
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_EXIT" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_EXIT" );
 	menu_setprop( menu, MPROP_EXITNAME, buffer );
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_BACK" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_BACK" );
 	menu_setprop( menu, MPROP_BACKNAME, buffer );
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "QKZ_NEXT" );
+	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_NEXT" );
 	menu_setprop( menu, MPROP_NEXTNAME, buffer );
 	
 	menu_display( id, menu );

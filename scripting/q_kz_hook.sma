@@ -337,7 +337,7 @@ public menu_Hook( id )
 	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_HOOK_COLOR" );
 	menu_additem( menu, itemname );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_EXIT" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_EXIT" );
 	menu_setprop( menu, MPROP_EXITNAME, itemname );
 	
 	menu_display( id, menu );
@@ -369,7 +369,7 @@ public menu_HookSpeed( id )
 	new menu = menu_create( title, "menu_HookSpeed_handler" );
 	
 	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_CUSTOM" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_CUSTOM" );
 	menu_additem( menu, itemname );
 	menu_additem( menu, "500" );
 	menu_additem( menu, "750" );
@@ -377,7 +377,7 @@ public menu_HookSpeed( id )
 	menu_additem( menu, "1250" );
 	menu_additem( menu, "1500" );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_BACK" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_BACK" );
 	menu_setprop( menu, MPROP_EXITNAME, itemname );
 	
 	menu_display( id, menu );
@@ -415,16 +415,16 @@ public menu_HookColor( id )
 	new menu = menu_create( title, "menu_HookColor_handler" );
 	
 	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_CUSTOM" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_CUSTOM" );
 	menu_additem( menu, itemname );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_PINK" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_PINK" );
 	menu_additem( menu, itemname );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_YELLOW" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_YELLOW" );
 	menu_additem( menu, itemname );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_BACK" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_BACK" );
 	menu_setprop( menu, MPROP_EXITNAME, itemname );
 	
 	menu_display( id, menu );
@@ -473,13 +473,13 @@ public menu_GiveHook( id )
 	}
 	
 	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_EXIT" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_EXIT" );
 	menu_setprop( menu, MPROP_EXITNAME, itemname );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_BACK" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_BACK" );
 	menu_setprop( menu, MPROP_BACKNAME, itemname );
 	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_NEXT" );
+	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_NEXT" );
 	menu_setprop( menu, MPROP_NEXTNAME, itemname );
 	
 	menu_display( id, menu );
