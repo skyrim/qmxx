@@ -1855,7 +1855,7 @@ public clcmd_MaxSpeed( id )
 {
 	g_player_MaxSpeed[id] = !g_player_MaxSpeed[id];
 	
-	q_kz_print( id, "%L: %L", id, "QKZ_WEAPON_SPEED", id, ( g_player_MaxSpeed[id] ? "QKZ_ON" : "QKZ_OFF" ) );
+	q_kz_print( id, "%L: %L", id, "QKZ_WEAPON_SPEED", id, ( g_player_MaxSpeed[id] ? "Q_ON" : "Q_OFF" ) );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1945,7 +1945,7 @@ public clcmd_Noclip( id )
 	
 	g_player_Noclip[id] = !g_player_Noclip[id];
 	set_pev( id, pev_movetype, g_player_Noclip[id] ? MOVETYPE_NOCLIP : MOVETYPE_WALK );
-	q_kz_print( id, "Noclip: %L", id, ( g_player_Noclip[id] ? "QKZ_ON" : "QKZ_OFF" ) );
+	q_kz_print( id, "Noclip: %L", id, ( g_player_Noclip[id] ? "Q_ON" : "Q_OFF" ) );
 	
 	return PLUGIN_HANDLED;
 }
