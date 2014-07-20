@@ -1,8 +1,6 @@
 //   To do:
-// - fix menus (welcome, kz menu, settings)
 // - fix death animation
-// - MULTILINGUAL FOR EVERYTHING
-// - something better than c4 timers. Maybe make a custom model of a timer
+// - MULTILINGUAL
 // - create irc module
 // - Duel System & Duel Rank
 // - Cup System & Cup Rank
@@ -20,7 +18,7 @@
 #pragma semicolon 1
 
 #define PLUGIN  "Q::KZ"
-#define VERSION "1.1b"
+#define VERSION "1.2b"
 #define AUTHOR  "Quaker"
 
 #define SET_BITVECTOR(%1,%2) (%1[%2>>5] |=  (1<<(%2 & 31)))
@@ -117,6 +115,10 @@ new g_map_HealerExists;
 new g_map_ent_StartButton[MAX_ENTS_BITVECTOR];
 new g_map_ent_EndButton[MAX_ENTS_BITVECTOR];
 
+new QMenu:g_menu_welcome;
+new QMenu:g_menu_chooseteam;
+new QMenu:g_menu_kreedz;
+
 new g_start_bDefault;
 new Float:g_start_vDefault[3];
 new g_end_bDefault;
@@ -125,11 +127,6 @@ new g_start_bCurrent[MAX_PLAYERS + 1];
 new Float:g_start_vCurrent[MAX_PLAYERS + 1][3];
 new g_start_bCustom[MAX_PLAYERS + 1];
 new Float:g_start_vCustom[MAX_PLAYERS + 1][3];
-
-new g_settings_registering;
-new Array:g_settings_itemname;
-new Array:g_settings_itemplugin;
-new Array:g_settings_itemhandler;
 
 new g_rewards_registering;
 new Array:g_rewards_name;
@@ -165,7 +162,6 @@ new g_player_run_Paused[MAX_PLAYERS + 1];
 new g_player_run_WeaponID[MAX_PLAYERS + 1];
 new Float:g_player_run_StartTime[MAX_PLAYERS + 1];
 new Float:g_player_run_PauseTime[MAX_PLAYERS + 1];
-new QMenu:g_player_kzmenu[33];
 new bool:g_player_psave_exists[33];
 new Float:g_player_psave_time[33];
 new g_player_psave_checkpoints[33];
@@ -446,7 +442,6 @@ public plugin_natives( )
 	register_native("q_kz_getConfigDirectory",		"_q_kz_getConfigDirectory");
 	register_native("q_kz_getPrefix",			"_q_kz_getPrefix");
 	register_native("q_kz_registerClcmd",			"_q_kz_registerClcmd");
-	register_native("q_kz_settings_add",			"_q_kz_settings_add");
 	register_native("q_kz_registerReward",			"_q_kz_registerReward");
 	register_native("q_kz_print",				"_q_kz_print");
 	register_native("q_kz_saytext",				"_q_kz_saytext");
@@ -535,9 +530,23 @@ public plugin_init( )
 	cvar_Rewards		= register_cvar( "q_kz_rewards",		"0" );
 	g_cvar_command_save	= register_cvar("q_kz_command_save",		"1");
 	
-	g_settings_itemname = ArrayCreate( 32, 8 );
-	g_settings_itemplugin = ArrayCreate( 1, 8 );
-	g_settings_itemhandler = ArrayCreate( 1, 8 );
+	g_menu_welcome = q_menu_create("Welcome", "mh_welcome");
+	q_menu_item_add(g_menu_welcome, "", _, _, _, "mf_welcome");
+	q_menu_item_add(g_menu_welcome, "", _, _, _, "mf_welcome");
+	q_menu_item_set_enabled(g_menu_welcome, QMenuItem_Exit, false);
+	
+	g_menu_chooseteam = q_menu_create("Chooseteam", "mh_chooseteam");
+	q_menu_item_add(g_menu_chooseteam, "", _, _, _, "mf_chooseteam");
+	q_menu_item_add(g_menu_chooseteam, "", _, _, _, "mf_chooseteam");
+	q_menu_item_set_enabled(g_menu_chooseteam, QMenuItem_Exit, false);
+	
+	g_menu_kreedz = q_menu_create("Kreedz", "mh_kreedz");
+	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
 	
 	g_rewards_name = ArrayCreate( 32, 4 );
 	g_rewards_plugin = ArrayCreate( 1, 4 );
@@ -586,13 +595,12 @@ public plugin_init( )
 	q_kz_registerClcmd( "say /unspec",	"clcmd_Spectate" );
 	q_kz_registerClcmd("say /save",		"clcmd_save");
 	q_kz_registerClcmd("say /restore",	"clcmd_restore");
+	q_kz_registerClcmd("say /cpangles",	"clcmd_cpangles");
 	q_kz_registerClcmd( "say /ct",		"clcmd_Spectate" );
 	q_kz_registerClcmd( "chooseteam",	"clcmd_Chooseteam" );
 	q_kz_registerClcmd( "say /menu",	"clcmd_kzmenu", _,	"Open menu with common commands. Alternative: /kzmenu" );
 	q_kz_registerClcmd("say /kz",		"clcmd_kzmenu");
 	q_kz_registerClcmd( "say /kzmenu",	"clcmd_kzmenu" );
-	q_kz_registerClcmd( "say /settings",	"clcmd_KZSettings", _,	"Open settings menu. Alternative: /kzsettings" );
-	q_kz_registerClcmd( "say /kzsettings",	"clcmd_KZSettings" );
 	q_kz_registerClcmd( "say /maxspeed",	"clcmd_MaxSpeed", _,	"Toggle weapon speed shower on/off" );
 	q_kz_registerClcmd( "say /god",		"clcmd_GodMode", _,	"Toggle god mode on/off. Alternative: /godmode" );
 	q_kz_registerClcmd( "say /godmode",	"clcmd_GodMode" );
@@ -684,12 +692,6 @@ public plugin_cfg( )
 	new mfwd;
 	new ret; //junk
 	
-	g_settings_registering = true;
-	mfwd = CreateMultiForward( "QKZ_RegisterSettings", ET_IGNORE );
-	ExecuteForward( mfwd, ret );
-	DestroyForward( mfwd );
-	g_settings_registering = false;
-	
 	g_rewards_registering = true;
 	mfwd = CreateMultiForward( "QKZ_RegisterRewards", ET_IGNORE );
 	ExecuteForward( mfwd, ret );
@@ -732,11 +734,7 @@ public plugin_end( )
 	
 	ArrayDestroy( g_startButtonEntities );
 	ArrayDestroy( g_stopButtonEntities );
-	
-	ArrayDestroy( g_settings_itemname );
-	ArrayDestroy( g_settings_itemplugin );
-	ArrayDestroy( g_settings_itemhandler );
-	
+		
 	forward_TimerStart_pre ? ArrayDestroy( forward_TimerStart_pre ) : 0;
 	forward_TimerStart_post ? ArrayDestroy( forward_TimerStart_post ) : 0;
 	forward_TimerStop_pre ? ArrayDestroy( forward_TimerStop_pre ) : 0;
@@ -758,15 +756,6 @@ public plugin_end( )
 
 public client_putinserver( id )
 {
-	new QMenu:menu = q_menu_create( "KZ Menu", "menu_kzmenu_handler" );
-	q_menu_item_add( menu, "Checkpoint - #0" );
-	q_menu_item_add( menu, "Teleport - #0" );
-	q_menu_item_add( menu, "Unstuck" );
-	q_menu_item_add( menu, "Start" );
-	q_menu_item_add( menu, "Pause" );
-	q_menu_item_add( menu, "Stop" );
-	g_player_kzmenu[id] = menu;
-	
 	g_player_ingame[id]		= false;
 	get_user_name( id, g_player_Name[id], charsmax(g_player_Name[][]) );
 	g_player_Connected[id] 		= true;
@@ -818,8 +807,6 @@ public client_infochanged( id )
 
 public client_disconnect( id )
 {
-	q_menu_destroy( g_player_kzmenu[id] );
-	
 	g_player_ingame[id]		= false;
 	g_player_Name[id][0]		= 0;
 	g_player_VIP[id]		= false;
@@ -1063,14 +1050,9 @@ public fwd_ClientKill( id )
 	return FMRES_SUPERCEDE;
 }
 
-public QKZ_RegisterSettings( )
-{
-	q_kz_settings_add( "CP Angles", "kzsetting_CPAngles" );
-}
-
 public forward_KZTimerStart(id) {
-	if(q_menu_current(id) == g_player_kzmenu[id]) {
-		menu_kzmenu(id);
+	if(q_menu_current(id) == g_menu_kreedz) {
+		m_kreedz(id);
 	}
 }
 
@@ -1080,20 +1062,20 @@ public forward_KZTimerStop( id, successful )
 		menu_KZRewards( id );
 	}
 	
-	if(q_menu_current(id) == g_player_kzmenu[id]) {
-		menu_kzmenu(id);
+	if(q_menu_current(id) == g_menu_kreedz) {
+		m_kreedz(id);
 	}
 }
 
 public forward_KZOnCheckpoint(id) {
-	if(q_menu_current(id) == g_player_kzmenu[id]) {
-		menu_kzmenu(id);
+	if(q_menu_current(id) == g_menu_kreedz) {
+		m_kreedz(id);
 	}
 }
 
 public forward_KZOnTeleport(id) {
-	if(q_menu_current(id) == g_player_kzmenu[id]) {
-		menu_kzmenu(id);
+	if(q_menu_current(id) == g_menu_kreedz) {
+		m_kreedz(id);
 	}
 }
 
@@ -1361,14 +1343,14 @@ public task_Jointeam( id )
 {
 	id -= TASKID_JOINTEAM;
 	
-	menu_welcome( id );
+	m_welcome( id );
 }
 
 public task_Joinclass( id )
 {
 	id -= TASKID_JOINCLASS;
 	
-	menu_welcome( id );
+	m_welcome( id );
 }
 
 public task_Respawn( id )
@@ -1424,7 +1406,7 @@ public clcmd_clcmd( id, level, cid )
 
 public clcmd_Chooseteam( id, level, cid )
 {
-	menu_Chooseteam( id );
+	m_chooseteam(id);
 	
 	return PLUGIN_HANDLED;
 }
@@ -1869,21 +1851,7 @@ public clcmd_kzmenu( id )
 		return PLUGIN_HANDLED;
 	}
 	
-	menu_kzmenu( id );
-	
-	return PLUGIN_HANDLED;
-}
-
-public clcmd_KZSettings( id )
-{
-	if( !g_player_Alive[id] )
-	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
-		
-		return PLUGIN_HANDLED;
-	}
-	
-	menu_KZSettings( id );
+	m_kreedz( id );
 	
 	return PLUGIN_HANDLED;
 }
@@ -2012,190 +1980,138 @@ public clcmd_restore(id, level, cid) {
 	return PLUGIN_HANDLED;
 }
 
+public clcmd_cpangles(id, level, cid) {
+	g_player_setting_CPangles[id] = !g_player_setting_CPangles[id];
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Menus
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-public menu_welcome( id )
-{
-	new QMenu:menu = q_menu_create( "Welcome", "menu_welcome_handler" );
+m_welcome(id) {
+	new title[32];
+	formatex(title, charsmax(title), "%L", id, "QKZ_WELCOME");
+	q_menu_set_title(g_menu_welcome, title);
 	
-	q_menu_item_add( menu, "Play" );
-	q_menu_item_add( menu, "Spec" );
-	
-	q_menu_display( id, menu );
+	q_menu_display(id, g_menu_welcome);
 }
 
-public menu_welcome_handler( id, QMenu:menu, item )
-{
-	q_menu_destroy( menu );
-	
+public mf_welcome(id, menu, item, output[64]) {
+	switch(item) {
+	case 0: { // play
+		formatex(output, charsmax(output), "%L", id, "Q_KZ_WELCOMEPLAY");
+	}
+	case 1: { // spec
+		formatex(output, charsmax(output), "%L", id, "Q_KZ_WELCOMESPEC");
+	}
+	}
+}
+
+public mh_welcome(id, QMenu:menu, item) {
 	g_player_ingame[id] = true;
-	engclient_cmd( id, "joinclass", "5" );
+	engclient_cmd(id, "joinclass", "5");
 	
-	switch( item )
-	{
-		case 0:
-		{
-			if( get_pcvar_num( cvar_SpawnWithMenu ) )
-				menu_kzmenu( id );
-		}
-		case 1:
-		{
-			client_cmd( id, "say /spec" );
+	switch(item) {
+	case 0: {
+		if(get_pcvar_num(cvar_SpawnWithMenu)) {
+			m_kreedz(id);
 		}
 	}
-	
-	/*menu_destroy( menu );
-	
-	g_player_ingame[id] = true;
-	engclient_cmd( id, "joinclass", "5" );
-	
-	if( item == 1 )
-	{
-		client_cmd( id, "say /spec" );
+	case 1: {
+		client_cmd(id, "say /spec");
+	}
 	}
 	
-	if( get_pcvar_num( cvar_SpawnWithMenu ) )
-	{
-		menu_kzmenu( id );
+	//message_SayText( id, "^x01Welcome to ^x04%s ^x01powered by ^x04%s", g_server_Name, g_plugin_Name );
+	
+	return PLUGIN_HANDLED;
+}
+
+m_chooseteam(id) {
+	new title[32];
+	formatex(title, charsmax(title), "%L", id, (g_player_Alive[id] ? "QKZ_ENTER_SPEC" : "QKZ_ENTER_GAME"));
+	q_menu_set_title(g_menu_chooseteam, title);
+	
+	q_menu_display(id, g_menu_chooseteam);
+}
+
+public mf_chooseteam(id, menu, item, output[64]) {
+	switch(item) {
+	case 0: { // yes
+		formatex(output, charsmax(output), "%L", id, "Q_YES");
 	}
-	
-	message_SayText( id, "^x01Welcome to ^x04%s ^x01powered by ^x04%s", g_server_Name, g_plugin_Name );
-	
-	return PLUGIN_HANDLED;*/
+	case 1: { // no
+		formatex(output, charsmax(output), "%L", id, "Q_NO");
+	}
+	}
 }
 
-public menu_Chooseteam( id )
-{
-	new buffer[32];
-	formatex( buffer, charsmax(buffer), "QKZ %L", id, g_player_Alive[id] ? "QKZ_ENTER_SPEC" : "QKZ_ENTER_GAME" );
-	new menu = menu_create( buffer, "menu_Chooseteam_handler" );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "Q_YES" );
-	menu_additem( menu, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "Q_NO" );
-	menu_additem( menu, buffer );
-	
-	menu_setprop( menu, MPROP_EXIT, MEXIT_NEVER );
-	
-	menu_display( id, menu );
-}
-
-public menu_Chooseteam_handler( id, menu, item )
-{
-	menu_destroy( menu );
-	
-	if( item == 0 )
-	{
-		clcmd_Spectate( id );
+public mh_chooseteam(id, menu, item) {
+	if(item == 0) {
+		clcmd_Spectate(id);
 	}
 	
 	return PLUGIN_HANDLED;
 }
 
-public menu_kzmenu( id )
-{
-	new checkpoints[32];
-	formatex(checkpoints, charsmax(checkpoints), "Checkpoint / \y#%d", g_player_CPcounter[id]);
-	q_menu_item_set_name(g_player_kzmenu[id], 0, checkpoints);
-	
-	new teleports[32];
-	formatex(teleports, charsmax(teleports), "Teleport / \y#%d", g_player_TPcounter[id]);
-	q_menu_item_set_name(g_player_kzmenu[id], 1, teleports);
-	q_menu_item_set_enabled(g_player_kzmenu[id], 1, g_player_CPcounter[id] > 0 ? true : false);
-	
-	q_menu_item_set_enabled(g_player_kzmenu[id], 2, g_player_CPcounter[id] > 1 ? true : false);
-	
-	q_menu_item_set_enabled(g_player_kzmenu[id], 4, g_player_run_Running[id] ? true : false);
-	q_menu_item_set_enabled(g_player_kzmenu[id], 5, g_player_run_Running[id] ? true : false);
-	
-	q_menu_display( id, g_player_kzmenu[id] );
+m_kreedz(id) {
+	q_menu_display(id, QMenu:g_menu_kreedz);
 }
 
-public menu_kzmenu_handler( id, menu, item )
-{
-	switch( item )
-	{
-		case 0:
-		{
-			clcmd_Checkpoint( id );
-		}
-		case 1:
-		{
-			clcmd_Teleport( id );
-		}
-		case 2:
-		{
-			clcmd_Stuck( id );
-		}
-		case 3:
-		{
-			clcmd_Start( id );
-		}
-		case 4:
-		{
-			clcmd_Pause( id );
-		}
-		case 5:
-		{
-			clcmd_Stop( id );
-		}
-		default:
-		{
-			return PLUGIN_HANDLED;
-		}
+public mf_kreedz(id, menu, item, output[64]) {
+	switch(item) {
+	case 0: { // checkpoint
+		formatex(output, charsmax(output), "%L / \y#%d", id, "Q_KZ_CHECKPOINT", g_player_CPcounter[id]);
 	}
-	
-	menu_kzmenu( id );
-	
-	return PLUGIN_HANDLED;
+	case 1: { // teleport
+		formatex(output, charsmax(output), "%L / \y#%d", id, "Q_KZ_TELEPORT", g_player_TPcounter[id]);
+		q_menu_item_set_enabled(g_menu_kreedz, 1, g_player_CPcounter[id] > 0 ? true : false);
+	}
+	case 2: { // unstuck
+		formatex(output, charsmax(output), "%L", id, "Q_KZ_UNSTUCK");
+		q_menu_item_set_enabled(g_menu_kreedz, 2, g_player_CPcounter[id] > 1 ? true : false);
+	}
+	case 3: { // start
+		// TODO: enable if exists/found
+		formatex(output, charsmax(output), "%L", id, "Q_KZ_START");
+	}
+	case 4: { // pause
+		formatex(output, charsmax(output), "%L", id, (g_player_run_Paused[id] ? "Q_KZ_UNPAUSE" : "Q_KZ_PAUSE"));
+		q_menu_item_set_enabled(g_menu_kreedz, 4, g_player_run_Running[id] ? true : false);
+	}
+	case 5: { // stop
+		formatex(output, charsmax(output), "%L", id, "Q_KZ_STOP");
+		q_menu_item_set_enabled(g_menu_kreedz, 5, g_player_run_Running[id] ? true : false);
+	}
+	}
 }
 
-public menu_KZSettings( id )
-{
-	new buffer[32];
-	formatex( buffer, charsmax(buffer), "QKZ %L", id, "QKZ_SETTINGS" );
-	new menu = menu_create( buffer, "menu_KZSettings_handler" );
-	
-	new size = ArraySize( g_settings_itemname );
-	for( new i = 0; i < size; ++i )
-	{
-		ArrayGetString( g_settings_itemname, i, buffer, charsmax(buffer) );
-		LookupLangKey( buffer, charsmax(buffer), buffer, id );
-		menu_additem( menu, buffer );
+public mh_kreedz(id, menu, item) {
+	switch(item) {
+	case QMenuItem_Exit, QMenuItem_Back, QMenuItem_Next: {
+		return PLUGIN_HANDLED;
+	}
+	case 0: {
+		clcmd_Checkpoint( id );
+	}
+	case 1: {
+		clcmd_Teleport( id );
+	}
+	case 2: {
+		clcmd_Stuck( id );
+	}
+	case 3: {
+		clcmd_Start( id );
+	}
+	case 4: {
+		clcmd_Pause( id );
+	}
+	case 5: {
+		clcmd_Stop( id );
+	}
 	}
 	
-	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_EXIT" );
-	menu_setprop( menu, MPROP_EXITNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_BACK" );
-	menu_setprop( menu, MPROP_BACKNAME, buffer );
-	
-	formatex( buffer, charsmax(buffer), "%L", id, "Q_MENU_NEXT" );
-	menu_setprop( menu, MPROP_NEXTNAME, buffer );
-	
-	menu_display( id, menu );
-}
-
-public menu_KZSettings_handler( id, menu, item )
-{
-	menu_destroy( menu );
-	
-	if( item != MENU_EXIT )
-	{
-		menu_KZSettings( id );
-		
-		new plug = ArrayGetCell( g_settings_itemplugin, item );
-		new hand = ArrayGetCell( g_settings_itemhandler, item );
-	
-		if( callfunc_begin_i( hand, plug ) == 1 )
-		{
-			callfunc_push_int( id );
-			callfunc_end( );
-		}
-	}
+	m_kreedz( id );
 	
 	return PLUGIN_HANDLED;
 }
@@ -2791,49 +2707,6 @@ public _q_kz_getHudColor( plugin, params )
 	set_param_byref( 3, str_to_num( blue ) );
 }
 
-// q_kz_settings_add( name[], handler[] )
-public _q_kz_settings_add( plugin, params )
-{
-	if( params != 2 )
-	{
-		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
-		return;
-	}
-	
-	if( !g_settings_registering )
-	{
-		log_error( AMX_ERR_NATIVE, "qkz_settings_additem can only be called inside ^"QKZ_RegisterSettings^" forward" );
-		return;
-	}
-	
-	new szhandler[32];
-	get_string( 2, szhandler, charsmax(szhandler) );
-	if( szhandler[0] == 0 )
-	{
-		log_error( AMX_ERR_NATIVE, "Native function not given" );
-		return;
-	}
-	
-	new phandler = get_func_id( szhandler, plugin );
-	if( phandler == -1 )
-	{
-		log_error( AMX_ERR_NATIVE, "Handler function ^"%s^" not found", szhandler );
-		return;
-	}
-	
-	new itemname[32];
-	get_string( 1, itemname, charsmax(itemname) );
-	if( itemname[0] == 0 )
-	{
-		log_error( AMX_ERR_NATIVE, "Item name not given" );
-		return;
-	}
-	
-	ArrayPushString( g_settings_itemname, itemname );
-	ArrayPushCell( g_settings_itemplugin, plugin );
-	ArrayPushCell( g_settings_itemhandler, phandler );
-}
-
 // q_kz_isStartOriginFound( )
 public _q_kz_isStartOriginFound( plugin, params )
 {
@@ -3076,15 +2949,6 @@ public _q_kz_registerForward( plugin, params ) {
 		log_error( AMX_ERR_NATIVE, "Unknown forward type" );
 	}
 	}
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-* Settings											   *
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-public kzsetting_CPAngles( id )
-{
-	g_player_setting_CPangles[id] = !g_player_setting_CPangles[id];
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

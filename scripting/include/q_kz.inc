@@ -88,11 +88,6 @@ native q_kz_getStopOrigin( Float:origin[3] );
 native q_kz_registerClcmd( command[], handler[], flags = -1, description[] = "" );
 
 /**
- *  Exactly the same as kzmenu, except that this here
- *  is for settings menu  */
-native q_kz_settings_add( name[], handler[] );
-
-/**
  *  Returns 1 if user is vip or 0 otherwise */
 native q_kz_player_isVip( id );
 
