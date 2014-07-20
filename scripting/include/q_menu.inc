@@ -86,7 +86,7 @@ native q_menu_set_items_per_page(QMenu:menu_handle, per_page);
 
 native q_menu_page_count(QMenu:menu_handle);
 
-native q_menu_item_add(QMenu:menu_handle, name[], data[] = "", bool:pickable = true, bool:enabled = true);
+native q_menu_item_add(QMenu:menu_handle, name[], data[] = "", bool:pickable = true, bool:enabled = true, formatter[] = "");
 
 native q_menu_item_remove(QMenu:menu_handle, item_position);
 
@@ -113,6 +113,26 @@ native q_menu_item_set_enabled(QMenu:menu_handle, item_position, bool:enabled);
 native q_menu_item_get_pickable(QMenu:menu_handle, item_position);
 
 native q_menu_item_set_pickable(QMenu:menu_handle, item_position, bool:pickable);
+
+/**
+ * @param  menu_handle
+ * @param  item_position
+ * @param  formatter		Formatter array contains plugin index and function id.
+ *				Used for callfunc_begin_i function. See the function prototype
+ *				in the description for q_menu_item_set_formatter.
+ * @return void
+ */
+native q_menu_item_get_formatter(QMenu:menu_handle, item_position, formatter[2]);
+
+/**
+ * @param  menu_handle
+ * @param  item_position
+ * @param  formatterFuncName	Function called before rendering item name in the menu.
+ *				Function prototype: public func_name(id, menu, item, output[64])
+ *				Set output string which will later be drawn as a menu item.
+ * @return void
+ */
+native q_menu_item_set_formatter(QMenu:menu_handle, item_position, formatterFuncName[]);
 
 /**
  * @param   title  menu title

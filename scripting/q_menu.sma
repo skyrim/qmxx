@@ -12,7 +12,7 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Menu"
-#define VERSION "1.1"
+#define VERSION "1.2b"
 #define AUTHOR "Quaker"
 
 new g_player_menu[33];
@@ -31,7 +31,27 @@ new Array:g_menu_item_name;
 new Array:g_menu_item_data;
 new Array:g_menu_item_enabled;
 new Array:g_menu_item_pickable;
+new Array:g_menu_item_formatter;
 new Array:g_menu_items_per_page;
+
+/*
+struct menu {
+	string title
+	string subtitle
+	*func(id, menu, item) handler
+	struct item {
+		string name
+		string data
+		bool enabled
+		bool pickable
+		formatter {
+			int pluginId
+			int functionId // func(id, menu, item, output)
+		}
+	}
+	int items_per_page
+}
+*/
 
 public plugin_natives( )
 {
@@ -67,6 +87,8 @@ public plugin_natives( )
 	register_native( "q_menu_item_set_pickable", "_q_menu_item_set_pickable" );
 	register_native( "q_menu_item_get_enabled", "_q_menu_item_get_enabled" );
 	register_native( "q_menu_item_set_enabled", "_q_menu_item_set_enabled" );
+	register_native("q_menu_item_get_formatter", "_q_menu_item_get_formatter");
+	register_native("q_menu_item_set_formatter", "_q_menu_item_set_formatter");
 	
 	g_menu_title = ArrayCreate( 32, 8 );
 	g_menu_subtitle = ArrayCreate( 32, 8 );
@@ -76,6 +98,7 @@ public plugin_natives( )
 	g_menu_item_data = ArrayCreate( 1, 8 );
 	g_menu_item_enabled = ArrayCreate( 1, 8 );
 	g_menu_item_pickable = ArrayCreate( 1, 8 );
+	g_menu_item_formatter = ArrayCreate(1, 8);
 }
 
 public plugin_init( )
@@ -94,7 +117,7 @@ public plugin_end( )
 	g_menu_forward ? ArrayDestroy( g_menu_forward ) : 0;
 	g_menu_items_per_page ? ArrayDestroy( g_menu_items_per_page ) : 0;
 	
-	new Array:name, Array:data, Array:enab, Array:pick;
+	new Array:name, Array:data, Array:enab, Array:pick, Array:form;
 	for( new i = 0, size = ArraySize( g_menu_item_name ); i < size; ++i )
 	{
 		name = ArrayGetCell( g_menu_item_name, i );
@@ -108,11 +131,15 @@ public plugin_end( )
 		
 		pick = ArrayGetCell( g_menu_item_pickable, i );
 		if( pick ) ArrayDestroy( pick );
+		
+		form = ArrayGetCell(g_menu_item_formatter, i);
+		if(form) ArrayDestroy(form);
 	}
 	g_menu_item_name ? ArrayDestroy( g_menu_item_name ) : 0;
 	g_menu_item_data ? ArrayDestroy( g_menu_item_data ) : 0;
 	g_menu_item_enabled ? ArrayDestroy( g_menu_item_enabled ) : 0;
 	g_menu_item_pickable ? ArrayDestroy( g_menu_item_pickable ) : 0;
+	g_menu_item_formatter ? ArrayDestroy(g_menu_item_formatter) : 0;
 }
 
 public clcmd_menuselect( id, level, cid )
@@ -313,26 +340,31 @@ public _q_menu_create( plugin, params )
 		fwd = -1;
 	}
 	
-	new Array:item_name = ArrayCreate( 64, 2 );
+	new Array:item_name = ArrayCreate(64, 4);
 	ArrayPushString( item_name, "Exit" );
 	ArrayPushString( item_name, "Next" );
 	ArrayPushString( item_name, "Back" );
 	
 			
-	new Array:item_data = ArrayCreate( 64, 2 );
+	new Array:item_data = ArrayCreate(64, 4);
 	ArrayPushString( item_data, "" );
 	ArrayPushString( item_data, "" );
 	ArrayPushString( item_data, "" );
 	
-	new Array:item_enabled = ArrayCreate( 1, 2 );
+	new Array:item_enabled = ArrayCreate(1, 4);
 	ArrayPushCell( item_enabled, true );
 	ArrayPushCell( item_enabled, true );
 	ArrayPushCell( item_enabled, true );
 	
-	new Array:item_pickable = ArrayCreate( 1, 2 );
+	new Array:item_pickable = ArrayCreate(1, 4);
 	ArrayPushCell( item_pickable, true );
 	ArrayPushCell( item_pickable, true );
 	ArrayPushCell( item_pickable, true );
+	
+	new Array:item_formatter = ArrayCreate(2, 4);
+	ArrayPushArray(item_formatter, {-1, -1});
+	ArrayPushArray(item_formatter, {-1, -1});
+	ArrayPushArray(item_formatter, {-1, -1});
 	
 	new insert_index = 0;
 	for( new size = ArraySize( g_menu_title ); insert_index < size; ++insert_index )
@@ -346,6 +378,7 @@ public _q_menu_create( plugin, params )
 			ArraySetCell( g_menu_item_data, insert_index, item_data );
 			ArraySetCell( g_menu_item_enabled, insert_index, item_enabled );
 			ArraySetCell( g_menu_item_pickable, insert_index, item_pickable );
+			ArraySetCell(g_menu_item_formatter, insert_index, item_formatter);
 			ArraySetCell( g_menu_items_per_page, insert_index, 7 );
 			
 			return insert_index;
@@ -359,17 +392,17 @@ public _q_menu_create( plugin, params )
 	ArrayPushCell( g_menu_item_data, item_data );
 	ArrayPushCell( g_menu_item_enabled, item_enabled );
 	ArrayPushCell( g_menu_item_pickable, item_pickable );
+	ArrayPushCell(g_menu_item_formatter, item_formatter);
 	ArrayPushCell( g_menu_items_per_page, 7 );
 	
 	return ArraySize( g_menu_title ) - 1;
 }
 
-// q_menu_item_add( menu_id, item[], data[] = "", bool:pickable = true, bool:enabled = true )
+// q_menu_item_add(menu_id, item[], data[] = "", bool:pickable = true, bool:enabled = true, formatter[] = "")
 public _q_menu_item_add( plugin, params )
 {
-	if( params != 5 )
-	{
-		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 5, found %d", params );
+	if(params < 5) {
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected at least 5, found %d", params );
 		return -1;
 	}
 	
@@ -391,6 +424,24 @@ public _q_menu_item_add( plugin, params )
 	ArrayPushCell( ArrayGetCell( g_menu_item_pickable, menu_id ), get_param( 4 ) );
 	
 	ArrayPushCell( ArrayGetCell( g_menu_item_enabled, menu_id ), get_param( 5 ) );
+	
+	new formatterFuncId = -1;
+	if(params == 6) {
+		new formatterFuncName[64];
+		get_string(6, formatterFuncName, charsmax(formatterFuncName));
+		if(strlen(formatterFuncName) > 0) {
+			formatterFuncId = get_func_id(formatterFuncName, plugin);
+			if(formatterFuncId != -1) {
+				new formatterArray[2];
+				formatterArray[0] = plugin;
+				formatterArray[1] = formatterFuncId;
+				ArrayPushArray(ArrayGetCell(g_menu_item_formatter, menu_id), formatterArray);
+			}
+		}
+	}
+	if(formatterFuncId == -1) {
+		ArrayPushArray(ArrayGetCell(g_menu_item_formatter, menu_id), {-1, -1});
+	}
 	
 	return ArraySize( ArrayGetCell( g_menu_item_name, menu_id ) ) - 1;
 }
@@ -624,6 +675,65 @@ public _q_menu_item_set_enabled( plugin, params )
 	ArraySetCell( ArrayGetCell( g_menu_item_enabled, menu_id ), item, get_param( 3 ) );
 }
 
+// q_menu_item_get_formatter(menu_id, item, formatter[2])
+public _q_menu_item_get_formatter(plugin, params) {
+	if(params != 3) {
+		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params);
+		return;
+	}
+	
+	new menu_id = get_param(1);
+	if((menu_id < 0) || (menu_id >= ArraySize(g_menu_title))) {
+		log_error(AMX_ERR_NATIVE, "Invalid menu id %d", menu_id);
+		return;
+	}
+	
+	new Array:arr_items = ArrayGetCell(g_menu_item_name, menu_id);
+	new item = get_param(2) + 3;
+	if((item < 0) || (item >= ArraySize(arr_items))) {
+		log_error(AMX_ERR_NATIVE, "Invalid item id %d", item - 3);
+		return;
+	}
+	
+	new fmtArray[2];
+	ArrayGetArray(ArrayGetCell(g_menu_item_formatter, menu_id), item, fmtArray);
+	set_array(3, fmtArray, sizeof(fmtArray));
+}
+
+// q_menu_item_set_formatter(menu_id, item, formatter[])
+public _q_menu_item_set_formatter(plugin, params) {
+	if(params != 3) {
+		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params);
+		return;
+	}
+	
+	new menu_id = get_param(1);
+	if((menu_id < 0) || (menu_id >= ArraySize(g_menu_title))) {
+		log_error(AMX_ERR_NATIVE, "Invalid menu id %d", menu_id);
+		return;
+	}
+	
+	new Array:arr_items = ArrayGetCell(g_menu_item_name, menu_id);
+	new item = get_param(2) + 3;
+	if((item < 0) || (item >= ArraySize(arr_items))) {
+		log_error(AMX_ERR_NATIVE, "Invalid item id %d", item - 3);
+		return;
+	}
+	
+	new fmtName[64];
+	get_string(3, fmtName, charsmax(fmtName));
+	new fmtId = get_func_id(fmtName, plugin);
+	if(fmtId == -1) {
+		log_error(AMX_ERR_NATIVE, "Formatter function not found: ^"%s^"", fmtName);
+		return;
+	}
+	
+	new fmtArray[2];
+	fmtArray[0] = plugin;
+	fmtArray[1] = fmtId;
+	ArraySetArray(ArrayGetCell(g_menu_item_formatter, menu_id), item, fmtArray);
+}
+
 // q_menu_item_remove( menu_id, item )
 public _q_menu_item_remove( plugin, params )
 {
@@ -848,9 +958,11 @@ public _q_menu_display( plugin, params )
 	
 	new keys;
 	new item[64];
+	new formatter[2];
 	new Array:arr_items = ArrayGetCell( g_menu_item_name, _:menu_id );
 	new Array:arr_items_enabled = ArrayGetCell( g_menu_item_enabled, _:menu_id );
 	new Array:arr_items_pickable = ArrayGetCell( g_menu_item_pickable, _:menu_id );
+	new Array:arr_items_formatter = ArrayGetCell(g_menu_item_formatter, _:menu_id);
 	
 	new c;
 	new i = 3;
@@ -862,7 +974,18 @@ public _q_menu_display( plugin, params )
 		// menu items
 		for( new size = ArraySize( arr_items ); ( i - 3 < per_page ) && ( ( page * per_page ) + i < size ); ++i )
 		{
-			ArrayGetString( arr_items, ( page * per_page ) + i, item, charsmax(item) );
+			ArrayGetArray(arr_items_formatter, (page * per_page) + i, formatter);
+			if(formatter[1] == -1) {
+				ArrayGetString( arr_items, ( page * per_page ) + i, item, charsmax(item) );
+			}
+			else {
+				callfunc_begin_i(formatter[1], formatter[0]);
+				callfunc_push_int(id);
+				callfunc_push_int(_:menu_id);
+				callfunc_push_int(i - 3);
+				callfunc_push_array(item, sizeof(item));
+				callfunc_end();
+			}
 			
 			if( ArrayGetCell( arr_items_pickable, ( page * per_page ) + i ) )
 			{
@@ -937,7 +1060,18 @@ public _q_menu_display( plugin, params )
 	{
 		for( new size = ArraySize( arr_items ); ( i - 3 < 9 ) && ( i < size ); ++i )
 		{
-			ArrayGetString( arr_items, i, item, charsmax(item) );
+			ArrayGetArray(arr_items_formatter, i, formatter);
+			if(formatter[1] == -1) {
+				ArrayGetString( arr_items, i, item, charsmax(item) );
+			}
+			else {
+				callfunc_begin_i(formatter[1], formatter[0]);
+				callfunc_push_int(id);
+				callfunc_push_int(_:menu_id);
+				callfunc_push_int(i - 3);
+				callfunc_push_array(item, sizeof(item));
+				callfunc_end();
+			}
 			
 			if( ArrayGetCell( arr_items_pickable, i ) )
 			{
