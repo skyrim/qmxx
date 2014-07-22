@@ -904,11 +904,10 @@ public _q_menu_set_items_per_page( plugin, params )
 	ArraySetCell( g_menu_items_per_page, menu_id, per_page );
 }
 
-// q_menu_display( id, menu_id, menu_time, page, handler[] )
-public _q_menu_display( plugin, params )
-{
-	if(params != 5) {
-		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 5, found %d", params);
+// q_menu_display(id, menu_id, menu_time, page, handler[] = "")
+public _q_menu_display(plugin, params) {
+	if(params < 4) {
+		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected at least 4, found %d", params);
 		return;
 	}
 	
@@ -932,17 +931,19 @@ public _q_menu_display( plugin, params )
 	else if( page >= page_count )
 		page = page_count - 1;
 	
-	new handler[32];
-	get_string(5, handler, charsmax(handler));
 	new fwd = -1;
-	if(strlen(handler) != 0) {
-		fwd = get_func_id(handler, plugin);
-		if(fwd == -1) {
-			log_error(AMX_ERR_NATIVE, "Function ^"%s^" was not found", handler);
-			return;
+	if(params == 5) {
+		new handler[32];
+		get_string(5, handler, charsmax(handler));
+		if(strlen(handler) != 0) {
+			fwd = get_func_id(handler, plugin);
+			if(fwd == -1) {
+				log_error(AMX_ERR_NATIVE, "Function ^"%s^" was not found", handler);
+				return;
+			}
+			g_player_menu_forwardPlugin[id] = plugin;
+			g_player_menu_forwardOverride[id] = fwd;
 		}
-		g_player_menu_forwardPlugin[id] = plugin;
-		g_player_menu_forwardOverride[id] = fwd;
 	}
 	
 	new menu[1024];
