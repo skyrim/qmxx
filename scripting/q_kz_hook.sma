@@ -1,8 +1,3 @@
-/**
- * to do:
- * - there's probably something that can be improved, cvar_util first comes to my mind
- */
-
 #include <amxmodx>
 #include <fakemeta>
 #include <hamsandwich>
@@ -11,11 +6,12 @@
 #include <q>
 #include <q_kz>
 #include <q_cookies>
+#include <q_menu>
 
 #pragma semicolon 1
 
 #define PLUGIN "Q::KZ::Hook"
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "Quaker"
 
 #define TASKID_HOOKBEAM 4817923
@@ -42,6 +38,10 @@ new g_player_hook_color[33][3];
 new Float:g_player_hook_speed[33];
 new Float:g_player_hook_origin[33][3];
 new Float:g_player_hook_lastused[33];
+
+new QMenu:g_menu_hook;
+new QMenu:g_menu_hookspeed;
+new QMenu:g_menu_hookcolor;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Plugin Schtuff
@@ -100,6 +100,23 @@ public plugin_init( )
 	register_forward( FM_PlayerPreThink, "fwd_PlayerPreThink" );
 	
 	q_kz_registerForward( Q_KZ_TimerStart, "forward_KZTimerStart" );
+	
+	g_menu_hook = q_menu_create("Hook", "mh_hook");
+	q_menu_item_add(g_menu_hook, "", _, _, _, "mf_hook");
+	q_menu_item_add(g_menu_hook, "", _, _, _, "mf_hook");
+	
+	g_menu_hookspeed = q_menu_create("", "mh_hookspeed");
+	q_menu_item_add(g_menu_hookspeed, "", _, _, _, "mf_hookspeed");
+	q_menu_item_add(g_menu_hookspeed, "500");
+	q_menu_item_add(g_menu_hookspeed, "750");
+	q_menu_item_add(g_menu_hookspeed, "1000");
+	q_menu_item_add(g_menu_hookspeed, "1250");
+	q_menu_item_add(g_menu_hookspeed, "1500");
+	
+	g_menu_hookcolor = q_menu_create("", "mh_hookcolor");
+	q_menu_item_add(g_menu_hookcolor, "", _, _, _, "mf_hookcolor");
+	q_menu_item_add(g_menu_hookcolor, "", _, _, _, "mf_hookcolor");
+	q_menu_item_add(g_menu_hookcolor, "", _, _, _, "mf_hookcolor");
 }
 
 public plugin_cfg() {
@@ -172,11 +189,9 @@ public client_putinserver( id ) // DRY principle died in this function
 	}
 }
 
-public client_infochanged( id )
-{
+public client_infochanged( id ) {
 	new hook = get_pcvar_num( cvar_hook );
-	if( ( hook == 3 ) || ( ( hook != 0 ) && q_kz_player_isVip( id ) ) )
-	{
+	if( ( hook == 3 ) || ( ( hook != 0 ) && q_kz_player_isVip( id ) ) ) {
 		g_player_hook[id] = HOOK_YES;
 	}
 }
@@ -299,22 +314,23 @@ public clcmd_HookOff( id )
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_Hook( id )
-{
-	menu_Hook( id );
+public clcmd_Hook(id) {
+	m_hook(id);
 	
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_GiveHook( id )
-{
-	if( !q_kz_player_isVip( id ) )
+public clcmd_GiveHook(id) {
+	if(!q_kz_player_isVip(id)) {
 		return PLUGIN_CONTINUE;
+	}
 	
-	if( get_pcvar_num( cvar_hook ) != 2 )
-		q_kz_print( id, "%L", id, "QKZ_HOOK_GIVEHOOK_CVAR" );
-	else
-		menu_GiveHook( id );
+	if(get_pcvar_num(cvar_hook) != 2) {
+		q_kz_print(id, "%L", id, "QKZ_HOOK_GIVEHOOK_CVAR");
+	}
+	else {
+		m_givehook(id);
+	}
 	
 	return PLUGIN_HANDLED;
 }
@@ -323,169 +339,185 @@ public clcmd_GiveHook( id )
 * Menus
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-public menu_Hook( id )
-{
-	new title[26];
-	formatex( title, charsmax(title), "QKZ %L", id, "QKZ_HOOK" );
-	
-	new menu = menu_create( title, "menu_Hook_handler" );
-	
-	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_HOOK_SPEED" );
-	menu_additem( menu, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "QKZ_HOOK_COLOR" );
-	menu_additem( menu, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_EXIT" );
-	menu_setprop( menu, MPROP_EXITNAME, itemname );
-	
-	menu_display( id, menu );
-}
-
-public menu_Hook_handler( id, menu, item )
-{
-	switch( item )
-	{
-		case 0:
-		{
-			menu_HookSpeed( id );
-		}
-		case 1:
-		{
-			menu_HookColor( id );
-		}
-	}
-	
-	menu_destroy( menu );
-	
-	return PLUGIN_HANDLED;
-}
-
-public menu_HookSpeed( id )
-{
-	new title[26];
-	formatex( title, charsmax(title), "QKZ %L", id, "QKZ_HOOK_SPEED" );
-	new menu = menu_create( title, "menu_HookSpeed_handler" );
-	
-	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_CUSTOM" );
-	menu_additem( menu, itemname );
-	menu_additem( menu, "500" );
-	menu_additem( menu, "750" );
-	menu_additem( menu, "1000" );
-	menu_additem( menu, "1250" );
-	menu_additem( menu, "1500" );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_BACK" );
-	menu_setprop( menu, MPROP_EXITNAME, itemname );
-	
-	menu_display( id, menu );
-}
-
-public menu_HookSpeed_handler( id, menu, item )
-{
-	switch( item )
-	{
-		case 0:
-			client_cmd( id, "messagemode HookSpeed" );
-		case 1:
-			g_player_hook_speed[id] = 500.0;
-		case 2:
-			g_player_hook_speed[id] = 750.0;
-		case 3:
-			g_player_hook_speed[id] = 1000.0;
-		case 4:
-			g_player_hook_speed[id] = 1250.0;
-		case 5:
-			g_player_hook_speed[id] = 1500.0;
-		case MENU_EXIT:
-			menu_Hook( id );
-	}
-	
-	menu_destroy( menu );
-	
-	return PLUGIN_HANDLED;
-}
-
-public menu_HookColor( id )
-{
-	new title[23];
-	formatex( title, charsmax(title), "QKZ %L", id, "QKZ_HOOK_COLOR" );
-	new menu = menu_create( title, "menu_HookColor_handler" );
-	
-	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_CUSTOM" );
-	menu_additem( menu, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_PINK" );
-	menu_additem( menu, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_YELLOW" );
-	menu_additem( menu, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_BACK" );
-	menu_setprop( menu, MPROP_EXITNAME, itemname );
-	
-	menu_display( id, menu );
-}
-
-public menu_HookColor_handler( id, menu, item )
-{
-	switch( item )
-	{
-		case 0:
-			client_cmd( id, "messagemode HookColor" );
-		case 1:
-			g_player_hook_color[id] = { 255, 0, 255 };
-		case 2:
-			g_player_hook_color[id] = { 255, 255, 0 };
-		case MENU_EXIT:
-			menu_Hook( id );
-	}
-	
-	menu_destroy( menu );
-	
-	return PLUGIN_HANDLED;
-}
-
-public menu_GiveHook( id )
-{
+m_hook(id) {
 	new title[32];
-	formatex( title, charsmax(title), "QKZ %L", id, "QKZ_HOOK_GIVEHOOK" );
-	new menu = menu_create( title, "menu_GiveHook_handler" );
-	
-	new szPlayerName[32];
-	new szItemBuffer[60];
-	new szItemInfo[2];
-	for( new i = 1; i <= 32; ++i )
-	{
-		if( is_user_connected( i ) && ( i != id ) )
-		{
-			get_user_name( i, szPlayerName, charsmax(szPlayerName) );
-			formatex( szItemBuffer, charsmax(szItemBuffer), "%s%s",
-				g_player_hook[i] & HOOK_YES ? "\w" : "\d",
-				szPlayerName );
-			szItemInfo[0] = i;
-			szItemInfo[1] = 0;
-			menu_additem( menu, szItemBuffer, szItemInfo );
-		}
-	}
-	
-	new itemname[16];
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_EXIT" );
-	menu_setprop( menu, MPROP_EXITNAME, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_BACK" );
-	menu_setprop( menu, MPROP_BACKNAME, itemname );
-	
-	formatex( itemname, charsmax(itemname), "%L", id, "Q_MENU_NEXT" );
-	menu_setprop( menu, MPROP_NEXTNAME, itemname );
-	
-	menu_display( id, menu );
+	formatex(title, charsmax(title), "%L", id, "QKZ_HOOK");
+	q_menu_set_title(g_menu_hook, title);
+	q_menu_display(id, g_menu_hook);
 }
 
-public menu_GiveHook_handler( id, menu, item )
+public mf_hook(id, QMenu:menu, item, output[64]) {
+	switch(item) {
+	case 0: { // speed
+		formatex(output, charsmax(output), "%L \d(%L: %d)",
+			id, "QKZ_HOOK_SPEED",
+			id, "Q_CURRENT",
+			floatround(g_player_hook_speed[id]));
+	}
+	case 1: { // color
+		formatex(output, charsmax(output), "%L \d(%L: %d %d %d)",
+			id, "QKZ_HOOK_COLOR",
+			id, "Q_CURRENT",
+			g_player_hook_color[id][0],
+			g_player_hook_color[id][1],
+			g_player_hook_color[id][2]);
+	}
+	}
+}
+
+public mh_hook(id, QMenu:menu, item) {
+	switch(item) {
+	case 0: { // speed
+		m_hookspeed( id );
+	}
+	case 1: { // color
+		m_hookcolor( id );
+	}
+	}
+	
+	return PLUGIN_HANDLED;
+}
+
+m_hookspeed(id) {
+	new title[32];
+	formatex(title, charsmax(title), "%L", id, "QKZ_HOOK_SPEED");
+	q_menu_set_title(g_menu_hookspeed, title);
+	q_menu_display(id, g_menu_hookspeed);
+}
+
+public mf_hookspeed(id, QMenu:menu, item, output[64]) {
+	switch(item) {
+	case 0: {
+		formatex(output, charsmax(output), "%L", id, "Q_CUSTOM");
+	}
+	}
+}
+
+public mh_hookspeed(id, QMenu:menu, item) {
+	switch(item) {
+	case 0: {
+		client_cmd(id, "messagemode HookSpeed");
+		return PLUGIN_HANDLED;
+	}
+	case 1: {
+		g_player_hook_speed[id] = 500.0;
+	}
+	case 2: {
+		g_player_hook_speed[id] = 750.0;
+	}
+	case 3: {
+		g_player_hook_speed[id] = 1000.0;
+	}
+	case 4: {
+		g_player_hook_speed[id] = 1250.0;
+	}
+	case 5: {
+		g_player_hook_speed[id] = 1500.0;
+	}
+	}
+	
+	m_hook(id);
+	
+	return PLUGIN_HANDLED;
+}
+
+m_hookcolor(id) {
+	new title[32];
+	formatex(title, charsmax(title), "%L", id, "QKZ_HOOK_COLOR");
+	q_menu_set_title(g_menu_hookcolor, title);
+	q_menu_display(id, g_menu_hookcolor);
+}
+
+public mf_hookcolor(id, QMenu:menu, item, output[64]) {
+	switch(item) {
+	case 0: { // custom
+		formatex(output, charsmax(output), "%L", id, "Q_CUSTOM");
+	}
+	case 1: { // pink
+		formatex(output, charsmax(output), "%L \d(255 0 255)", id, "Q_PINK");
+	}
+	case 2: { // yellow
+		formatex(output, charsmax(output), "%L \d(255 255 0)", id, "Q_YELLOW");
+	}
+	}
+}
+
+public mh_hookcolor(id, QMenu:menu, item) {
+	switch(item) {
+	case 0: {
+		client_cmd(id, "messagemode HookColor");
+		return PLUGIN_HANDLED;
+	}
+	case 1: {
+		g_player_hook_color[id] = {255, 0, 255};
+	}
+	case 2: {
+		g_player_hook_color[id] = {255, 255, 0};
+	}
+	}
+	
+	m_hook(id);
+	
+	return PLUGIN_HANDLED;
+}
+
+public m_givehook(id) {
+	new title[32];
+	formatex(title, charsmax(title), "%L", id, "QKZ_HOOK_GIVEHOOK");
+	new QMenu:menu = q_menu_create(title, "mh_givehook");
+	
+	new itemname[32];
+	new itemdata[3];
+	for(new i = 1, playerCount = get_maxplayers(); i < playerCount; ++i) {
+		if(!is_user_connected(i)) {
+			continue;
+		}
+		
+		get_user_name(i, itemname, charsmax(itemname));
+		if(g_player_hook[i]) {
+			formatex(itemname, charsmax(itemname), "%s: %L", itemname, id, "Q_ON");
+		}
+		else {
+			formatex(itemname, charsmax(itemname), "%s: %L", itemname, id, "Q_OFF");
+		}
+		num_to_str(i, itemdata, charsmax(itemdata));
+		q_menu_item_add(menu, itemname, itemdata);
+	}
+	
+	q_menu_display(id, menu);
+}
+
+public mh_givehook(id, QMenu:menu, item) {
+	switch(item) {
+	case QMenuItem_Exit, QMenuItem_Back, QMenuItem_Next: {
+	}
+	default: {
+		new data[3];
+		q_menu_item_get_data(menu, item, data, charsmax(data));
+		
+		new pickedPlayerId = str_to_num(data);
+		g_player_hook[pickedPlayerId] = !g_player_hook[pickedPlayerId];
+		
+		new pickedPlayerName[32];
+		get_user_name(pickedPlayerId, pickedPlayerName, charsmax(pickedPlayerName));
+		
+		new message[128];
+		formatex(message, charsmax(message), "%L",
+			pickedPlayerId,
+			g_player_hook[pickedPlayerId] ? "QKZ_HOOK_GIVEHOOK_TOGGLE_ON" : "QKZ_HOOK_GIVEHOOK_TOGGLE_OFF");
+		replace_all(message, charsmax(message), "^"name^"", pickedPlayerName);
+		q_kz_print(pickedPlayerId, message);
+		
+		m_givehook(id);
+	}
+	}
+	
+	q_menu_destroy(menu);
+	
+	return PLUGIN_HANDLED;
+}
+
+/*public menu_GiveHook_handler( id, menu, item )
 {
 	if( item != MENU_EXIT )
 	{
@@ -510,7 +542,7 @@ public menu_GiveHook_handler( id, menu, item )
 	menu_destroy( menu );
 
 	return PLUGIN_HANDLED;
-}
+}*/
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Messagemodes
@@ -525,7 +557,7 @@ public messagemode_HookSpeed( id )
 	
 	g_player_hook_speed[id] = str_to_float( szSpeed );
 	
-	menu_Hook( id );
+	m_hook( id );
 	
 	return PLUGIN_HANDLED;
 }
@@ -542,7 +574,7 @@ public messagemode_HookColor( id )
 	g_player_hook_color[id][1] = str_to_num( szGreen );
 	g_player_hook_color[id][2] = str_to_num( szBlue );
 	
-	menu_Hook( id );
+	m_hook( id );
 	
 	return PLUGIN_HANDLED;
 }
