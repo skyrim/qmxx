@@ -4,9 +4,8 @@
 
 /* todo
 - menu_destroy crashes if called right after menu_display
-- item renderer, menu renderer
 - menu parent, menu stack, item access maybe
-- remove hacks in the near future
+- remove hacks
 */
 
 #pragma semicolon 1
@@ -26,6 +25,7 @@ new Float:g_player_menu_expire[33];
 
 new Array:g_menu_title;
 new Array:g_menu_subtitle;
+new Array:g_menu_data;
 new Array:g_menu_forward;
 new Array:g_menu_item_name;
 new Array:g_menu_item_data;
@@ -38,6 +38,7 @@ new Array:g_menu_items_per_page;
 struct menu {
 	string title
 	string subtitle
+	string data
 	*func(id, menu, item) handler
 	struct item {
 		string name
@@ -72,6 +73,8 @@ public plugin_natives( )
 	register_native( "q_menu_set_subtitle", "_q_menu_set_subtitle" );
 	register_native( "q_menu_get_items_per_page", "_q_menu_get_items_per_page" );
 	register_native( "q_menu_set_items_per_page", "_q_menu_set_items_per_page" );
+	register_native("q_menu_get_data", "_q_menu_get_data");
+	register_native("q_menu_set_data", "_q_menu_set_data");
 	register_native( "q_menu_find_by_title", "_q_menu_find_by_title" );
 	register_native( "q_menu_page_count", "_q_menu_page_count" );
 	
@@ -92,6 +95,7 @@ public plugin_natives( )
 	
 	g_menu_title = ArrayCreate( 32, 8 );
 	g_menu_subtitle = ArrayCreate( 32, 8 );
+	g_menu_data = ArrayCreate(64, 8);
 	g_menu_forward = ArrayCreate( 1, 8 );
 	g_menu_items_per_page = ArrayCreate( 1, 8 );
 	g_menu_item_name = ArrayCreate( 1, 8 );
@@ -110,10 +114,11 @@ public plugin_init( )
 	register_clcmd( "menuselect", "clcmd_menuselect" );
 }
 
-public plugin_end( )
-{
+public plugin_end() {
 	g_menu_title ? ArrayDestroy( g_menu_title ) : 0;
 	g_menu_subtitle ? ArrayDestroy( g_menu_subtitle ) : 0;
+	g_menu_data ? ArrayDestroy(g_menu_data) : 0;
+	
 	g_menu_forward ? ArrayDestroy( g_menu_forward ) : 0;
 	g_menu_items_per_page ? ArrayDestroy( g_menu_items_per_page ) : 0;
 	
@@ -373,6 +378,7 @@ public _q_menu_create( plugin, params )
 		{
 			ArraySetString( g_menu_title, insert_index, title );
 			ArraySetString( g_menu_subtitle, insert_index, "" );
+			ArraySetString(g_menu_data, insert_index, "");
 			ArraySetCell( g_menu_forward, insert_index, fwd );
 			ArraySetCell( g_menu_item_name, insert_index, item_name );
 			ArraySetCell( g_menu_item_data, insert_index, item_data );
@@ -387,6 +393,7 @@ public _q_menu_create( plugin, params )
 	
 	ArrayPushString( g_menu_title, title );
 	ArrayPushString( g_menu_subtitle, "" );
+	ArrayPushString(g_menu_data, "");
 	ArrayPushCell( g_menu_forward, fwd );
 	ArrayPushCell( g_menu_item_name, item_name );
 	ArrayPushCell( g_menu_item_data, item_data );
@@ -1293,6 +1300,44 @@ public _q_menu_set_subtitle( plugin, params )
 	new subtitle[32];
 	get_string( 2, subtitle, charsmax(subtitle) );
 	ArraySetString( g_menu_subtitle, menu_id, subtitle );
+}
+
+// q_menu_get_data(QMenu:menu, data[], length)
+public _q_menu_get_data(plugin, params) {
+	if(params != 3) {
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params );
+		return;
+	}
+	
+	new menu = get_param(1);
+	if((menu < 0) || (menu >= ArraySize(g_menu_title))) {
+		log_error(AMX_ERR_NATIVE, "Invalid menu id %d", menu);
+		return;
+	}
+	
+	new data[64];
+	ArrayGetString(g_menu_data, menu, data, charsmax(data));
+	
+	set_string(2, data, get_param(3));
+}
+
+// q_menu_set_data(QMenu:menu, data[])
+public _q_menu_set_data(plugin, params) {
+	if(params != 2) {
+		log_error( AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params );
+		return;
+	}
+	
+	new menu = get_param(1);
+	if((menu < 0) || (menu >= ArraySize(g_menu_title))) {
+		log_error(AMX_ERR_NATIVE, "Invalid menu id %d", menu);
+		return;
+	}
+	
+	new data[64];
+	get_string(2, data, charsmax(data));
+	
+	ArraySetString(g_menu_data, menu, data);
 }
 
 // q_menu_destroy( menu_id )

@@ -80,6 +80,10 @@ native q_menu_get_subtitle(QMenu:menu_handle, subtitle[], len);
 
 native q_menu_set_subtitle(QMenu:menu_handle, subtitle[]);
 
+native q_menu_get_data(QMenu:menu_handle, data[], length);
+
+native q_menu_set_data(QMenu:menu_handle, data[]);
+
 native q_menu_get_items_per_page(QMenu:menu_handle);
 
 native q_menu_set_items_per_page(QMenu:menu_handle, per_page);
