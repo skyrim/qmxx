@@ -1454,7 +1454,7 @@ public clcmd_Checkpoint( id )
 	pev( id, pev_v_angle, g_player_CPangles[id][0] );
 	
 	++g_player_CPcounter[id];
-	q_kz_print( id, "%L #%d", id, "QKZ_CHECKPOINT", g_player_CPcounter[id] );
+	q_kz_print( id, "%L #%d", id, "Q_KZ_CHECKPOINT", g_player_CPcounter[id] );
 	
 	for(new i = 0, size = ArraySize(forward_OnCheckpoint_post); i < size; ++i) {
 		new ret;
@@ -1513,7 +1513,7 @@ public clcmd_Teleport( id )
 		message_te_teleport( id, g_player_CPorigin[id][0] );
 
 	++g_player_TPcounter[id];
-	q_kz_print( id, "%L #%d", id, "QKZ_TELEPORT", g_player_TPcounter[id] );
+	q_kz_print( id, "%L #%d", id, "Q_KZ_TELEPORT", g_player_TPcounter[id] );
 	
 	for(new i = 0, size = ArraySize(forward_OnTeleport_post); i < size; ++i) {
 		new ret;
@@ -1562,7 +1562,7 @@ public clcmd_Stuck( id )
 		message_te_teleport( id, g_player_CPorigin[id][1] );
 
 	++g_player_TPcounter[id];
-	q_kz_print( id, "%L #%d", id, "QKZ_TELEPORT", g_player_TPcounter[id] );
+	q_kz_print( id, "%L #%d", id, "Q_KZ_TELEPORT", g_player_TPcounter[id] );
 	
 	return PLUGIN_HANDLED;
 }
