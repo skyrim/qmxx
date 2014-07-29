@@ -68,6 +68,46 @@
 #define HIDEW_CROSSHAIR 64
 #define HIDEW_PLUS 128
 
+#define STR_ON "Q_ON"
+#define STR_OFF "Q_OFF"
+#define STR_REWARDS "QKZ_REWARDS"
+#define STR_WELCOME "QKZ_WELCOME"
+#define STR_ENTERGAME "QKZ_ENTER_GAME"
+#define STR_ENTERSPEC "QKZ_ENTER_SPEC"
+#define STR_RESPAWNNOTICE "QKZ_RESPAWN_IN_TIME"
+#define STR_SUICIDE "QKZ_SUICIDE"
+#define STR_DROP "QKZ_DROP"
+#define STR_RUNSTARTED "QKZ_RUN_STARTED"
+#define STR_RUNSTOPPED "QKZ_RUN_STOPPED"
+#define STR_WEAPONSPEED "QKZ_WEAPON_SPEED"
+#define STR_CMDDISABLED "QKZ_CMD_DISABLED"
+#define STR_NOTINRUN "QKZ_NOT_IN_RUN"
+#define STR_NOTALIVE "QKZ_NOT_ALIVE"
+#define STR_NOTONGROUND "QKZ_NOT_ONGROUND"
+#define STR_NOTWHILERUN "QKZ_NOT_WHILE_RUN"
+#define STR_NOTWHILEPAUSE "QKZ_NOT_WHILE_PAUSE"
+#define STR_NOCHECKPOINTS "QKZ_NO_CHECKPOINTS"
+#define STR_NOTENOUGHCHECKPOINTS "QKZ_NOT_ENOUGH_CHECKPOINTS"
+#define STR_TELEPORTTOSTART "QKZ_TELEPORT_TO_START"
+#define STR_TELEPORTTOEND "QKZ_TELEPORT_TO_END"
+#define STR_NOSTARTPOS "QKZ_NO_START_POS"
+#define STR_NOENDPOS "QKZ_NO_END_POS"
+#define STR_RUNPAUSED "QKZ_RUN_PAUSED"
+#define STR_RUNUNPAUSED "QKZ_RUN_UNPAUSED"
+#define STR_CUSTOMSTARTSET "QKZ_CUSTOM_START_SET"
+#define STR_CUSTOMSTARTUNSET "QKZ_CUSTOM_START_UNSET"
+#define STR_WELCOMEPLAY "QKZ_WELCOMEPLAY"
+#define STR_WELCOMESPEC "QKZ_WELCOMESPEC"
+#define STR_CHECKPOINT "QKZ_CHECKPOINT"
+#define STR_TELEPORT "QKZ_TELEPORT"
+#define STR_UNSTUCK "QKZ_UNSTUCK"
+#define STR_START "QKZ_START"
+#define STR_PAUSE "QKZ_PAUSE"
+#define STR_UNPAUSE "QKZ_UNPAUSE"
+#define STR_STOP "QKZ_STOP"
+#define STR_TIMERSAVED "QKZ_TIMERSAVED"
+#define STR_NOSAVEDTIMER "QKZ_NOSAVEDTIMER"
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Global Variables
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -937,7 +977,7 @@ public fwd_Killed( id, attacker, shouldgib )
 		set_task( rtime, "task_Respawn", id + TASKID_RESPAWN );
 		set_pcvar_float( cvar_RespawnTime, rtime );
 		
-		q_kz_print( id, "%L %.1fs", id, "QKZ_RESPAWN_IN_TIME", rtime );
+		q_kz_print( id, "%L %.1fs", id, STR_RESPAWNNOTICE, rtime );
 	}
 	
 	return HAM_SUPERCEDE;
@@ -1045,7 +1085,7 @@ public fwd_EmitSound( id, channel, szSound[] )
 
 public fwd_ClientKill( id )
 {
-	q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+	q_kz_print( id, "%L", id, STR_CMDDISABLED );
 	
 	return FMRES_SUPERCEDE;
 }
@@ -1146,7 +1186,7 @@ public event_RunStart( id )
 	message_HideWeapon( id, HIDEW_MONEY );
 	message_Crosshair( id, false );
 	
-	q_kz_print( id, "%L", id, "QKZ_RUN_STARTED" );
+	q_kz_print( id, "%L", id, STR_RUNSTARTED );
 	
 	for( new i = 0, size = ArraySize( forward_TimerStart_post ); i < size; ++i ) {
 		new ret;
@@ -1158,7 +1198,7 @@ public event_RunEnd( id )
 {
 	if( !g_player_run_Running[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_IN_RUN" );
+		q_kz_print( id, "%L", id, STR_NOTINRUN );
 		
 		return;
 	}
@@ -1216,7 +1256,7 @@ public event_CurWeapon( id )
 		
 		pev( id, pev_maxspeed, speed );
 		
-		q_kz_print( id, "%L: %d", id, "QKZ_WEAPON_SPEED", floatround( speed ) );
+		q_kz_print( id, "%L: %d", id, STR_WEAPONSPEED, floatround( speed ) );
 	}
 	
 	if( g_player_run_Running[id]
@@ -1420,21 +1460,21 @@ public clcmd_Checkpoint( id )
 {
 	if( !get_pcvar_num( cvar_Checkpoints ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+		q_kz_print( id, "%L", id, STR_CMDDISABLED );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !( pev( id, pev_flags ) & FL_ONGROUND2 ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ONGROUND" );
+		q_kz_print( id, "%L", id, STR_NOTONGROUND );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1454,7 +1494,7 @@ public clcmd_Checkpoint( id )
 	pev( id, pev_v_angle, g_player_CPangles[id][0] );
 	
 	++g_player_CPcounter[id];
-	q_kz_print( id, "%L #%d", id, "Q_KZ_CHECKPOINT", g_player_CPcounter[id] );
+	q_kz_print( id, "%L #%d", id, STR_CHECKPOINT, g_player_CPcounter[id] );
 	
 	for(new i = 0, size = ArraySize(forward_OnCheckpoint_post); i < size; ++i) {
 		new ret;
@@ -1471,21 +1511,21 @@ public clcmd_Teleport( id )
 {
 	if( !get_pcvar_num( cvar_Checkpoints ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+		q_kz_print( id, "%L", id, STR_CMDDISABLED );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( g_player_CPcounter[id] == 0 )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NO_CHECKPOINTS" );
+		q_kz_print( id, "%L", id, STR_NOCHECKPOINTS );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1513,7 +1553,7 @@ public clcmd_Teleport( id )
 		message_te_teleport( id, g_player_CPorigin[id][0] );
 
 	++g_player_TPcounter[id];
-	q_kz_print( id, "%L #%d", id, "Q_KZ_TELEPORT", g_player_TPcounter[id] );
+	q_kz_print( id, "%L #%d", id, STR_TELEPORT, g_player_TPcounter[id] );
 	
 	for(new i = 0, size = ArraySize(forward_OnTeleport_post); i < size; ++i) {
 		new ret;
@@ -1530,20 +1570,20 @@ public clcmd_Stuck( id )
 {
 	if( !get_pcvar_num( cvar_Checkpoints ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+		q_kz_print( id, "%L", id, STR_CMDDISABLED );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if(g_player_CPcounter[id] < 2) {
-		q_kz_print(id, "%L", id, "QKZ_NOT_ENOUGH_CHECKPOINTS");
+		q_kz_print(id, "%L", id, STR_NOTENOUGHCHECKPOINTS);
 		return PLUGIN_HANDLED;
 	}
 	
@@ -1562,7 +1602,7 @@ public clcmd_Stuck( id )
 		message_te_teleport( id, g_player_CPorigin[id][1] );
 
 	++g_player_TPcounter[id];
-	q_kz_print( id, "%L #%d", id, "Q_KZ_TELEPORT", g_player_TPcounter[id] );
+	q_kz_print( id, "%L #%d", id, STR_TELEPORT, g_player_TPcounter[id] );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1571,14 +1611,14 @@ public clcmd_Start( id )
 {
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( g_player_run_Paused[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_WHILE_PAUSE" );
+		q_kz_print( id, "%L", id, STR_NOTWHILEPAUSE );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1611,12 +1651,12 @@ public clcmd_Start( id )
 	}
 	else
 	{
-		q_kz_print( id, "%L", id, "QKZ_NO_START_POS" );
+		q_kz_print( id, "%L", id, STR_NOSTARTPOS );
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	q_kz_print( id, "%L", id, "QKZ_TELEPORT_TO_START" );
+	q_kz_print( id, "%L", id, STR_TELEPORTTOSTART );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1625,14 +1665,14 @@ public clcmd_End( id )
 {
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( g_player_run_Paused[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_IN_PAUSE" );
+		q_kz_print( id, "%L", id, STR_NOTWHILEPAUSE );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1646,11 +1686,11 @@ public clcmd_End( id )
 		set_pev( id, pev_velocity, Float:{ 0.0, 0.0, 0.0 } );
 		set_pev( id, pev_flags, pev( id, pev_flags ) | FL_DUCKING );
 		
-		q_kz_print( id, "%L", id, "QKZ_TELEPORT_TO_END" );
+		q_kz_print( id, "%L", id, STR_TELEPORTTOEND );
 	}
 	else
 	{
-		q_kz_print( id, "%L", id, "QKZ_NO_END_POS" );
+		q_kz_print( id, "%L", id, STR_NOENDPOS );
 	}
 	
 	return PLUGIN_HANDLED;
@@ -1660,14 +1700,14 @@ public clcmd_SetStart( id )
 {
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !( pev( id, pev_flags ) & FL_ONGROUND2 ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ONGROUND" );
+		q_kz_print( id, "%L", id, STR_NOTONGROUND );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1675,7 +1715,7 @@ public clcmd_SetStart( id )
 	g_start_bCustom[id] = true;
 	pev( id, pev_origin, g_start_vCustom[id] );
 	
-	q_kz_print( id, "%L", id, "QKZ_CUSTOM_START_SET" );
+	q_kz_print( id, "%L", id, STR_CUSTOMSTARTSET );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1684,14 +1724,14 @@ public clcmd_UnsetStart( id )
 {
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	g_start_bCustom[id] = false;
 	
-	q_kz_print( id, "%L", id, "QKZ_CUSTOM_START_UNSET" );
+	q_kz_print( id, "%L", id, STR_CUSTOMSTARTUNSET );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1700,28 +1740,28 @@ public clcmd_Pause( id )
 {
 	if( !get_pcvar_num( cvar_Pause ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+		q_kz_print( id, "%L", id, STR_CMDDISABLED );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !( pev( id, pev_flags ) & FL_ONGROUND2 ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ONGROUND" );
+		q_kz_print( id, "%L", id, STR_NOTONGROUND );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_run_Running[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_IN_RUN" );
+		q_kz_print( id, "%L", id, STR_NOTINRUN );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1738,7 +1778,7 @@ public clcmd_Pause( id )
 		
 		set_pev( id, pev_flags, pev( id, pev_flags ) & ~FL_FROZEN );
 		
-		q_kz_print( id, "%L", id, "QKZ_RUN_UNPAUSED" );
+		q_kz_print( id, "%L", id, STR_RUNPAUSED );
 	}
 	else
 	{
@@ -1747,7 +1787,7 @@ public clcmd_Pause( id )
 
 		set_pev( id, pev_flags, pev( id, pev_flags ) | FL_FROZEN );
 
-		q_kz_print( id, "%L", id, "QKZ_RUN_PAUSED" );
+		q_kz_print( id, "%L", id, STR_RUNPAUSED );
 	}
 	
 	for( new i = 0, size = ArraySize( forward_TimerPause_post ); i < size; ++i ) {
@@ -1762,7 +1802,7 @@ public clcmd_Stop( id )
 {
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1771,11 +1811,11 @@ public clcmd_Stop( id )
 	{
 		q_kz_player_stopTimer( id, "" );
 		
-		q_kz_print( id, "%L", id, "QKZ_RUN_STOPPED" );
+		q_kz_print( id, "%L", id, STR_RUNSTOPPED );
 	}
 	else
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_IN_RUN" );
+		q_kz_print( id, "%L", id, STR_NOTINRUN );
 	}
 	
 	return PLUGIN_HANDLED;
@@ -1791,7 +1831,7 @@ public clcmd_Spectate( id )
 	
 	if( team == CS_TEAM_UNASSIGNED )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 	}
 	else if( team == CS_TEAM_SPECTATOR )
 	{
@@ -1837,7 +1877,7 @@ public clcmd_MaxSpeed( id )
 {
 	g_player_MaxSpeed[id] = !g_player_MaxSpeed[id];
 	
-	q_kz_print( id, "%L: %L", id, "QKZ_WEAPON_SPEED", id, ( g_player_MaxSpeed[id] ? "Q_ON" : "Q_OFF" ) );
+	q_kz_print( id, "%L: %L", id, STR_WEAPONSPEED, id, ( g_player_MaxSpeed[id] ? STR_ON : STR_OFF ) );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1846,7 +1886,7 @@ public clcmd_kzmenu( id )
 {
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1860,21 +1900,21 @@ public clcmd_GodMode( id )
 {
 	if( !get_pcvar_num( cvar_GodMode ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+		q_kz_print( id, "%L", id, STR_CMDDISABLED );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( g_player_run_Running[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_WHILE_RUN" );
+		q_kz_print( id, "%L", id, STR_NOTWHILERUN );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1882,7 +1922,7 @@ public clcmd_GodMode( id )
 	
 	g_player_God[id] = !g_player_God[id];
 	set_pev( id, pev_takedamage, g_player_God[id] ? DAMAGE_NO : DAMAGE_AIM );
-	q_kz_print( id, "Godmode: %L", id, ( g_player_God[id] ? "ON" : "QKZ_OFF" ) );
+	q_kz_print( id, "Godmode: %L", id, ( g_player_God[id] ? STR_ON : STR_OFF ) );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1891,21 +1931,21 @@ public clcmd_Noclip( id )
 {
 	if( !get_pcvar_num( cvar_Noclip ) )
 	{
-		q_kz_print( id, "%L", id, "QKZ_CMD_DISABLED" );
+		q_kz_print( id, "%L", id, STR_CMDDISABLED );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( !g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print( id, "%L", id, STR_NOTALIVE );
 		
 		return PLUGIN_HANDLED;
 	}
 	
 	if( g_player_run_Running[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_NOT_WHILE_RUN" );
+		q_kz_print( id, "%L", id, STR_NOTWHILERUN );
 		
 		return PLUGIN_HANDLED;
 	}
@@ -1913,7 +1953,7 @@ public clcmd_Noclip( id )
 	
 	g_player_Noclip[id] = !g_player_Noclip[id];
 	set_pev( id, pev_movetype, g_player_Noclip[id] ? MOVETYPE_NOCLIP : MOVETYPE_WALK );
-	q_kz_print( id, "Noclip: %L", id, ( g_player_Noclip[id] ? "Q_ON" : "Q_OFF" ) );
+	q_kz_print( id, "Noclip: %L", id, ( g_player_Noclip[id] ? STR_ON : STR_OFF ) );
 	
 	return PLUGIN_HANDLED;
 }
@@ -1922,7 +1962,7 @@ public clcmd_Drop( id )
 {
 	if( g_player_Alive[id] )
 	{
-		q_kz_print( id, "%L", id, "QKZ_DROP" );
+		q_kz_print( id, "%L", id, STR_DROP );
 	}
 	
 	return PLUGIN_HANDLED;
@@ -1930,24 +1970,26 @@ public clcmd_Drop( id )
 
 public clcmd_save(id, level, cid) {
 	if(!get_pcvar_num(g_cvar_command_save)) {
-		q_kz_print(id, "%L", id, "Q_KZ_CMD_DISABLED");
+		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		return PLUGIN_HANDLED;
 	}
 	
 	if(!g_player_Alive[id]) {
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		return PLUGIN_HANDLED;
 	}
 	
 	if(!(pev(id, pev_flags) & FL_ONGROUND2)) {
-		q_kz_print(id, "%L", id, "QKZ_NOT_ONGROUND");
+		q_kz_print(id, "%L", id, STR_NOTONGROUND);
 		return PLUGIN_HANDLED;
 	}
 	
 	if(!g_player_run_Running[id]) {
-		q_kz_print(id, "%L", id, "QKZ_NOT_IN_RUN");
+		q_kz_print(id, "%L", id, STR_NOTINRUN);
 		return PLUGIN_HANDLED;
 	}
+	
+	q_kz_print(id, "%L", id, STR_TIMERSAVED);
 	
 	psave_save(id);
 	
@@ -1956,22 +1998,22 @@ public clcmd_save(id, level, cid) {
 
 public clcmd_restore(id, level, cid) {
 	if(!get_pcvar_num(g_cvar_command_save)) {
-		q_kz_print(id, "%L", id, "Q_KZ_CMD_DISABLED");
+		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		return PLUGIN_HANDLED;
 	}
 	
 	if(!g_player_Alive[id]) {
-		q_kz_print( id, "%L", id, "QKZ_NOT_ALIVE" );
+		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		return PLUGIN_HANDLED;
 	}
 	
 	if(g_player_run_Running[id]) {
-		q_kz_print(id, "Not allowed in run");
+		q_kz_print(id, "%L", id, STR_NOTINRUN);
 		return PLUGIN_HANDLED;
 	}
 	
 	if(!g_player_psave_exists[id]) {
-		q_kz_print(id, "You don't have a saved timer to restore");
+		q_kz_print(id, "%L", id, STR_NOSAVEDTIMER);
 		return PLUGIN_HANDLED;
 	}
 	
@@ -1990,7 +2032,7 @@ public clcmd_cpangles(id, level, cid) {
 
 m_welcome(id) {
 	new title[32];
-	formatex(title, charsmax(title), "%L", id, "QKZ_WELCOME");
+	formatex(title, charsmax(title), "%L", id, STR_WELCOME);
 	q_menu_set_title(g_menu_welcome, title);
 	
 	q_menu_display(id, g_menu_welcome);
@@ -1999,10 +2041,10 @@ m_welcome(id) {
 public mf_welcome(id, menu, item, output[64]) {
 	switch(item) {
 	case 0: { // play
-		formatex(output, charsmax(output), "%L", id, "Q_KZ_WELCOMEPLAY");
+		formatex(output, charsmax(output), "%L", id, STR_WELCOMEPLAY);
 	}
 	case 1: { // spec
-		formatex(output, charsmax(output), "%L", id, "Q_KZ_WELCOMESPEC");
+		formatex(output, charsmax(output), "%L", id, STR_WELCOMESPEC);
 	}
 	}
 }
@@ -2029,7 +2071,7 @@ public mh_welcome(id, QMenu:menu, item) {
 
 m_chooseteam(id) {
 	new title[32];
-	formatex(title, charsmax(title), "%L", id, (g_player_Alive[id] ? "QKZ_ENTER_SPEC" : "QKZ_ENTER_GAME"));
+	formatex(title, charsmax(title), "%L", id, (g_player_Alive[id] ? STR_ENTERSPEC : STR_ENTERGAME));
 	q_menu_set_title(g_menu_chooseteam, title);
 	
 	q_menu_display(id, g_menu_chooseteam);
@@ -2061,26 +2103,26 @@ m_kreedz(id) {
 public mf_kreedz(id, menu, item, output[64]) {
 	switch(item) {
 	case 0: { // checkpoint
-		formatex(output, charsmax(output), "%L / \y#%d", id, "Q_KZ_CHECKPOINT", g_player_CPcounter[id]);
+		formatex(output, charsmax(output), "%L / \y#%d", id, STR_CHECKPOINT, g_player_CPcounter[id]);
 	}
 	case 1: { // teleport
-		formatex(output, charsmax(output), "%L / \y#%d", id, "Q_KZ_TELEPORT", g_player_TPcounter[id]);
+		formatex(output, charsmax(output), "%L / \y#%d", id, STR_TELEPORT, g_player_TPcounter[id]);
 		q_menu_item_set_enabled(g_menu_kreedz, 1, g_player_CPcounter[id] > 0 ? true : false);
 	}
 	case 2: { // unstuck
-		formatex(output, charsmax(output), "%L", id, "Q_KZ_UNSTUCK");
+		formatex(output, charsmax(output), "%L", id, STR_UNSTUCK);
 		q_menu_item_set_enabled(g_menu_kreedz, 2, g_player_CPcounter[id] > 1 ? true : false);
 	}
 	case 3: { // start
 		// TODO: enable if exists/found
-		formatex(output, charsmax(output), "%L", id, "Q_KZ_START");
+		formatex(output, charsmax(output), "%L", id, STR_START);
 	}
 	case 4: { // pause
-		formatex(output, charsmax(output), "%L", id, (g_player_run_Paused[id] ? "Q_KZ_UNPAUSE" : "Q_KZ_PAUSE"));
+		formatex(output, charsmax(output), "%L", id, (g_player_run_Paused[id] ? STR_UNPAUSE : STR_PAUSE));
 		q_menu_item_set_enabled(g_menu_kreedz, 4, g_player_run_Running[id] ? true : false);
 	}
 	case 5: { // stop
-		formatex(output, charsmax(output), "%L", id, "Q_KZ_STOP");
+		formatex(output, charsmax(output), "%L", id, STR_STOP);
 		q_menu_item_set_enabled(g_menu_kreedz, 5, g_player_run_Running[id] ? true : false);
 	}
 	}
@@ -2119,7 +2161,7 @@ public mh_kreedz(id, menu, item) {
 public menu_KZRewards( id )
 {
 	new buffer[32];
-	formatex( buffer, charsmax(buffer), "QKZ %L", id, "QKZ_REWARDS" );
+	formatex( buffer, charsmax(buffer), "QKZ %L", id, STR_REWARDS );
 	new menu = menu_create( buffer, "menu_KZRewards_handler" );
 	
 	new callback;
