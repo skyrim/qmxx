@@ -1,6 +1,4 @@
 //   To do:
-// - fix death animation
-// - MULTILINGUAL
 // - create irc module
 // - Duel System & Duel Rank
 // - Cup System & Cup Rank
@@ -18,7 +16,7 @@
 #pragma semicolon 1
 
 #define PLUGIN  "Q::KZ"
-#define VERSION "1.2b"
+#define VERSION "1.3b"
 #define AUTHOR  "Quaker"
 
 #define SET_BITVECTOR(%1,%2) (%1[%2>>5] |=  (1<<(%2 & 31)))
@@ -535,28 +533,28 @@ public plugin_init() {
 	
 	get_cvar_string("hostname", g_server_Name, charsmax(g_server_Name));
 	
-	cvar_Checkpoints	= register_cvar("q_kz_checkpoints",		"1");
-	cvar_CheckpointAngles	= register_cvar("q_kz_checkpointangles",	"1");
-	cvar_TeleportSplash	= register_cvar("q_kz_teleport_splash",	"0");
-	cvar_Prefix		= register_cvar("q_kz_prefix",			"QKZ");
-	cvar_Pause 		= register_cvar("q_kz_pause",			"1");
-	cvar_GodMode 		= register_cvar("q_kz_godmode",		"1");
-	cvar_Noclip 		= register_cvar("q_kz_noclip",			"1");
-	cvar_Semiclip		= register_cvar("q_kz_semiclip",		"1");
-	cvar_SemiclipAlpha	= register_cvar("q_kz_semiclip_alpha",		"80");
-	cvar_Weapons		= register_cvar("q_kz_weapons",		"1");
-	cvar_WeaponsAmmo	= register_cvar("q_kz_weapons_ammo",		"2");
-	cvar_WeaponsSpeed	= register_cvar("q_kz_weapons_speed",		"1");
-	cvar_Respawn		= register_cvar("q_kz_respawn",		"1");
-	cvar_RespawnTime	= register_cvar("q_kz_respawn_time",		"3.0");
-	cvar_HPBug		= register_cvar("q_kz_hpbug",			"0");
-	cvar_PrintType		= register_cvar("q_kz_print_type",		"0");
-	cvar_PrintColor		= register_cvar("q_kz_print_color",		"0 100 255");
-	cvar_PrintPos		= register_cvar("q_kz_print_pos",		"-1.0 0.9");
-	cvar_SpawnWithMenu	= register_cvar("q_kz_spawnwithmenu",		"1");
-	cvar_VipFlags		= register_cvar("q_kz_vipflags",		"a");
-	cvar_Rewards		= register_cvar("q_kz_rewards",		"0");
-	g_cvar_command_save	= register_cvar("q_kz_command_save",		"1");
+	cvar_Checkpoints	= register_cvar("q_kz_checkpoints", "1");
+	cvar_CheckpointAngles	= register_cvar("q_kz_checkpointangles", "1");
+	cvar_TeleportSplash	= register_cvar("q_kz_teleport_splash", "0");
+	cvar_Prefix		= register_cvar("q_kz_prefix", "QKZ");
+	cvar_Pause 		= register_cvar("q_kz_pause", "1");
+	cvar_GodMode 		= register_cvar("q_kz_godmode", "1");
+	cvar_Noclip 		= register_cvar("q_kz_noclip", "1");
+	cvar_Semiclip		= register_cvar("q_kz_semiclip", "1");
+	cvar_SemiclipAlpha	= register_cvar("q_kz_semiclip_alpha", "80");
+	cvar_Weapons		= register_cvar("q_kz_weapons", "1");
+	cvar_WeaponsAmmo	= register_cvar("q_kz_weapons_ammo", "2");
+	cvar_WeaponsSpeed	= register_cvar("q_kz_weapons_speed", "1");
+	cvar_Respawn		= register_cvar("q_kz_respawn", "1");
+	cvar_RespawnTime	= register_cvar("q_kz_respawn_time", "3.0");
+	cvar_HPBug		= register_cvar("q_kz_hpbug", "0");
+	cvar_PrintType		= register_cvar("q_kz_print_type", "0");
+	cvar_PrintColor		= register_cvar("q_kz_print_color", "0 100 255");
+	cvar_PrintPos		= register_cvar("q_kz_print_pos", "-1.0 0.9");
+	cvar_SpawnWithMenu	= register_cvar("q_kz_spawnwithmenu", "1");
+	cvar_VipFlags		= register_cvar("q_kz_vipflags", "a");
+	cvar_Rewards		= register_cvar("q_kz_rewards", "0");
+	g_cvar_command_save	= register_cvar("q_kz_command_save", "1");
 	
 	g_menu_welcome = q_menu_create("Welcome", "mh_welcome");
 	q_menu_item_add(g_menu_welcome, "", _, _, _, "mf_welcome");
@@ -597,48 +595,48 @@ public plugin_init() {
 	forward_OnTeleport_pre = ArrayCreate(1, 1);
 	forward_OnTeleport_post = ArrayCreate(1, 1);
 	
-	q_kz_registerClcmd("/cp",		"clcmd_Checkpoint");
-	q_kz_registerClcmd("say /cp",		"clcmd_Checkpoint", _,	"Saves your current position to which you can teleport. Alternative: /check");
-	q_kz_registerClcmd("say /check",	"clcmd_Checkpoint");
-	q_kz_registerClcmd("say /checkpoint",	"clcmd_Checkpoint");
-	q_kz_registerClcmd("/tp",		"clcmd_Teleport");
-	q_kz_registerClcmd("say /tp",		"clcmd_Teleport", _,	"Teleports you back to your last saved position. Alternatives: /tele, /gc, /gocheck");
-	q_kz_registerClcmd("say /tele",	"clcmd_Teleport");
-	q_kz_registerClcmd("say /teleport",	"clcmd_Teleport");
-	q_kz_registerClcmd("/gc",		"clcmd_Teleport");
-	q_kz_registerClcmd("say /gc",		"clcmd_Teleport");
-	q_kz_registerClcmd("say /gocheck",	"clcmd_Teleport");
-	q_kz_registerClcmd("say /stuck",	"clcmd_Stuck", _,	"Teleports you 2 checkpoints back. Alternative: /unstuck");
-	q_kz_registerClcmd("say /unstuck",	"clcmd_Stuck");
-	q_kz_registerClcmd("say /start",	"clcmd_Start", _,	"Teleport to start button position. Alternative: /begin");
-	q_kz_registerClcmd("say /begin",	"clcmd_Start");
-	q_kz_registerClcmd("say /end",		"clcmd_End", _,		"Teleport to end button position. Alternative: /finish");
-	q_kz_registerClcmd("say /finish",	"clcmd_End");
-	q_kz_registerClcmd("say /setstart",	"clcmd_SetStart", _,	"Set custom start position");
-	q_kz_registerClcmd("say /unsetstart",	"clcmd_UnsetStart", _,	"Remove custom start position");
-	q_kz_registerClcmd("say /pause",	"clcmd_Pause", _,	"Pause your current run");
-	q_kz_registerClcmd("say /stop",	"clcmd_Stop", _,	"Ends your current run");
-	q_kz_registerClcmd("say /reset",	"clcmd_Stop");
-	q_kz_registerClcmd("say /spec",	"clcmd_Spectate", _,	"Switch to and out of spectators. Alternative: /ct");
-	q_kz_registerClcmd("say /unspec",	"clcmd_Spectate");
-	q_kz_registerClcmd("say /save",		"clcmd_save");
-	q_kz_registerClcmd("say /restore",	"clcmd_restore");
-	q_kz_registerClcmd("say /cpangles",	"clcmd_cpangles");
-	q_kz_registerClcmd("say /ct",		"clcmd_Spectate");
-	q_kz_registerClcmd("chooseteam",	"clcmd_Chooseteam");
-	q_kz_registerClcmd("say /menu",	"clcmd_kzmenu", _,	"Open menu with common commands. Alternative: /kzmenu");
-	q_kz_registerClcmd("say /kz",		"clcmd_kzmenu");
-	q_kz_registerClcmd("say /kzmenu",	"clcmd_kzmenu");
-	q_kz_registerClcmd("say /maxspeed",	"clcmd_MaxSpeed", _,	"Toggle weapon speed shower on/off");
-	q_kz_registerClcmd("say /god",		"clcmd_GodMode", _,	"Toggle god mode on/off. Alternative: /godmode");
-	q_kz_registerClcmd("say /godmode",	"clcmd_GodMode");
-	q_kz_registerClcmd("say /nc",		"clcmd_Noclip", _,	"Toggle noclip mode on/off. Alternative: /noclip");
-	q_kz_registerClcmd("say /noclip",	"clcmd_Noclip");
-	q_kz_registerClcmd("drop",		"clcmd_Drop");
-	q_kz_registerClcmd("radio1",		"clcmd_Block");
-	q_kz_registerClcmd("radio2",		"clcmd_Block");
-	q_kz_registerClcmd("radio3",		"clcmd_Block");
-	q_kz_registerClcmd("jointeam",	"clcmd_Block");
+	q_kz_registerClcmd("/cp", "clcmd_Checkpoint");
+	q_kz_registerClcmd("say /cp", "clcmd_Checkpoint", _, "Saves your current position to which you can teleport. Alternative: /check");
+	q_kz_registerClcmd("say /check", "clcmd_Checkpoint");
+	q_kz_registerClcmd("say /checkpoint", "clcmd_Checkpoint");
+	q_kz_registerClcmd("/tp", "clcmd_Teleport");
+	q_kz_registerClcmd("say /tp", "clcmd_Teleport", _, "Teleports you back to your last saved position. Alternatives: /tele, /gc, /gocheck");
+	q_kz_registerClcmd("say /tele", "clcmd_Teleport");
+	q_kz_registerClcmd("say /teleport", "clcmd_Teleport");
+	q_kz_registerClcmd("/gc", "clcmd_Teleport");
+	q_kz_registerClcmd("say /gc", "clcmd_Teleport");
+	q_kz_registerClcmd("say /gocheck", "clcmd_Teleport");
+	q_kz_registerClcmd("say /stuck", "clcmd_Stuck", _, "Teleports you 2 checkpoints back. Alternative: /unstuck");
+	q_kz_registerClcmd("say /unstuck", "clcmd_Stuck");
+	q_kz_registerClcmd("say /start", "clcmd_Start", _, "Teleport to start button position. Alternative: /begin");
+	q_kz_registerClcmd("say /begin", "clcmd_Start");
+	q_kz_registerClcmd("say /end", "clcmd_End", _, "Teleport to end button position. Alternative: /finish");
+	q_kz_registerClcmd("say /finish", "clcmd_End");
+	q_kz_registerClcmd("say /setstart", "clcmd_SetStart", _, "Set custom start position");
+	q_kz_registerClcmd("say /unsetstart", "clcmd_UnsetStart", _, "Remove custom start position");
+	q_kz_registerClcmd("say /pause", "clcmd_Pause", _, "Pause your current run");
+	q_kz_registerClcmd("say /stop", "clcmd_Stop", _, "Ends your current run");
+	q_kz_registerClcmd("say /reset", "clcmd_Stop");
+	q_kz_registerClcmd("say /spec", "clcmd_Spectate", _, "Switch to and out of spectators. Alternative: /ct");
+	q_kz_registerClcmd("say /unspec", "clcmd_Spectate");
+	q_kz_registerClcmd("say /save", "clcmd_save");
+	q_kz_registerClcmd("say /restore", "clcmd_restore");
+	q_kz_registerClcmd("say /cpangles", "clcmd_cpangles");
+	q_kz_registerClcmd("say /ct", "clcmd_Spectate");
+	q_kz_registerClcmd("chooseteam", "clcmd_Chooseteam");
+	q_kz_registerClcmd("say /menu", "clcmd_kzmenu", _, "Open menu with common commands. Alternative: /kzmenu");
+	q_kz_registerClcmd("say /kz", "clcmd_kzmenu");
+	q_kz_registerClcmd("say /kzmenu", "clcmd_kzmenu");
+	q_kz_registerClcmd("say /maxspeed", "clcmd_MaxSpeed", _, "Toggle weapon speed shower on/off");
+	q_kz_registerClcmd("say /god", "clcmd_GodMode", _, "Toggle god mode on/off. Alternative: /godmode");
+	q_kz_registerClcmd("say /godmode", "clcmd_GodMode");
+	q_kz_registerClcmd("say /nc", "clcmd_Noclip", _, "Toggle noclip mode on/off. Alternative: /noclip");
+	q_kz_registerClcmd("say /noclip", "clcmd_Noclip");
+	q_kz_registerClcmd("drop", "clcmd_Drop");
+	q_kz_registerClcmd("radio1", "clcmd_Block");
+	q_kz_registerClcmd("radio2", "clcmd_Block");
+	q_kz_registerClcmd("radio3", "clcmd_Block");
+	q_kz_registerClcmd("jointeam", "clcmd_Block");
 	
 	register_forward(FM_EmitSound, "fwd_EmitSound");
 	register_forward(FM_ClientKill, "fwd_ClientKill");
@@ -658,49 +656,49 @@ public plugin_init() {
 	q_kz_registerForward(Q_KZ_OnCheckpoint, "forward_KZOnCheckpoint", true);
 	q_kz_registerForward(Q_KZ_OnTeleport, "forward_KZOnTeleport", true);
 	
-	register_event("ResetHUD",	"event_ResetHUD", "b");
-	register_event("SpecHealth2",	"event_SpecHealth2", "bd");
-	register_event("CurWeapon",	"event_CurWeapon", "be", "1!0", "2!0");
-	register_event("AmmoX",	"event_AmmoX", "be");
+	register_event("ResetHUD", "event_ResetHUD", "b");
+	register_event("SpecHealth2", "event_SpecHealth2", "bd");
+	register_event("CurWeapon", "event_CurWeapon", "be", "1!0", "2!0");
+	register_event("AmmoX", "event_AmmoX", "be");
 
-	g_msg_Health		= get_user_msgid("Health");
-	g_msg_SayText		= get_user_msgid("SayText");
-	g_msg_ScoreAttrib	= get_user_msgid("ScoreAttrib");
-	g_msg_TeamInfo		= get_user_msgid("TeamInfo");
-	g_msg_AmmoPickup	= get_user_msgid("AmmoPickup");
-	g_msg_WeapPickup	= get_user_msgid("WeapPickup");
-	g_msg_HideWeapon	= get_user_msgid("HideWeapon");
-	g_msg_ScreenFade	= get_user_msgid("ScreenFade");
-	g_msg_RoundTime		= get_user_msgid("RoundTime");
-	g_msg_StatusIcon	= get_user_msgid("StatusIcon");
-	g_msg_Crosshair		= get_user_msgid("Crosshair");
-	g_msg_ClCorpse		= get_user_msgid("ClCorpse");
-	g_msg_VGUIMenu		= get_user_msgid("VGUIMenu");
-	g_msg_ShowMenu		= get_user_msgid("ShowMenu");
+	g_msg_Health = get_user_msgid("Health");
+	g_msg_SayText = get_user_msgid("SayText");
+	g_msg_ScoreAttrib = get_user_msgid("ScoreAttrib");
+	g_msg_TeamInfo = get_user_msgid("TeamInfo");
+	g_msg_AmmoPickup = get_user_msgid("AmmoPickup");
+	g_msg_WeapPickup = get_user_msgid("WeapPickup");
+	g_msg_HideWeapon = get_user_msgid("HideWeapon");
+	g_msg_ScreenFade = get_user_msgid("ScreenFade");
+	g_msg_RoundTime = get_user_msgid("RoundTime");
+	g_msg_StatusIcon = get_user_msgid("StatusIcon");
+	g_msg_Crosshair = get_user_msgid("Crosshair");
+	g_msg_ClCorpse = get_user_msgid("ClCorpse");
+	g_msg_VGUIMenu = get_user_msgid("VGUIMenu");
+	g_msg_ShowMenu = get_user_msgid("ShowMenu");
 	
-	register_message(g_msg_Health,		"message_hook_Health");
-	register_message(g_msg_HideWeapon,	"message_hook_HideWeapon");
-	register_message(g_msg_StatusIcon,	"message_hook_StatusIcon");
-	register_message(g_msg_ScoreAttrib,	"message_hook_ScoreAttrib");
-	register_message(g_msg_VGUIMenu, 	"message_hook_VGUIMenu");
-	register_message(g_msg_ShowMenu,	"message_hook_ShowMenu");
+	register_message(g_msg_Health, "message_hook_Health");
+	register_message(g_msg_HideWeapon, "message_hook_HideWeapon");
+	register_message(g_msg_StatusIcon, "message_hook_StatusIcon");
+	register_message(g_msg_ScoreAttrib, "message_hook_ScoreAttrib");
+	register_message(g_msg_VGUIMenu, "message_hook_VGUIMenu");
+	register_message(g_msg_ShowMenu, "message_hook_ShowMenu");
 	
 	set_msg_block(g_msg_ClCorpse, BLOCK_SET);
 	set_msg_block(g_msg_AmmoPickup, BLOCK_SET);
 	set_msg_block(g_msg_WeapPickup, BLOCK_SET);
 	
-	set_cvar_num("mp_freezetime", 		0);
-	set_cvar_num("mp_footsteps",     	1);
-	set_cvar_num("mp_limitteams",		0);
-	set_cvar_num("mp_autoteambalance",	0);
-	set_cvar_num("edgefriction", 		2);
-	set_cvar_num("sv_cheats", 		0);
-	set_cvar_num("sv_gravity", 		800);
-	set_cvar_num("sv_maxspeed", 		320);
-	set_cvar_num("sv_stepsize", 		18);
-	set_cvar_num("sv_maxvelocity", 	2000);
-	set_cvar_num("sv_airaccelerate", 	10);
-	set_cvar_string("humans_join_team", 	"ct");
+	set_cvar_num("mp_freezetime", 0);
+	set_cvar_num("mp_footsteps", 1);
+	set_cvar_num("mp_limitteams", 0);
+	set_cvar_num("mp_autoteambalance", 0);
+	set_cvar_num("edgefriction", 2);
+	set_cvar_num("sv_cheats", 0);
+	set_cvar_num("sv_gravity", 800);
+	set_cvar_num("sv_maxspeed", 320);
+	set_cvar_num("sv_stepsize", 18);
+	set_cvar_num("sv_maxvelocity", 2000);
+	set_cvar_num("sv_airaccelerate", 10);
+	set_cvar_string("humans_join_team", "ct");
 	
 	RemoveJunkEntities();
 	load_ButtonPositions();
@@ -826,21 +824,21 @@ public client_infochanged(id) {
 }
 
 public client_disconnect(id) {
-	g_player_ingame[id]		= false;
-	g_player_Name[id][0]		= 0;
-	g_player_VIP[id]		= false;
-	g_player_Connected[id] 		= true;
-	g_player_Alive[id]		= false;
-	g_player_Welcome[id] 		= false;
-	g_player_MaxSpeed[id]		= true;
-	g_player_God[id]		= false;
-	g_player_Noclip[id]		= false;
-	g_player_CPcounter[id]		= 0;
-	g_player_TPcounter[id]		= 0;
-	g_player_SpecID[id]		= 0;
-	g_player_run_Running[id]	= false;
-	g_player_run_Paused[id]		= false;
-	g_player_run_WeaponID[id]	= 0;
+	g_player_ingame[id] = false;
+	g_player_Name[id][0] = 0;
+	g_player_VIP[id] = false;
+	g_player_Connected[id] = true;
+	g_player_Alive[id] = false;
+	g_player_Welcome[id] = false;
+	g_player_MaxSpeed[id] = true;
+	g_player_God[id] = false;
+	g_player_Noclip[id] = false;
+	g_player_CPcounter[id] = 0;
+	g_player_TPcounter[id] = 0;
+	g_player_SpecID[id] = 0;
+	g_player_run_Running[id] = false;
+	g_player_run_Paused[id] = false;
+	g_player_run_WeaponID[id] = 0;
 	
 	if(!g_cookies_failed && !is_user_bot(id)) {
 		q_set_cookie_num(id, "save_cp_angles", g_player_setting_CPangles[id]);
@@ -936,7 +934,12 @@ public fwd_Killed(id, attacker, shouldgib) {
 	g_player_Alive[id] = false;
 	
 	g_player_Noclip[id] = false;
-	pev(id, pev_movetype, MOVETYPE_NONE);
+	set_pev(id, pev_movetype, MOVETYPE_NONE);
+	set_pev(id, pev_sequence, 104);
+	set_pev(id, pev_gaitsequence, 0);
+	set_pev(id, pev_animtime, get_gametime());
+	set_pev(id, pev_framerate, 1.0);
+	set_pev(id, pev_frame, 0.0);
 	
 	/* RESPAWN */
 	if(get_pcvar_num(cvar_Respawn)) {
