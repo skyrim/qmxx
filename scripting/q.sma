@@ -18,6 +18,13 @@ public plugin_natives() {
 	
 	register_native("q_getDataDirectory", "_q_getDataDirectory");
 	register_native("q_registerCvar", "_q_registerCvar");
+	
+	g_cvar_plugin = ArrayCreate(1, 8);
+	g_cvar_pluginCvarIndices = ArrayCreate(1, 8);
+	g_cvar_pointer = ArrayCreate(1, 8);
+	g_cvar_name = ArrayCreate(32, 8);
+	g_cvar_defaultValue = ArrayCreate(128, 8);
+	g_cvar_description = ArrayCreate(256, 8);
 }
 
 public plugin_precache() {
@@ -32,20 +39,13 @@ public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	
 	register_dictionary("q.txt");
-	
-	g_cvar_plugin = ArrayCreate(1, 8);
-	g_cvar_pluginCvarIndices = ArrayCreate(1, 8);
-	g_cvar_pointer = ArrayCreate(1, 8);
-	g_cvar_name = ArrayCreate(32, 8);
-	g_cvar_defaultValue = ArrayCreate(128, 8);
-	g_cvar_description = ArrayCreate(256, 8);
 }
 
 public plugin_end() {
-	writeConfig();
+	cvar_saveConfig();
 }
 
-writeConfig() {
+cvar_saveConfig() {
 	new path[256];
 	get_localinfo("amxx_configsdir", path, charsmax(path));
 	add(path[strlen(path)-1], charsmax(path), "/q.cfg", 6);
