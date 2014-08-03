@@ -1,23 +1,23 @@
 [en]
-QKZ_HOOK = Hook
-QKZ_HOOK_SPEED = Hook Speed
-QKZ_HOOK_COLOR = Hook Color
-QKZ_HOOK_WAIT = Wait 3 seconds after using hook
-QKZ_HOOK_NOTAVAIL = You don't have hook yet
-QKZ_HOOK_GIVEHOOK = GiveHook
-QKZ_HOOK_GIVEHOOK_CVAR = GiveHook command works only if kzq_hook is 2
-QKZ_HOOK_GIVEHOOK_TOGGLE_ON = "name" enabled your hook
-QKZ_HOOK_GIVEHOOK_TOGGLE_OFF = "name" disabled your hook
-QKZ_HOOK_TERMINATERUN = Hook used, timer stopped
+QKZHOOK_MENUTITLE = Hook
+QKZHOOK_MENUSPEED = Hook Speed
+QKZHOOK_MENUCOLOR = Hook Color
+QKZHOOK_WAIT = Wait 3 seconds after using hook
+QKZHOOK_NOTAVAIL = You don't have hook yet
+QKZHOOK_GIVEHOOK = GiveHook
+QKZHOOK_GIVEHOOKCVAR = GiveHook command works only if q_kz_hook is 2
+QKZHOOK_GIVEHOOKON = Admin enabled your hook
+QKZHOOK_GIVEHOOKOFF = Admin disabled your hook
+QKZHOOK_TERMINATERUN = Timer stopped because you used hook!
 
 [sr]
-QKZ_HOOK = Kuka
-QKZ_HOOK_SPEED = Brzina kuke
-QKZ_HOOK_COLOR = Boja kuke
-QKZ_HOOK_WAIT = Sacekaj 3 sekunde posle korišćenja kuke
-QKZ_HOOK_NOTAVAIL = Nemaš kuku
-QKZ_HOOK_GIVEHOOK = Dodeli kuku
-QKZ_HOOK_GIVEHOOK_CVAR = Dodela kuke je moguća samo ako je kzq_hook 2
-QKZ_HOOK_GIVEHOOK_TOGGLE_ON = "name" ti je dao kuku
-QKZ_HOOK_GIVEHOOK_TOGGLE_OFF = "name" ti je oduzeo kuku
-QKZ_HOOK_TERMINATERUN = Kuka je iskoriscena, tajmer stopiran
+QKZHOOK_MENUTITLE = Kuka
+QKZHOOK_MENUSPEED = Brzina kuke
+QKZHOOK_MENUCOLOR = Boja kuke
+QKZHOOK_WAIT = Sacekaj 3 sekunde posle korišćenja kuke.
+QKZHOOK_NOTAVAIL = Nemaš kuku
+QKZHOOK_GIVEHOOK = Dodeli kuku
+QKZHOOK_GIVEHOOKCVAR = Dodela kuke je moguća samo ako je q_kz_hook 2.
+QKZHOOK_GIVEHOOKON = Admin ti je uključio kuku
+QKZHOOK_GIVEHOOKOFF = Admin ti je isključio kuku
+QKZHOOK_TERMINATERUN = Tajmer je stopiran jer si iskoristio kuku!
