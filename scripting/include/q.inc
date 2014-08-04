@@ -22,3 +22,5 @@
 native q_getDataDirectory(path[], len);
 
 native q_registerCvar(cvarHandle, defaultValue[], description[]);
+
+native q_registerClcmd(command[], handler[], flags = -1, description[] = "");
