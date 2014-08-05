@@ -84,10 +84,6 @@ native q_kz_isStopOriginFound( );
 native q_kz_getStopOrigin( Float:origin[3] );
 
 /**
- *  Safer way to register clcmds for qkz extension plugins */
-native q_kz_registerClcmd( command[], handler[], flags = -1, description[] = "" );
-
-/**
  *  Returns 1 if user is vip or 0 otherwise */
 native q_kz_player_isVip( id );
 

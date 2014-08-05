@@ -16,7 +16,7 @@
 #pragma semicolon 1
 
 #define PLUGIN  "Q::KZ"
-#define VERSION "1.3b"
+#define VERSION "1.4b"
 #define AUTHOR  "Quaker"
 
 #define SET_BITVECTOR(%1,%2) (%1[%2>>5] |=  (1<<(%2 & 31)))
@@ -171,8 +171,6 @@ new Array:g_rewards_name;
 new Array:g_rewards_plugin;
 new Array:g_rewards_handler;
 new Array:g_rewards_callback;
-
-new Array:g_commands;
 
 new Array:g_startButtonEntities;
 new Array:g_stopButtonEntities;
@@ -469,7 +467,6 @@ public plugin_natives() {
 	register_native("q_kz_getDataDirectory",		"_q_kz_getDataDirectory");
 	register_native("q_kz_getConfigDirectory",		"_q_kz_getConfigDirectory");
 	register_native("q_kz_getPrefix",			"_q_kz_getPrefix");
-	register_native("q_kz_registerClcmd",			"_q_kz_registerClcmd");
 	register_native("q_kz_registerReward",			"_q_kz_registerReward");
 	register_native("q_kz_print",				"_q_kz_print");
 	register_native("q_kz_saytext",				"_q_kz_saytext");
@@ -579,8 +576,6 @@ public plugin_init() {
 	g_rewards_handler = ArrayCreate(1, 4);
 	g_rewards_callback = ArrayCreate(1, 4);
 	
-	g_commands = ArrayCreate(4);
-	
 	g_startButtonEntities = ArrayCreate(1, 1);
 	g_stopButtonEntities = ArrayCreate(1, 1);
 	
@@ -595,48 +590,30 @@ public plugin_init() {
 	forward_OnTeleport_pre = ArrayCreate(1, 1);
 	forward_OnTeleport_post = ArrayCreate(1, 1);
 	
-	q_kz_registerClcmd("/cp", "clcmd_Checkpoint");
-	q_kz_registerClcmd("say /cp", "clcmd_Checkpoint", _, "Saves your current position to which you can teleport. Alternative: /check");
-	q_kz_registerClcmd("say /check", "clcmd_Checkpoint");
-	q_kz_registerClcmd("say /checkpoint", "clcmd_Checkpoint");
-	q_kz_registerClcmd("/tp", "clcmd_Teleport");
-	q_kz_registerClcmd("say /tp", "clcmd_Teleport", _, "Teleports you back to your last saved position. Alternatives: /tele, /gc, /gocheck");
-	q_kz_registerClcmd("say /tele", "clcmd_Teleport");
-	q_kz_registerClcmd("say /teleport", "clcmd_Teleport");
-	q_kz_registerClcmd("/gc", "clcmd_Teleport");
-	q_kz_registerClcmd("say /gc", "clcmd_Teleport");
-	q_kz_registerClcmd("say /gocheck", "clcmd_Teleport");
-	q_kz_registerClcmd("say /stuck", "clcmd_Stuck", _, "Teleports you 2 checkpoints back. Alternative: /unstuck");
-	q_kz_registerClcmd("say /unstuck", "clcmd_Stuck");
-	q_kz_registerClcmd("say /start", "clcmd_Start", _, "Teleport to start button position. Alternative: /begin");
-	q_kz_registerClcmd("say /begin", "clcmd_Start");
-	q_kz_registerClcmd("say /end", "clcmd_End", _, "Teleport to end button position. Alternative: /finish");
-	q_kz_registerClcmd("say /finish", "clcmd_End");
-	q_kz_registerClcmd("say /setstart", "clcmd_SetStart", _, "Set custom start position");
-	q_kz_registerClcmd("say /unsetstart", "clcmd_UnsetStart", _, "Remove custom start position");
-	q_kz_registerClcmd("say /pause", "clcmd_Pause", _, "Pause your current run");
-	q_kz_registerClcmd("say /stop", "clcmd_Stop", _, "Ends your current run");
-	q_kz_registerClcmd("say /reset", "clcmd_Stop");
-	q_kz_registerClcmd("say /spec", "clcmd_Spectate", _, "Switch to and out of spectators. Alternative: /ct");
-	q_kz_registerClcmd("say /unspec", "clcmd_Spectate");
-	q_kz_registerClcmd("say /save", "clcmd_save");
-	q_kz_registerClcmd("say /restore", "clcmd_restore");
-	q_kz_registerClcmd("say /cpangles", "clcmd_cpangles");
-	q_kz_registerClcmd("say /ct", "clcmd_Spectate");
-	q_kz_registerClcmd("chooseteam", "clcmd_Chooseteam");
-	q_kz_registerClcmd("say /menu", "clcmd_kzmenu", _, "Open menu with common commands. Alternative: /kzmenu");
-	q_kz_registerClcmd("say /kz", "clcmd_kzmenu");
-	q_kz_registerClcmd("say /kzmenu", "clcmd_kzmenu");
-	q_kz_registerClcmd("say /maxspeed", "clcmd_MaxSpeed", _, "Toggle weapon speed shower on/off");
-	q_kz_registerClcmd("say /god", "clcmd_GodMode", _, "Toggle god mode on/off. Alternative: /godmode");
-	q_kz_registerClcmd("say /godmode", "clcmd_GodMode");
-	q_kz_registerClcmd("say /nc", "clcmd_Noclip", _, "Toggle noclip mode on/off. Alternative: /noclip");
-	q_kz_registerClcmd("say /noclip", "clcmd_Noclip");
-	q_kz_registerClcmd("drop", "clcmd_Drop");
-	q_kz_registerClcmd("radio1", "clcmd_Block");
-	q_kz_registerClcmd("radio2", "clcmd_Block");
-	q_kz_registerClcmd("radio3", "clcmd_Block");
-	q_kz_registerClcmd("jointeam", "clcmd_Block");
+	q_registerClcmd("q_kz_checkpoint", "clcmd_Checkpoint", _, "Save current player position.");
+	q_registerClcmd("q_kz_teleport", "clcmd_Teleport", _, "Move player to last saved position.");
+	q_registerClcmd("q_kz_unstuck", "clcmd_Stuck", _, "Move player to second last saved position.");
+	q_registerClcmd("q_kz_start", "clcmd_Start", _, "Teleport to start button position.");
+	q_registerClcmd("q_kz_end", "clcmd_End", _, "Teleoprt to end button position.");
+	q_registerClcmd("q_kz_setstart", "clcmd_SetStart", _, "Set custom start position.");
+	q_registerClcmd("q_kz_unsetstart", "clcmd_UnsetStart", _, "Remove cutsom start position.");
+	q_registerClcmd("q_kz_pause", "clcmd_Pause", _, "Pause timer.");
+	q_registerClcmd("q_kz_stop", "clcmd_Stop", _, "Stop timer.");
+	q_registerClcmd("q_kz_save", "clcmd_save", _, "Save timer.");
+	q_registerClcmd("q_kz_restore", "clcmd_restore", _, "Restore saved timer.");
+	q_registerClcmd("q_kz_spec", "clcmd_Spectate", _, "Toggle spectate mode.");
+	q_registerClcmd("q_kz_cpangles", "clcmd_cpangles", _, "Toggle saving player checkpoint orientation.");
+	q_registerClcmd("q_kz_menu", "clcmd_kzmenu", _, "Open KZ menu.");
+	q_registerClcmd("q_kz_maxspeed", "clcmd_MaxSpeed", _, "Toggle weapon speed notification.");
+	q_registerClcmd("q_kz_godmode", "clcmd_GodMode", _, "Toggle player god mode.");
+	q_registerClcmd("q_kz_noclip", "clcmd_Noclip", _, "Toggle player noclip mode.");
+	
+	register_clcmd("chooseteam", "clcmd_Chooseteam");
+	register_clcmd("drop", "clcmd_Drop");
+	register_clcmd("radio1", "clcmd_Block");
+	register_clcmd("radio2", "clcmd_Block");
+	register_clcmd("radio3", "clcmd_Block");
+	register_clcmd("jointeam", "clcmd_Block");
 	
 	register_forward(FM_EmitSound, "fwd_EmitSound");
 	register_forward(FM_ClientKill, "fwd_ClientKill");
@@ -754,8 +731,6 @@ public plugin_cfg() {
 
 public plugin_end() {
 	save_ButtonPositions();
-	
-	ArrayDestroy(g_commands);
 	
 	ArrayDestroy(g_startButtonEntities);
 	ArrayDestroy(g_stopButtonEntities);
@@ -1360,29 +1335,6 @@ public task_RoundTime(id) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Client Commands										   *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-public clcmd_clcmd(id, level, cid) {
-	if(!g_player_ingame[id]) {
-		return PLUGIN_HANDLED;
-	}
-	
-	new temp_array[4];
-	new size = ArraySize(g_commands);
-	for(new i = 0; i < size; ++i) {
-		ArrayGetArray(g_commands, i, temp_array);
-		if(temp_array[0] == cid) {
-			if(callfunc_begin_i(temp_array[1], temp_array[2]) == 1) {
-				callfunc_push_int(id);
-				callfunc_push_int(temp_array[3]);
-				return callfunc_end();
-			}
-			
-			return PLUGIN_CONTINUE;
-		}
-	}
-	
-	return PLUGIN_CONTINUE;
-}
 
 public clcmd_Chooseteam(id, level, cid) {
 	m_chooseteam(id);
@@ -2720,40 +2672,6 @@ public _q_kz_registerReward(plugin, params) {
 	ArrayPushCell(g_rewards_plugin, plugin);
 	ArrayPushCell(g_rewards_handler, phandler);
 	ArrayPushCell(g_rewards_callback, get_func_id(callback, plugin));
-}
-
-// q_kz_registerClcmd(command[], handler[], flags = -1, description[] = "");
-public _q_kz_registerClcmd(plugin, params) {
-	if(params != 4) {
-		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 4, found %d", params);
-		return;
-	}
-	
-	new handler[32];
-	get_string(2, handler, charsmax(handler));
-	new phandler = get_func_id(handler, plugin);
-	if(phandler == -1) {
-		log_error(AMX_ERR_NATIVE, "Handler function ^"%s^" not found", handler);
-		return;
-	}
-	
-	new command[32];
-	get_string(1, command, charsmax(command));
-	
-	new description[128];
-	get_string(4, description, charsmax(description));
-	
-	new cid = register_clcmd(command, "clcmd_clcmd", -1, description, 0);
-	if(cid == 0) {
-		return;
-	}
-	
-	new temp_array[4];
-	temp_array[0] = cid;
-	temp_array[1] = phandler;
-	temp_array[2] = plugin;
-	temp_array[3] = get_param(3);
-	ArrayPushArray(g_commands, temp_array);
 }
 
 // q_kz_getStartButtonEntities()
