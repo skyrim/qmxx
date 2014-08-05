@@ -1690,7 +1690,7 @@ public clcmd_Pause(id) {
 
 		set_pev(id, pev_flags, pev(id, pev_flags) | FL_FROZEN);
 
-		q_kz_print(id, "%L", id, STR_RUNPAUSED);
+		q_kz_print(id, "%L", id, STR_RUNUNPAUSED);
 	}
 	
 	for(new i = 0, size = ArraySize(forward_TimerPause_post); i < size; ++i) {
