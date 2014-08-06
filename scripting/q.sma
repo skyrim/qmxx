@@ -54,6 +54,8 @@ public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 	
 	register_dictionary("q.txt");
+	
+	cvar_loadConfig();
 }
 
 public plugin_end() {
@@ -131,6 +133,13 @@ public clcmd_listener(id, level, cid) {
 	callfunc_push_int(level);
 	callfunc_push_int(cid);
 	return callfunc_end();
+}
+
+cvar_loadConfig() {
+	new path[256];
+	get_localinfo("amxx_configsdir", path, charsmax(path));
+	formatex(path, charsmax(path), "%s/q.cfg", path);
+	server_cmd("exec %s", path);
 }
 
 cvar_saveConfig() {
@@ -285,6 +294,3 @@ public _q_registerClcmd(plugin, params) {
 	handler_array[1] = handler_id;
 	ArrayPushArray(g_clcmd_handler, handler_array);
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1033\\ f0\\ fs16 \n\\ par }
-*/
