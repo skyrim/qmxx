@@ -1,3 +1,99 @@
+##########
+# CVARS: #
+##########
+q_kz_checkpoints
+Toggle checkpoints and checkpoint related commands.
+Default: "1"
+
+q_kz_checkpointangles
+Default toggle value for checkpoint angles setting.
+Default: "1"
+
+q_kz_teleport_splash
+Toggle teleport splash effect.
+Default: "0"
+
+q_kz_prefix
+Prefix goes in various plugin notifications and messages.
+Default: "QKZ"
+
+q_kz_pause
+Toggle pause command.
+Default: "1"
+
+q_kz_godmode
+Toggle god mode command.
+Default: "1"
+
+q_kz_noclip
+Toggle noclip command.
+Default: "1"
+
+q_kz_semiclip
+Toggle semiclip.
+Default: "1"
+
+q_kz_semiclip_alpha
+Ammount of semiclip transparency.
+Default: "80"
+
+q_kz_weapons_ammo
+Set ammo in backpack (after spawn, starting timer, ...):
+0 - regular
+1 - double the ammount of bullets
+2 - full backpack
+Default: "2"
+
+q_kz_weapons_speed
+Toggle weapon speed notification when taking a weapon.
+Default: "1"
+
+q_kz_respawn
+Toggle respawn.
+Default: "1"
+
+q_kz_respawn_time
+Time before respawning player.
+Default: "3.0"
+
+q_kz_hpbug
+Toggle hp bug fixer.
+Default: "0"
+
+q_kz_print_type
+Set how to display plugin messages:
+0 - HUD
+1 - chat
+2 - center screen text
+Default: "0"
+
+q_kz_print_color
+If q_kz_print_type is set to 0 (HUD), this sets color of the HUD.
+Default: "0 100 255"
+
+q_kz_print_pos
+If q_kz_print_type is to 0 (HUD), this sets messages position on the screen.
+Default: "-1.0 0.9"
+
+q_kz_spawnwithmenu
+Toggle if menu should appear when player spawns.
+Default: "1"
+
+q_kz_vipflags
+Set flag that will treat players as VIP.
+Default: "a"
+
+q_kz_rewards
+Toggle rewards for finishing the map. (There are no plugins that use this. (Yet.))
+Default: "0"
+
+q_kz_command_save
+Toggle /save command.
+Default: "1"
+
+####################
+# PLAYER COMMANDS: #
+####################
 Supported commands to be used in $moddir/addons/amxmodx/configs/q_clcmds.ini:
 q_kz_checkpoint - Save current player position.
 q_kz_teleport - Move player to last saved position.
