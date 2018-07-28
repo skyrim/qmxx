@@ -20,3 +20,5 @@
 #endif
 
 native q_message_ShowMenu( id, msg_type, msg_origin[3] = {0,0,0}, keys, time, menu[] );
+
+native q_message_SayText( receiver, msg_type, msg_origin[3] = {0,0,0}, sender, message[], any:... );
