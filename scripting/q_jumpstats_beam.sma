@@ -1,6 +1,8 @@
 #include <amxmodx>
 #include <fakemeta>
 #include <q>
+#include <q_cookies>
+#include <q_kz>
 
 #define PLUGIN "Q::Jumpstats::Beam"
 #define VERSION "1.0"
@@ -20,6 +22,8 @@ enum
 
 new cvar_beam;
 
+new g_cookies_failed;
+
 new g_player_beam[33];
 new g_player_beam_color[33];
 
@@ -30,6 +34,30 @@ new g_beam_count[33];
 new Float:g_beam_point[33][MAX_BEAM][3];
 new g_beam_point_induck[33][MAX_BEAM];
 
+public plugin_natives( )
+{
+	set_module_filter( "module_filter" );
+	set_native_filter( "native_filter" );
+}
+
+public module_filter( module[] ) {
+	if ( equal( module, "q_cookies" ) ) {
+		g_cookies_failed = true;
+		
+		return PLUGIN_HANDLED;
+	}
+	
+	return PLUGIN_CONTINUE;
+}
+
+public native_filter( name[], index, trap ) {
+	if ( !trap ) {
+		return PLUGIN_HANDLED;
+	}
+	
+	return PLUGIN_CONTINUE;
+}
+
 public plugin_precache( )
 {
 	g_beam_sprite = precache_model( "sprites/zbeam1.spr" );
@@ -38,6 +66,8 @@ public plugin_precache( )
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
+
+	register_dictionary( "q_jumpstats_beam.txt" );
 	
 	cvar_beam = register_cvar( "q_js_beam", "1" );
 	
@@ -50,8 +80,26 @@ public plugin_init( )
 
 public client_putinserver( id )
 {
-	g_player_beam[id] = BEAM_UBERFLAT;
-	g_player_beam_color[id] = 0xff0000;
+	if ( !g_cookies_failed && !is_user_bot( id ) ) {
+		if ( !q_get_cookie_num( id, "js_beam", g_player_beam[id] ) ) {
+			g_player_beam[id] = BEAM_NO;
+		}
+
+		if ( !q_get_cookie_num( id, "js_beam_type", g_player_beam[id] ) ) {
+			g_player_beam[id] = BEAM_UBERFLAT;
+		}
+
+		if ( !q_get_cookie_num( id, "js_beam_color", g_player_beam_color[id] ) ) {
+			g_player_beam_color[id] = 0xff0000;
+		}
+	}
+}
+
+public client_disconnect( id )
+{
+	q_set_cookie_num( id, "js_beam", g_player_beam[id] );
+	q_set_cookie_num( id, "js_beam_type", g_player_beam[id] );
+	q_set_cookie_num( id, "js_beam_color", g_player_beam_color[id] );
 }
 
 public clcmd_beam( id, level, cid )
@@ -61,6 +109,8 @@ public clcmd_beam( id, level, cid )
 	} else {
 		g_player_beam[id] = BEAM_NO;
 	}
+
+	q_kz_print(id, "%L", id, g_player_beam[id] ?  "Q_JS_BEAM_ON" : "Q_JS_BEAM_OFF" );
 	
 	return PLUGIN_HANDLED;
 }
@@ -101,8 +151,6 @@ public clcmd_beamcolor( id, level, cid )
 	
 	new blue[4];
 	read_argv( 3, blue, charsmax(blue) );
-
-	console_print(0, "Set beam color to R:%s G:%s B:%s", red, green, blue);
 	
 	g_player_beam_color[id] = ( str_to_num( red ) << 16 ) | ( str_to_num( green ) << 8 ) | str_to_num( blue );
 	

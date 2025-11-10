@@ -1,0 +1,3 @@
+[en]
+Q_JS_BEAM_ON = Beam enabled
+Q_JS_BEAM_OFF = Beam disabled
