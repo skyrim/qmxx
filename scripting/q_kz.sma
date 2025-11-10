@@ -1,4 +1,5 @@
 #include <amxmodx>
+#include <amxmisc>
 #include <fakemeta>
 #include <hamsandwich>
 
@@ -603,6 +604,7 @@ public plugin_init() {
 	q_registerClcmd("q_kz_godmode", "clcmd_GodMode", _, "Toggle player god mode.");
 	q_registerClcmd("q_kz_noclip", "clcmd_Noclip", _, "Toggle player noclip mode.");
 	
+	register_clcmd("say /clear_start", "clcmd_ClearStart", ADMIN_ADMIN);
 	register_clcmd("chooseteam", "clcmd_Chooseteam");
 	register_clcmd("drop", "clcmd_Drop");
 	register_clcmd("radio1", "clcmd_Block");
@@ -1847,6 +1849,16 @@ public clcmd_restore(id, level, cid) {
 
 public clcmd_cpangles(id, level, cid) {
 	g_player_setting_CPangles[id] = !g_player_setting_CPangles[id];
+}
+
+public clcmd_ClearStart(id, level, cid) {
+	if (!cmd_access(id, level, cid, 0)) {
+		return PLUGIN_CONTINUE;
+	}
+
+	g_start_bDefault = false;
+
+	return PLUGIN_HANDLED;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
