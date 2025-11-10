@@ -172,9 +172,9 @@ public plugin_init( )
 	TrieSetCell( illegal_touch_entity_classes, "trigger_push", 1 );
 	TrieSetCell( illegal_touch_entity_classes, "trigger_teleport", 1 );
 	
-	// q_registerClcmd("q_jumpstats_ljstats", "clcmd_ljstats", _, "TODO" );
-	q_registerClcmd("q_jumpstats_speed", "clcmd_speed", _, "Toggle speed display.");
-	q_registerClcmd("q_jumpstats_prestrafe", "clcmd_prestrafe", _, "Toggle prestrafe display.");
+	// q_registerClcmd("q_js_ljstats", "clcmd_ljstats", _, "TODO" );
+	q_registerClcmd("q_js_speed", "clcmd_speed", _, "Toggle speed display.");
+	q_registerClcmd("q_js_prestrafe", "clcmd_prestrafe", _, "Toggle prestrafe display.");
 	
 	sv_airaccelerate = get_cvar_pointer( "sv_airaccelerate" );
 	sv_gravity = get_cvar_pointer( "sv_gravity" );

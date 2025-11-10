@@ -1,9 +1,6 @@
 #include <amxmodx>
 #include <fakemeta>
-
-/**
- * - a lot
- */
+#include <q>
 
 #define PLUGIN "Q::Jumpstats::Beam"
 #define VERSION "1.0"
@@ -46,9 +43,9 @@ public plugin_init( )
 	
 	register_forward( FM_PlayerPreThink, "PlayerPreThink" );
 
-	register_clcmd( "cl_qkz_js_beam", "clcmd_beam" );
-	register_clcmd( "cl_qkz_js_beamtype", "clcmd_beamtype" );
-	register_clcmd( "cl_qkz_js_beamcolor", "clcmd_beamcolor" );
+	q_registerClcmd( "q_js_beam", "clcmd_beam", _, "Toggle jump beam." );
+	q_registerClcmd( "q_js_beamtype", "clcmd_beamtype", _, "Set jump beam type." );
+	q_registerClcmd( "q_js_beamcolor", "clcmd_beamcolor", _, "Set jump beam color." );
 }
 
 public client_putinserver( id )
@@ -59,24 +56,10 @@ public client_putinserver( id )
 
 public clcmd_beam( id, level, cid )
 {
-	if( read_argc( ) == 1 )
-	{
-		client_print( id, print_console, "Turn jump beam on or off." );
-	}
-	else
-	{
-		new cmd[4];
-		
-		read_argv( 1, cmd, charsmax(cmd) );
-		
-		if( equali( cmd, "on" ) && ( g_player_beam[id] == BEAM_NO ) )
-		{
-			g_player_beam[id] = BEAM_UBERFLAT;
-		}
-		else if( equali( cmd, "off" ) )
-		{
-			g_player_beam[id] = BEAM_NO;
-		}
+	if ( g_player_beam[id] == BEAM_NO ) {
+		g_player_beam[id] = BEAM_UBERFLAT;
+	} else {
+		g_player_beam[id] = BEAM_NO;
 	}
 	
 	return PLUGIN_HANDLED;
@@ -84,32 +67,25 @@ public clcmd_beam( id, level, cid )
 
 public clcmd_beamtype( id, level, cid )
 {
-	if( read_argc( ) == 1 )
+	new type[9];
+	
+	read_argv( 1, type, charsmax(type) );
+	
+	if( equali( type, "normal" ) )
 	{
-		client_print( id, print_console, "Availlable beam types: normal, uberflat, uber." );
+		g_player_beam[id] = BEAM_NORMAL;
+	}
+	else if( equali( type, "uberflat" ) )
+	{
+		g_player_beam[id] = BEAM_UBERFLAT;
+	}
+	else if( equali( type, "uber" ) )
+	{
+		g_player_beam[id] = BEAM_UBER;
 	}
 	else
 	{
-		new type[9];
-		
-		read_argv( 1, type, charsmax(type) );
-		
-		if( equali( type, "normal" ) )
-		{
-			g_player_beam[id] = BEAM_NORMAL;
-		}
-		else if( equali( type, "uberflat" ) )
-		{
-			g_player_beam[id] = BEAM_UBERFLAT;
-		}
-		else if( equali( type, "uber" ) )
-		{
-			g_player_beam[id] = BEAM_UBER;
-		}
-		else
-		{
-			client_print( id, print_console, "Unknown beam type! Availlable beam types: normal, uberflat, uber." );
-		}
+		client_print( id, print_console, "Unknown beam type! Availlable beam types: normal, uberflat, uber." );
 	}
 	
 	return PLUGIN_HANDLED;
@@ -117,23 +93,18 @@ public clcmd_beamtype( id, level, cid )
 
 public clcmd_beamcolor( id, level, cid )
 {
-	if( read_argc( ) == 1 )
-	{
-		client_print( id, print_console, "Set jump beam color." );
-	}
-	else
-	{
-		new red[4];
-		read_argv( 1, red, charsmax(red) );
-		
-		new green[4];
-		read_argv( 2, green, charsmax(green) );
-		
-		new blue[4];
-		read_argv( 3, blue, charsmax(blue) );
-		
-		g_player_beam_color[id] = ( str_to_num( red ) << 16 ) | ( str_to_num( green ) << 8 ) | str_to_num( blue );
-	}
+	new red[4];
+	read_argv( 1, red, charsmax(red) );
+	
+	new green[4];
+	read_argv( 2, green, charsmax(green) );
+	
+	new blue[4];
+	read_argv( 3, blue, charsmax(blue) );
+
+	console_print(0, "Set beam color to R:%s G:%s B:%s", red, green, blue);
+	
+	g_player_beam_color[id] = ( str_to_num( red ) << 16 ) | ( str_to_num( green ) << 8 ) | str_to_num( blue );
 	
 	return PLUGIN_HANDLED;
 }
