@@ -1,8 +1,3 @@
-//   To do:
-// - create irc module
-// - Duel System & Duel Rank
-// - Cup System & Cup Rank
-
 #include <amxmodx>
 #include <fakemeta>
 #include <hamsandwich>
@@ -875,11 +870,6 @@ public fwd_Spawn_player(id) {
 		set_pev(id, pev_armortype, 2.0);
 		set_pev(id, pev_armorvalue, 100.0);
 		message_ArmorType(id, 1);
-		
-		//if(g_start_bDefault)
-		//	message_HostagePos(id, 1, 1, g_start_vDefault);
-		//if(g_end_bDefault)
-		//	message_HostagePos(id, 1, 2, g_end_vDefault);
 		
 		set_pdata_int(id, OFFSET_RADIO, 0, EXTRA_OFFSET);
 		
@@ -2555,7 +2545,6 @@ public _q_kz_getStartOrigin(plugin, params) {
 	
 	if(g_start_bDefault) {
 		set_array_f(1, g_start_vDefault, sizeof(g_start_vDefault));
-		
 		return 1;
 	}
 	
@@ -2837,6 +2826,9 @@ save_ButtonPositions() {
 			fwrite_blocks(f, g_map_Name, sizeof(g_map_Name), BLOCK_BYTE);
 			fwrite_blocks(f, _:g_start_vDefault, 3, BLOCK_INT);
 			fwrite_blocks(f, _:g_end_vDefault, 3, BLOCK_INT);
+			
+			fseek(f, 0, SEEK_SET);
+			fwrite(f, count + 1, BLOCK_INT);
 		}
 		
 		fclose(f);
