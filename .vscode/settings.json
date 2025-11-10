@@ -1,0 +1,10 @@
+{
+  "files.trimTrailingWhitespace": false,
+  "amxxpawn.compiler.includePaths": [
+    "C:/Program Files (x86)/Steam/steamapps/common/Half-Life/cstrike/addons/amxmodx/scripting",
+    "C:/Program Files (x86)/Steam/steamapps/common/Half-Life/cstrike/addons/amxmodx/scripting/include"
+  ],
+  "amxxpawn.compiler.outputPath": "C:/Program Files (x86)/Steam/steamapps/common/Half-Life/cstrike/addons/amxmodx/plugins",
+  "amxxpawn.compiler.outputType": "path",
+  "amxxpawn.compiler.executablePath": "C:/Program Files (x86)/Steam/steamapps/common/Half-Life/cstrike/addons/amxmodx/scripting/amxxpc.exe"
+}
