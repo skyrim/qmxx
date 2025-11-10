@@ -23,7 +23,7 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::Jumpstats"
-#define VERSION "1.0"
+#define VERSION "1.0.1"
 #define AUTHOR "Quaker"
 
 #define TASKID_SPEED 489273421
@@ -43,6 +43,8 @@ enum State
 };
 
 new const FL_ONGROUND2 = FL_ONGROUND | FL_PARTIALGROUND | FL_INWATER | FL_CONVEYOR | FL_FLOAT;
+
+new g_cookies_failed;
 
 new mfwd_dd_begin;
 new mfwd_dd_end;
@@ -128,6 +130,29 @@ new Float:ladderdrop_time[33];
 
 new Trie:illegal_touch_entity_classes;
 
+public plugin_natives( ) {
+	set_native_filter( "native_filter" );
+	set_module_filter( "module_filter" );
+}
+
+public module_filter( module[] ) {
+	if( equal( module, "q_cookies" ) ) {
+		g_cookies_failed = true;
+		
+		return PLUGIN_HANDLED;
+	}
+	
+	return PLUGIN_CONTINUE;
+}
+
+public native_filter( name[], index, trap ) {
+	if( !trap ) {
+		return PLUGIN_HANDLED;
+	}
+	
+	return PLUGIN_CONTINUE;
+}
+
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
@@ -147,11 +172,9 @@ public plugin_init( )
 	TrieSetCell( illegal_touch_entity_classes, "trigger_push", 1 );
 	TrieSetCell( illegal_touch_entity_classes, "trigger_teleport", 1 );
 	
-	register_clcmd( "say /ljstats", "clcmd_ljstats" );
-	register_clcmd( "say /speed", "clcmd_speed" );
-	register_clcmd( "say /showpre", "clcmd_prestrafe" );
-	register_clcmd( "say /preshow", "clcmd_prestrafe" );
-	register_clcmd( "say /prestrafe", "clcmd_prestrafe" );
+	// q_registerClcmd("q_jumpstats_ljstats", "clcmd_ljstats", _, "TODO" );
+	q_registerClcmd("q_jumpstats_speed", "clcmd_speed", _, "Toggle speed display.");
+	q_registerClcmd("q_jumpstats_prestrafe", "clcmd_prestrafe", _, "Toggle prestrafe display.");
 	
 	sv_airaccelerate = get_cvar_pointer( "sv_airaccelerate" );
 	sv_gravity = get_cvar_pointer( "sv_gravity" );
@@ -177,6 +200,23 @@ public client_connect( id )
 	player_show_stats[id] = true;
 	player_show_stats_chat[id] = true;
 	player_show_prestrafe[id] = true;
+}
+
+public client_putinserver( id )
+{
+	if( !g_cookies_failed && !is_user_bot( id ) ) {
+		if ( !q_get_cookie_num( id, "show_speed", player_show_speed[id] ) ) {
+			player_show_speed[id] = true;
+		}
+	}
+}
+
+public client_disconnect( id )
+{
+	if( !g_cookies_failed && !is_user_bot( id ) ) {
+		q_set_cookie_num( id, "show_speed", player_show_speed[id] );
+		q_set_cookie_num( id, "show_prestrafe", player_show_prestrafe[id] );
+	}
 }
 
 reset_state( id )
@@ -214,7 +254,7 @@ reset_stats( id )
 
 public clcmd_ljstats( id, level, cid )
 {
-	// create menu blah blha blah
+	// TODO: create menu blah blha blah (I just need to remember what I meant by this 12 years ago)
 	
 	return PLUGIN_HANDLED;
 }
@@ -995,6 +1035,8 @@ display_stats( id, bool:failed = false )
 					num_to_str( jump_strafes[id], strafes, charsmax(strafes) );
 					
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!name", name );
+					replace_all( jump_info_chat, charsmax(jump_info_chat), "!jump_type_name", jump_name[jump_type[id]] );
+					replace_all( jump_info_chat, charsmax(jump_info_chat), "!jump_type_short_name", jump_shortname[jump_type[id]] );
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!dist", dist );
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!pre", pre );
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!maxs", maxs );

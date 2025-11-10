@@ -163,3 +163,6 @@ Recommended aliases (just copy/paste the section below to q_clcmds.ini):
 "say /godmode" "q_kz_godmode"
 "say /nc" "q_kz_noclip"
 "say /noclip" "q_kz_noclip"
+
+"say /speed" "q_jumpstats_speed"
+"say /pre" "q_jumpstats_prestrafe"
