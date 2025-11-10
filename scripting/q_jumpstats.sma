@@ -1001,14 +1001,17 @@ display_stats( id, bool:failed = false )
 				if( jump_distance[id] >= jump_level[jump_type[id]][2] )
 				{
 					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_GODLIKE" );
+					client_cmd(id, "spk misc/godlike");
 				}
 				else if( jump_distance[id] >= jump_level[jump_type[id]][1] )
 				{
 					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_PERFECT" );
+					client_cmd(id, "spk misc/perfect");
 				}
 				else if( jump_distance[id] >= jump_level[jump_type[id]][0] )
 				{
 					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_IMPRESSIVE" );
+					client_cmd(id, "spk misc/impressive");
 				}
 				
 				if( jump_info_chat[0] )
