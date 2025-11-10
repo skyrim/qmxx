@@ -9,12 +9,8 @@
 #pragma semicolon 1
 
 #define PLUGIN "Q::KZ::Invis"
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "Quaker"
-
-#define STR_MENUTITLE "QINV_MENUTITLE"
-#define STR_PLAYERS "QINV_PLAYERS"
-#define STR_WATER "QINV_WATER"
 
 new g_cookies_failed;
 
@@ -123,7 +119,7 @@ public clcmd_invis(id, level, cid) {
 
 m_invis(id) {
 	new title[32];
-	formatex(title, charsmax(title), "%L", id, STR_MENUTITLE);
+	formatex(title, charsmax(title), "%L", id, "QINV_MENUTITLE");
 	q_menu_set_title(g_menu, title);
 	q_menu_display(id, g_menu);
 }
@@ -131,10 +127,10 @@ m_invis(id) {
 public mf_invis(id, QMenu:menu, item, output[64]) {
 	switch(item) {
 	case 0: {
-		formatex(output, charsmax(output), "%L", id, STR_PLAYERS);
+		formatex(output, charsmax(output), "%L - %L", id, "QINV_PLAYERS", id, g_player_pinvis[id] ? "Q_ON" : "Q_OFF");
 	}
 	case 1: {
-		formatex(output, charsmax(output), "%L", id, STR_WATER);
+		formatex(output, charsmax(output), "%L - %L", id, "QINV_WATER", id, g_player_winvis[id] ? "Q_ON" : "Q_OFF");
 	}
 	}
 }

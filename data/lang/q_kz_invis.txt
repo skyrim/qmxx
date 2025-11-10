@@ -1,0 +1,9 @@
+[en]
+QINV_MENUTITLE = Invis
+QINV_PLAYERS = Players
+QINV_WATER = Water
+
+[sr]
+QINV_MENUTITLE = Invis
+QINV_PLAYERS = Igraci
+QINV_WATER = Voda
