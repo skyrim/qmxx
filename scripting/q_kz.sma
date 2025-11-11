@@ -1938,10 +1938,10 @@ m_kreedz(id) {
 public mf_kreedz(id, menu, item, output[64]) {
 	switch(item) {
 	case 0: { // checkpoint
-		formatex(output, charsmax(output), "%L / \y#%d", id, STR_CHECKPOINT, g_player_CPcounter[id]);
+		formatex(output, charsmax(output), "%L - \y%d", id, STR_CHECKPOINT, g_player_CPcounter[id]);
 	}
 	case 1: { // teleport
-		formatex(output, charsmax(output), "%L / \y#%d", id, STR_TELEPORT, g_player_TPcounter[id]);
+		formatex(output, charsmax(output), "%L - \y%d", id, STR_TELEPORT, g_player_TPcounter[id]);
 		q_menu_item_set_enabled(g_menu_kreedz, 1, g_player_CPcounter[id] > 0 ? true : false);
 	}
 	case 2: { // unstuck

@@ -311,15 +311,13 @@ m_hook(id) {
 public mf_hook(id, QMenu:menu, item, output[64]) {
 	switch(item) {
 	case 0: { // speed
-		formatex(output, charsmax(output), "%L \d(%L: %d)",
+		formatex(output, charsmax(output), "%L \y(%d)",
 			id, STR_MENUSPEED,
-			id, "Q_CURRENT",
 			floatround(g_player_hook_speed[id]));
 	}
 	case 1: { // color
-		formatex(output, charsmax(output), "%L \d(%L: %d %d %d)",
+		formatex(output, charsmax(output), "%L \y(%d %d %d)",
 			id, STR_MENUCOLOR,
-			id, "Q_CURRENT",
 			g_player_hook_color[id][0],
 			g_player_hook_color[id][1],
 			g_player_hook_color[id][2]);

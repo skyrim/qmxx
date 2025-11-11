@@ -75,6 +75,21 @@ stock const Float:g_jump_minpre[JumpType_TOTAL] =
 	270.0  // Ladder BJ
 };
 
+stock const Float:g_jump_targetpre[JumpType_TOTAL] =
+{
+	278.0, // LJ
+	278.0, // HJ
+	300.0, // BJ
+	300.0, // SBJ
+	300.0, // Drop BJ
+	290.0, // CJ
+	300.0, // DCJ
+	300.0, // MCJ
+	300.0, // Drop CJ
+	300.0, // WJ
+	300.0  // Ladder BJ
+};
+
 stock const Float:g_jump_mindist[JumpType_TOTAL] =
 {
 	210.0, // LJ

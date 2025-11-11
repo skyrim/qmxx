@@ -85,7 +85,6 @@ clcmd_loadConfig() {
 		return;
 	}
 	
-	
 	new command[32];
 	new alias[32];
 	new junk[1];

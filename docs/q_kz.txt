@@ -132,6 +132,7 @@ Recommended aliases (just copy/paste the section below to q_clcmds.ini):
 "/spec" "q_kz_spec"
 "/ct" "q_kz_spec"
 "/cpangles" "q_kz_cpangles"
+"/menu" "q_kz_menu"
 "/kzmenu" "q_kz_menu"
 "/ms" "q_kz_maxspeed"
 "/maxspeed" "q_kz_maxspeed"
@@ -156,6 +157,7 @@ Recommended aliases (just copy/paste the section below to q_clcmds.ini):
 "say /spec" "q_kz_spec"
 "say /ct" "q_kz_spec"
 "say /cpangles" "q_kz_cpangles"
+"say /menu" "q_kz_menu"
 "say /kzmenu" "q_kz_menu"
 "say /ms" "q_kz_maxspeed"
 "say /maxspeed" "q_kz_maxspeed"
@@ -164,8 +166,11 @@ Recommended aliases (just copy/paste the section below to q_clcmds.ini):
 "say /nc" "q_kz_noclip"
 "say /noclip" "q_kz_noclip"
 
+"say /jsmenu" "q_js_menu"
+"say /ljmenu" "q_js_menu"
 "say /speed" "q_js_speed"
 "say /pre" "q_js_prestrafe"
+"say /ljsounds" "q_js_sounds"
 
 "say /beam" "q_js_beam"
 "beamtype" "q_js_beamtype"

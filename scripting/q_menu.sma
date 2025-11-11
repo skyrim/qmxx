@@ -73,8 +73,8 @@ public plugin_natives( )
 	register_native( "q_menu_set_subtitle", "_q_menu_set_subtitle" );
 	register_native( "q_menu_get_items_per_page", "_q_menu_get_items_per_page" );
 	register_native( "q_menu_set_items_per_page", "_q_menu_set_items_per_page" );
-	register_native("q_menu_get_data", "_q_menu_get_data");
-	register_native("q_menu_set_data", "_q_menu_set_data");
+	register_native( "q_menu_get_data", "_q_menu_get_data" );
+	register_native( "q_menu_set_data", "_q_menu_set_data" );
 	register_native( "q_menu_find_by_title", "_q_menu_find_by_title" );
 	register_native( "q_menu_page_count", "_q_menu_page_count" );
 	
@@ -90,19 +90,19 @@ public plugin_natives( )
 	register_native( "q_menu_item_set_pickable", "_q_menu_item_set_pickable" );
 	register_native( "q_menu_item_get_enabled", "_q_menu_item_get_enabled" );
 	register_native( "q_menu_item_set_enabled", "_q_menu_item_set_enabled" );
-	register_native("q_menu_item_get_formatter", "_q_menu_item_get_formatter");
-	register_native("q_menu_item_set_formatter", "_q_menu_item_set_formatter");
+	register_native( "q_menu_item_get_formatter", "_q_menu_item_get_formatter" );
+	register_native( "q_menu_item_set_formatter", "_q_menu_item_set_formatter" );
 	
 	g_menu_title = ArrayCreate( 32, 8 );
 	g_menu_subtitle = ArrayCreate( 32, 8 );
-	g_menu_data = ArrayCreate(64, 8);
+	g_menu_data = ArrayCreate( 64, 8 );
 	g_menu_forward = ArrayCreate( 1, 8 );
 	g_menu_items_per_page = ArrayCreate( 1, 8 );
 	g_menu_item_name = ArrayCreate( 1, 8 );
 	g_menu_item_data = ArrayCreate( 1, 8 );
 	g_menu_item_enabled = ArrayCreate( 1, 8 );
 	g_menu_item_pickable = ArrayCreate( 1, 8 );
-	g_menu_item_formatter = ArrayCreate(1, 8);
+	g_menu_item_formatter = ArrayCreate( 1, 8 );
 }
 
 public plugin_init( )

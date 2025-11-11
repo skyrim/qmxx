@@ -1,4 +1,8 @@
 [en]
+Q_JS_MENU = JS Menu
+Q_JS_SHOW_SPEED = Show speed
+Q_JS_SHOW_PRESTRAFE = Show prestrafe
+Q_JS_JUMP_SOUNDS = Jumpstats sounds
 Q_JS_IMPRESSIVE = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync%%%%)
 Q_JS_PERFECT = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync%%%%)
 Q_JS_GODLIKE = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync%%%%)

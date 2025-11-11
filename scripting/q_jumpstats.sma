@@ -15,6 +15,7 @@
 #include <q_cookies>
 #include <q_menu>
 #include <q_message>
+#include <q_kz>
 
 #include <q_jumpstats_const>
 
@@ -61,6 +62,8 @@ new mfwd_jump_interrupt;
 new sv_airaccelerate;
 new sv_gravity;
 
+new QMenu:g_menu;
+
 new air_touch[33];
 
 new State:player_state[33];
@@ -69,6 +72,7 @@ new player_show_speed[33];
 new player_show_stats[33];
 new player_show_stats_chat[33];
 new player_show_prestrafe[33];
+new player_play_sounds[33];
 
 new ducking[33];
 new flags[33];
@@ -176,9 +180,15 @@ public plugin_init( )
 	TrieSetCell( illegal_touch_entity_classes, "trigger_push", 1 );
 	TrieSetCell( illegal_touch_entity_classes, "trigger_teleport", 1 );
 	
-	// q_registerClcmd("q_js_ljstats", "clcmd_ljstats", _, "TODO" );
+	q_registerClcmd("q_js_menu", "clcmd_jsmenu", _, "Open jumpstats menu." );
 	q_registerClcmd("q_js_speed", "clcmd_speed", _, "Toggle speed display.");
 	q_registerClcmd("q_js_prestrafe", "clcmd_prestrafe", _, "Toggle prestrafe display.");
+	q_registerClcmd("q_js_sounds", "clcmd_sounds", _, "Toggle jump sounds.");
+
+	g_menu = q_menu_create("", "mh_jsmenu");
+	q_menu_item_add(g_menu, "", _, _, _, "mf_jsmenu");
+	q_menu_item_add(g_menu, "", _, _, _, "mf_jsmenu");
+	q_menu_item_add(g_menu, "", _, _, _, "mf_jsmenu");
 	
 	sv_airaccelerate = get_cvar_pointer( "sv_airaccelerate" );
 	sv_gravity = get_cvar_pointer( "sv_gravity" );
@@ -212,6 +222,12 @@ public client_putinserver( id )
 		if ( !q_get_cookie_num( id, "show_speed", player_show_speed[id] ) ) {
 			player_show_speed[id] = true;
 		}
+		if ( !q_get_cookie_num( id, "show_prestrafe", player_show_prestrafe[id] ) ) {
+			player_show_prestrafe[id] = true;
+		}
+		if ( !q_get_cookie_num( id, "js_sounds", player_play_sounds[id] ) ) {
+			player_play_sounds[id] = true;
+		}
 	}
 }
 
@@ -220,6 +236,7 @@ public client_disconnect( id )
 	if( !g_cookies_failed && !is_user_bot( id ) ) {
 		q_set_cookie_num( id, "show_speed", player_show_speed[id] );
 		q_set_cookie_num( id, "show_prestrafe", player_show_prestrafe[id] );
+		q_set_cookie_num( id, "js_sounds", player_play_sounds[id] );
 	}
 }
 
@@ -257,9 +274,51 @@ reset_stats( id )
 	jump_strafes[id] = 0;
 }
 
-public clcmd_ljstats( id, level, cid )
+public clcmd_jsmenu( id, level, cid )
 {
-	// TODO: create menu blah blha blah (I just need to remember what I meant by this 12 years ago)
+	m_jsmenu( id );
+	
+	return PLUGIN_HANDLED;
+}
+
+m_jsmenu(id) {
+	new title[32];
+	formatex( title, charsmax(title), "%L", id, "Q_JS_MENU" );
+	q_menu_set_title( g_menu, title );
+	q_menu_display( id, g_menu );
+}
+
+public mf_jsmenu( id, QMenu:menu, item, output[64] ) {
+	switch( item ) {
+	case 0: { // show speed
+		formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_SHOW_SPEED", id, player_show_speed[id] ? "Q_ON" : "Q_OFF" );
+	}
+	case 1: { // show prestrafe
+		formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_SHOW_PRESTRAFE", id, player_show_prestrafe[id] ? "Q_ON" : "Q_OFF" );
+	}
+	case 2: { // jump sounds
+		formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_JUMP_SOUNDS", id, player_play_sounds[id] ? "Q_ON" : "Q_OFF" );
+	}
+	}
+}
+
+public mh_jsmenu( id, QMenu:menu, item ) {
+	switch(item) {
+	case QMenuItem_Exit: {
+		return PLUGIN_HANDLED;
+	}
+	case 0: { // show speed
+		player_show_speed[id] = !player_show_speed[id];
+	}
+	case 1: { // show prestrafe
+		player_show_prestrafe[id] = !player_show_prestrafe[id];
+	}
+	case 2: { // jump sounds
+		player_play_sounds[id] = !player_play_sounds[id];
+	}
+	}
+	
+	m_jsmenu( id );
 	
 	return PLUGIN_HANDLED;
 }
@@ -267,7 +326,7 @@ public clcmd_ljstats( id, level, cid )
 public clcmd_speed( id, level, cid )
 {
 	player_show_speed[id] = !player_show_speed[id];
-	client_print( id, print_chat, "Speed: %s", player_show_speed[id] ? "ON" : "OFF" );
+	q_kz_print( id, "%L: %L", id, "Q_JS_SHOW_SPEED", id, player_show_speed[id] ? "Q_ON" : "Q_OFF" );
 	
 	return PLUGIN_HANDLED;
 }
@@ -275,7 +334,15 @@ public clcmd_speed( id, level, cid )
 public clcmd_prestrafe( id, level, cid )
 {
 	player_show_prestrafe[id] = !player_show_prestrafe[id];
-	client_print( id, print_chat, "Prestrafe: %s", player_show_prestrafe[id] ? "ON" : "OFF" );
+	q_kz_print( id, "%L: %L", id, "Q_JS_SHOW_PRESTRAFE", id, player_show_prestrafe[id] ? "Q_ON" : "Q_OFF" );
+	
+	return PLUGIN_HANDLED;
+}
+
+public clcmd_sounds( id, level, cid )
+{
+	player_play_sounds[id] = !player_play_sounds[id];
+	q_kz_print( id, "%L: %L", id, "Q_JS_JUMP_SOUNDS", id, player_play_sounds[id] ? "Q_ON" : "Q_OFF" );
 	
 	return PLUGIN_HANDLED;
 }
@@ -499,7 +566,19 @@ state_injump_firstframe( id )
 		jump_first_velocity[id] = velocity[id];
 		jump_type[id] = get_jump_type( id );
 		
-		set_hudmessage( 255, 128, 0, -1.0, 0.65, 0, 0.0, 1.0, 0.0, 0.1, HUD_CHANNEL_PRESTRAFE );
+		if ( jump_prestrafe[id] >= 300.0 )
+		{
+			set_hudmessage( 255, 0, 0, -1.0, 0.65, 0, 0.0, 1.0, 0.0, 0.1, HUD_CHANNEL_PRESTRAFE );
+		}
+		else
+		{
+			new Float:target_pre = g_jump_targetpre[ jump_type[id] ];
+			new Float:diff = floatclamp( target_pre - jump_prestrafe[id], 0.0, 25.0 ) / -25 + 1.0;
+			new r = floatround( 255 - ( diff * 255 ) );
+			new g = floatround( 128 + ( diff * 128 ) );
+			set_hudmessage( r, g, 0, -1.0, 0.65, 0, 0.0, 1.0, 0.0, 0.1, HUD_CHANNEL_PRESTRAFE );
+		}
+
 		for( new i = 1, players = get_maxplayers( ); i <= players; ++i )
 		{
 			if( ( ( i == id ) || ( pev( i, pev_iuser2 ) == id ) ) && player_show_prestrafe[i] )
@@ -1014,17 +1093,26 @@ display_stats( id, bool:failed = false )
 				if( jump_distance[id] >= jump_level[jump_type[id]][2] )
 				{
 					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_GODLIKE" );
-					client_cmd(id, "spk misc/godlike");
+					if ( player_play_sounds[id] )
+					{
+						client_cmd(id, "spk misc/godlike");
+					}
 				}
 				else if( jump_distance[id] >= jump_level[jump_type[id]][1] )
 				{
 					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_PERFECT" );
-					client_cmd(id, "spk misc/perfect");
+					if ( player_play_sounds[id] )
+					{
+						client_cmd(id, "spk misc/perfect");
+					}
 				}
 				else if( jump_distance[id] >= jump_level[jump_type[id]][0] )
 				{
 					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_IMPRESSIVE" );
-					client_cmd(id, "spk misc/impressive");
+					if ( player_play_sounds[id] )
+					{
+						client_cmd(id, "spk misc/impressive");
+					}
 				}
 				
 				if( jump_info_chat[0] )

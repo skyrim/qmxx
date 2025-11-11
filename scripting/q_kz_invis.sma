@@ -127,10 +127,10 @@ m_invis(id) {
 public mf_invis(id, QMenu:menu, item, output[64]) {
 	switch(item) {
 	case 0: {
-		formatex(output, charsmax(output), "%L - %L", id, "QINV_PLAYERS", id, g_player_pinvis[id] ? "Q_ON" : "Q_OFF");
+		formatex(output, charsmax(output), "%L - \y%L", id, "QINV_PLAYERS", id, g_player_pinvis[id] ? "Q_ON" : "Q_OFF");
 	}
 	case 1: {
-		formatex(output, charsmax(output), "%L - %L", id, "QINV_WATER", id, g_player_winvis[id] ? "Q_ON" : "Q_OFF");
+		formatex(output, charsmax(output), "%L - \y%L", id, "QINV_WATER", id, g_player_winvis[id] ? "Q_ON" : "Q_OFF");
 	}
 	}
 }
