@@ -71,6 +71,10 @@ public plugin_init( )
 	while( !feof( f ) )
 	{
 		fgets( f, buffer, charsmax(buffer) );
+		if(buffer[0] == ';') {
+			continue;
+		}
+		
 		parse( buffer, community, charsmax(community), command, charsmax(command), recordfile, charsmax(recordfile) );
 		
 		formatex( recordfilepath, charsmax(recordfilepath), "%s/%s", datadir, recordfile );
