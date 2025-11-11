@@ -1,6 +1,5 @@
 /**
  * to do:
- * - fix hud channels
  * - tech allow list
  * - tech allowed jump time length (???)
  * - illegal state
@@ -27,6 +26,10 @@
 #define AUTHOR "Quaker"
 
 #define TASKID_SPEED 489273421
+#define HUD_CHANNEL_SPEED 1
+#define HUD_CHANNEL_PRESTRAFE 1
+#define HUD_CHANNEL_STATS 2
+#define HUD_CHANNEL_EXTRASTATS 3
 
 enum State
 {
@@ -277,7 +280,7 @@ public clcmd_prestrafe( id, level, cid )
 
 public task_speed( )
 {
-	set_hudmessage( 255, 128, 0, -1.0, 0.7, 0, 0.0, 1.0, 0.0, 0.1, 1 );
+	set_hudmessage( 255, 128, 0, -1.0, 0.65, 0, 0.0, 1.0, 0.0, 0.1, HUD_CHANNEL_SPEED );
 	for( new id = 1, players = get_maxplayers( ), Float:gametime = get_gametime( ); id < players; ++id )
 	{
 		if( is_user_connected( id ) && player_show_speed[id] )
@@ -485,7 +488,7 @@ state_injump_firstframe( id )
 		jump_first_velocity[id] = velocity[id];
 		jump_type[id] = get_jump_type( id );
 		
-		set_hudmessage( 255, 128, 0, -1.0, 0.7, 0, 0.0, 1.0, 0.0, 0.1, 1 );
+		set_hudmessage( 255, 128, 0, -1.0, 0.65, 0, 0.0, 1.0, 0.0, 0.1, HUD_CHANNEL_PRESTRAFE );
 		for( new i = 1, players = get_maxplayers( ); i <= players; ++i )
 		{
 			if( ( ( i == id ) || ( pev( i, pev_iuser2 ) == id ) ) && player_show_prestrafe[i] )
@@ -976,15 +979,15 @@ display_stats( id, bool:failed = false )
 		if( player_show_stats[i] && ( ( i == id ) || ( ( ( pev( i, pev_iuser1 ) == 2 ) || ( pev( i, pev_iuser1 ) == 4 ) ) && ( pev( i, pev_iuser2 ) == id ) ) ) )
 		{
 			if( failed )
-				set_hudmessage( 255, 0, 0, -1.0, 0.7, 0, 0.0, 3.0, 0.0, 0.1, 1 );
+				set_hudmessage( 255, 0, 0, -1.0, 0.7, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_STATS );
 			else
-				set_hudmessage( 255, 128, 0, -1.0, 0.7, 0, 0.0, 3.0, 0.0, 0.1, 1 );
+				set_hudmessage( 255, 128, 0, -1.0, 0.7, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_STATS );
 			show_hudmessage( i, "%s", jump_info );
 			
 			if( failed )
-				set_hudmessage( 255, 0, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, 2 );
+				set_hudmessage( 255, 0, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_EXTRASTATS );
 			else
-				set_hudmessage( 255, 128, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, 2 );
+				set_hudmessage( 255, 128, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_EXTRASTATS );
 			show_hudmessage( i, "%s", strafes_info );
 			
 			console_print( i, "%s", jump_info_console );
@@ -1032,7 +1035,7 @@ display_stats( id, bool:failed = false )
 					float_to_str( jump_maxspeed[id] - jump_prestrafe[id], gain, charsmax(gain) );
 					
 					new sync[4];
-					num_to_str( jump_sync[id], sync, charsmax(sync) );
+					num_to_str( jump_sync[id] * 100 / jump_frames[id], sync, charsmax(sync) );
 					
 					new strafes[3];
 					num_to_str( jump_strafes[id], strafes, charsmax(strafes) );

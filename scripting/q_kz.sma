@@ -3075,7 +3075,7 @@ psave_onPlayerLeave(id) {
 	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
 	new f = fopen(filePath, "r+b");
 	if(!f) {
-		log_error("Could not open psave.dat file");
+		log_error( AMX_ERR_NATIVE, "Could not open psave.dat file" );
 		return;
 	}
 	
@@ -3117,7 +3117,7 @@ psave_onPluginInit() {
 	
 	new f = fopen(filePath, "wb");
 	if(!f) {
-		log_error("Could not create psave.dat file");
+		log_error( AMX_ERR_NATIVE, "Could not create psave.dat file" );
 		return;
 	}
 	
@@ -3137,7 +3137,7 @@ psave_onPluginEnd() {
 	new of = fopen(oldFilePath, "rb");
 	new nf = fopen(newFilePath, "w+b");
 	if(!of || !nf) {
-		log_error("Could not open psave.dat file for cleanup");
+		log_error( AMX_ERR_NATIVE, "Could not open psave.dat file for cleanup" );
 		return;
 	}
 	

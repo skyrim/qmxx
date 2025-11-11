@@ -1,4 +1,4 @@
 [en]
-Q_JS_IMPRESSIVE = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync)
-Q_JS_PERFECT = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync)
-Q_JS_GODLIKE = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync)
+Q_JS_IMPRESSIVE = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync%%%%)
+Q_JS_PERFECT = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync%%%%)
+Q_JS_GODLIKE = !t!name!n jumped !t!dist!n units with !t!jump_type_name!!n (Pre: !pre + !gain -> Max: !maxs | Strafes: !strf | Sync: !sync%%%%)
