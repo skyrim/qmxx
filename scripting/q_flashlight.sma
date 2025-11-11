@@ -1,8 +1,3 @@
-/**
- * TODO:
- * - flashlight message
- */
-
 #include <amxmodx>
 #include <fakemeta>
 

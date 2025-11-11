@@ -82,7 +82,7 @@ public _q_message_SayText( plugin, params )
 	vdformat( message[1], charsmax(message) - 1, 5, 6 );
 	
 	replace_all( message, charsmax(message), "!n", "^x01" );
-	replace_all( message, charsmax(message), "!t", "^x04" );
+	replace_all( message, charsmax(message), "!t", "^x03" );
 	replace_all( message, charsmax(message), "!g", "^x04" );
 	
 	message_begin( type, g_message_id[SayText], origin, receiver );
