@@ -5,7 +5,6 @@
  * - illegal state
  * - get dd stats like sync and, i dunno, some other stuff, maybe
  * - display dd stats if countjump
- * - check for too far drop
  */
 
 #include <amxmodx>
@@ -107,6 +106,7 @@ new Float:jump_prestrafe[33];
 new Float:jump_maxspeed[33];
 new jump_sync[33];
 new jump_frames[33];
+new jump_ground_frames[33];
 new Float:jump_speed[33];
 new Float:jump_angles[33][3];
 new jump_strafes[33];
@@ -163,6 +163,7 @@ public plugin_init( )
 	register_dictionary( "q_jumpstats.txt" );
 	
 	register_forward( FM_PlayerPreThink, "forward_PlayerPreThink" );
+	register_forward( FM_PlayerPostThink, "forward_PlayerPostThink" );
 	RegisterHam( Ham_Spawn, "player", "forward_PlayerSpawn" );
 	RegisterHam( Ham_Touch, "player", "forward_PlayerTouch", 1 );
 	
@@ -245,6 +246,7 @@ reset_stats( id )
 	jump_maxspeed[id] = 0.0;
 	jump_sync[id] = 0;
 	jump_frames[id] = 0;
+	jump_ground_frames[id] = 0;
 	for( new i = 0; i <= jump_strafes[id]; ++i )
 	{
 		jump_strafe_sync[id][i] = 0;
@@ -288,7 +290,7 @@ public task_speed( )
 			if( is_user_alive( id ) )
 			{
 				if( ( gametime - jump_start_time[id] ) > 3.7 )
-					show_hudmessage( id, "%.2f", floatsqroot( velocity[id][0] * velocity[id][0] + velocity[id][1] * velocity[id][1] ) );
+					show_hudmessage( id, "%.2f", v2_length( velocity[id] ) );
 			}
 			else
 			{
@@ -297,7 +299,7 @@ public task_speed( )
 				{
 					new t = pev( id, pev_iuser2 );
 					if( ( gametime - jump_start_time[t] ) > 3.7 )
-						show_hudmessage( id, "%.2f", floatsqroot( velocity[t][0] * velocity[t][0] + velocity[t][1] * velocity[t][1] ) );
+						show_hudmessage( id, "%.2f", v2_length( velocity[t] ) );
 				}
 			}
 		}
@@ -358,9 +360,7 @@ public forward_PlayerPreThink( id )
 	|| gravity != 1.0
 	|| ( pev( id, pev_waterlevel ) != 0 )
 	|| ( ( movetype[id] != MOVETYPE_WALK ) && ( movetype[id] != MOVETYPE_FLY ) )
-	|| ( floatsqroot(
-		( origin[id][0] - oldorigin[id][0] ) * ( origin[id][0] - oldorigin[id][0] ) +
-		( origin[id][1] - oldorigin[id][1] ) * ( origin[id][1] - oldorigin[id][1] ) ) > 20.0 )
+	|| ( v2_distance( origin[id], oldorigin[id] ) > 20.0 )
 	|| ( get_pcvar_num( sv_gravity ) != 800 )
 	|| ( get_pcvar_num( sv_airaccelerate ) != 10 )
 	)
@@ -369,7 +369,6 @@ public forward_PlayerPreThink( id )
 	}
 	else
 	{
-		// run current state func / no function pointers in pawn :(
 		switch ( player_state[id] )
 		{
 			case State_Initial:
@@ -422,12 +421,24 @@ public forward_PlayerPreThink( id )
 	oldvelocity[id] = velocity[id];
 }
 
+public forward_PlayerPostThink( id )
+{
+	new isOnGround = pev( id, pev_flags ) & FL_ONGROUND2;
+	new wasOnGround = oldflags[id] & FL_ONGROUND2;
+	if ( isOnGround && !wasOnGround && player_state[id] == State_InJump )
+	{
+		forward_PlayerPreThink( id );
+	}
+}
+
 state_initial( id )
 {
 	if( movetype[id] == MOVETYPE_WALK )
 	{
 		if( flags[id] & FL_ONGROUND2 )
 		{
+			jump_ground_frames[id]++;
+
 			if( ( buttons[id] & IN_JUMP ) && !( oldbuttons[id] & IN_JUMP ) )
 			{
 				event_jump_begin( id );
@@ -456,11 +467,11 @@ state_initial( id )
 
 event_jump_begin( id )
 {
+	jump_start_time[id] = get_gametime( );
 	jump_start_ducking[id] = ducking[id];
 	jump_start_origin[id] = origin[id];
 	jump_start_velocity[id] = velocity[id];
-	jump_start_time[id] = get_gametime( );
-	jump_prestrafe[id] = floatsqroot( jump_start_velocity[id][0] * jump_start_velocity[id][0] + jump_start_velocity[id][1] * jump_start_velocity[id][1] );
+	jump_prestrafe[id] = v2_length( jump_start_velocity[id] );
 	jump_maxspeed[id] = jump_prestrafe[id];
 	jump_speed[id] = jump_prestrafe[id];
 	pev( id, pev_angles, jump_angles[id] );
@@ -493,7 +504,14 @@ state_injump_firstframe( id )
 		{
 			if( ( ( i == id ) || ( pev( i, pev_iuser2 ) == id ) ) && player_show_prestrafe[i] )
 			{
-				show_hudmessage( i, "%s: %.2f", jump_shortname[jump_type[id]], jump_prestrafe[id] );
+				if (jump_ground_frames[id] < 3)
+				{
+					show_hudmessage( i, "%s: %.2f (FOG: %d)", jump_shortname[jump_type[id]], jump_prestrafe[id], jump_ground_frames[id] );
+				}
+				else
+				{
+					show_hudmessage( i, "%s: %.2f", jump_shortname[jump_type[id]], jump_prestrafe[id] );
+				}
 			}
 		}
 		
@@ -548,7 +566,7 @@ state_injump( id )
 		jump_last_velocity[id] = velocity[id];
 		
 		static Float:speed;
-		speed = floatsqroot( velocity[id][0] * velocity[id][0] + velocity[id][1] * velocity[id][1] );
+		speed = v2_length( velocity[id] );
 		if( jump_maxspeed[id] < speed )
 			jump_maxspeed[id] = speed;
 		
@@ -629,12 +647,10 @@ event_jump_failed( id )
 	
 	new Float:airtime = ( -oldvelocity[id][2] - floatsqroot( oldvelocity[id][2] * oldvelocity[id][2] - 2.0 * -800 * ( oldorigin[id][2] - jumpoff_height ) ) ) / -800;
 	
-	static Float:distance_x;
-	static Float:distance_y;
-	distance_x = floatabs( oldorigin[id][0] - jump_start_origin[id][0] ) + floatabs( velocity[id][0] * airtime );
-	distance_y = floatabs( oldorigin[id][1] - jump_start_origin[id][1] ) + floatabs( velocity[id][1] * airtime );
-	
-	jump_distance[id] = floatsqroot( distance_x * distance_x + distance_y * distance_y ) + 32.0;
+	static Float:fail_distance[2];
+	fail_distance[0] = floatabs( oldorigin[id][0] - jump_start_origin[id][0] ) + floatabs( velocity[id][0] * airtime );
+	fail_distance[1] = floatabs( oldorigin[id][1] - jump_start_origin[id][1] ) + floatabs( velocity[id][1] * airtime );
+	jump_distance[id] = v2_length( fail_distance ) + 32.0;
 	
 	display_stats( id, true );
 	
@@ -658,10 +674,6 @@ event_jump_end( id )
 		static Float:dist1;
 		static Float:dist2;
 		
-		dist1 = floatsqroot(
-			( jump_start_origin[id][0] - jump_end_origin[id][0] ) * ( jump_start_origin[id][0] - jump_end_origin[id][0] ) +
-			( jump_start_origin[id][1] - jump_end_origin[id][1] ) * ( jump_start_origin[id][1] - jump_end_origin[id][1] ) );
-		
 		static Float:airtime;
 		airtime = ( -floatsqroot( jump_first_velocity[id][2] * jump_first_velocity[id][2] + ( 1600.0 * ( jump_first_origin[id][2] - origin[id][2] ) ) ) - oldvelocity[id][2] ) / -800.0;
 		
@@ -671,10 +683,8 @@ event_jump_end( id )
 		if( oldorigin[id][1] < origin[id][1] )	cl_origin[1] = oldorigin[id][1] + airtime * floatabs( oldvelocity[id][1] );
 		else					cl_origin[1] = oldorigin[id][1] - airtime * floatabs( oldvelocity[id][1] );
 		
-		dist2 = floatsqroot(
-			( jump_start_origin[id][0] - cl_origin[0] ) * ( jump_start_origin[id][0] - cl_origin[0] ) +
-			( jump_start_origin[id][1] - cl_origin[1] ) * ( jump_start_origin[id][1] - cl_origin[1] ) );
-		
+		dist1 = v2_distance( jump_start_origin[id], jump_end_origin[id] );
+		dist2 = v2_distance( jump_start_origin[id], cl_origin );
 		jump_distance[id] = floatmin( dist1, dist2 ) + 32.0;
 		
 		display_stats( id );
@@ -712,11 +722,11 @@ event_dd_begin( id )
 	{
 		dd_prestrafe[id][0] = dd_prestrafe[id][1];
 		dd_prestrafe[id][1] = dd_prestrafe[id][2];
-		dd_prestrafe[id][2] = floatsqroot( velocity[id][0] * velocity[id][0] + velocity[id][1] * velocity[id][1] );
+		dd_prestrafe[id][2] = v2_length( velocity[id] );
 	}
 	else
 	{
-		dd_prestrafe[id][dd_count[id] - 1] = floatsqroot( velocity[id][0] * velocity[id][0] + velocity[id][1] * velocity[id][1] );
+		dd_prestrafe[id][dd_count[id] - 1] = v2_length( velocity[id] );
 	}
 	
 	new ret;
@@ -1055,4 +1065,20 @@ display_stats( id, bool:failed = false )
 			}
 		}
 	}
+}
+
+Float:v2_length( const Float:vec[] )
+{
+	return floatsqroot( vec[0] * vec[0] + vec[1] * vec[1] );
+}
+
+Float:v2_distance( const Float:p1[], const Float:p2[] )
+{
+	static Float:dx;
+	static Float:dy;
+	
+	dx = p2[0] - p1[0];
+	dy = p2[1] - p1[1];
+	
+	return floatsqroot( dx * dx + dy * dy );
 }
