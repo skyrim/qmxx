@@ -34,16 +34,19 @@ new Array:g_demoBeginningOffset;
 new Array:g_startButtonEntityOrigins;
 new Array:g_stopButtonEntityOrigins;
 
-public plugin_precache( ) {
+public plugin_precache( )
+{
 	g_ghost_Model = precache_model( "sprites/flare1.spr" );
 }
 
-public plugin_init( ) {
+public plugin_init( )
+{
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	q_kz_getDataDirectory( g_demoDirectory, charsmax(g_demoDirectory) );
-	formatex( g_demoDirectory, charsmax(g_demoDirectory), "%s/demos/", g_demoDirectory );
-	if( !dir_exists(g_demoDirectory) ) {
+	q_kz_getDataDirectory( g_demoDirectory, charsmax( g_demoDirectory ) );
+	formatex( g_demoDirectory, charsmax( g_demoDirectory ), "%s/demos/", g_demoDirectory );
+	if ( !dir_exists( g_demoDirectory ) )
+	{
 		mkdir( g_demoDirectory );
 		
 		return;
@@ -61,18 +64,22 @@ public plugin_init( ) {
 	new filename[128];
 	
 	new dir = open_dir( g_demoDirectory, filename, charsmax(filename) );
-	do {
-		if( !( equali( filename, "." ) || equali( filename, ".." ) ) ) {
+	do
+	{
+		if ( !( equali( filename, "." ) || equali( filename, ".." ) ) )
+		{
 			formatex( filepath, charsmax(filepath), "%s%s", g_demoDirectory, filename );
 			
 			new f = fopen( filepath, "rb" );
-			if( f && valid_demo_file( filename, f ) ) {
+			if ( f && valid_demo_file( filename, f ) )
+			{
 				ArrayPushCell( g_demoFileHandle, f );
 				ArrayPushString( g_demoFileName, filename );
 				ArrayPushCell( g_demoBeginningTime, 0 );
 				ArrayPushCell( g_demoBeginningOffset, 0 );
 			}
-			else {
+			else
+			{
 				fclose( f );
 			}
 		}
@@ -80,7 +87,8 @@ public plugin_init( ) {
 	
 	new Float:mins[3], Float:maxs[3], Float:origin[3];
 	new Array:startButtonEntities = q_kz_getStartButtonEntities( );
-	for( new i = 0, size = ArraySize( startButtonEntities ); i < size; ++i ) {
+	for ( new i = 0, size = ArraySize( startButtonEntities ); i < size; ++i )
+	{
 		new button = ArrayGetCell( startButtonEntities, i );
 		
 		pev( button, pev_mins, mins );
@@ -92,7 +100,8 @@ public plugin_init( ) {
 		ArrayPushArray( g_startButtonEntityOrigins, origin );
 	}
 	new Array:stopButtonEntities = q_kz_getStopButtonEntities( );
-	for( new i = 0, size = ArraySize( stopButtonEntities ); i < size; ++i ) {
+	for ( new i = 0, size = ArraySize( stopButtonEntities ); i < size; ++i )
+	{
 		new button = ArrayGetCell( stopButtonEntities, i );
 		
 		pev( button, pev_mins, mins );
@@ -113,9 +122,11 @@ public plugin_init( ) {
 	
 	register_clcmd( "say /kzghost", "clcmd_kzghost" );
 }
-
-public plugin_end( ) {
-	for( new i = 0, size = ArraySize(g_demoFileHandle); i < size; ++i ) {
+	
+public plugin_end( )
+{
+	for ( new i = 0, size = ArraySize( g_demoFileHandle ); i < size; ++i )
+	{
 		fclose( ArrayGetCell( g_demoFileHandle, i ) );
 	}
 	
@@ -127,9 +138,11 @@ public plugin_end( ) {
 	g_stopButtonEntityOrigins ? ArrayDestroy( g_stopButtonEntityOrigins ) : 0;
 }
 
-valid_demo_file( name[], handle ) {
+valid_demo_file( name[], handle )
+{
 	new ext_pos = strlen(name) - 3;
-	if( !(name[ext_pos] == 'd' && name[ext_pos+1] == 'e' && name[ext_pos + 2] == 'm') ) {
+	if ( !(name[ext_pos] == 'd' && name[ext_pos+1] == 'e' && name[ext_pos + 2] == 'm') )
+	{
 		return false;
 	}
 	
@@ -137,7 +150,8 @@ valid_demo_file( name[], handle ) {
 	
 	new magic[8];
 	fread_blocks( f, magic, 8, BLOCK_BYTE );
-	if( !equal( magic, "HLDEMO" ) ) {
+	if ( !equal( magic, "HLDEMO" ) )
+	{
 		return false;
 	}
 	
@@ -149,7 +163,8 @@ valid_demo_file( name[], handle ) {
 	new demoMap[32];
 	fread_blocks( f, demoMap, 32, BLOCK_BYTE );
 	
-	if( !equali( map, demoMap ) ) {
+	if ( !equali( map, demoMap ) )
+	{
 		return false;
 	}
 	
@@ -157,22 +172,26 @@ valid_demo_file( name[], handle ) {
 	return true;
 }
 
-public clcmd_kzghost( id ) {
+public clcmd_kzghost( id )
+{
 	menu_kzghost( id );
 	
 	return PLUGIN_HANDLED;
 }
 
-menu_kzghost( id ) {
+menu_kzghost( id )
+{
 	new QMenu:menu = q_menu_create( "KZ Ghost", "menu_kzghost_handler" );
 	
-	if( g_player_Demo[id] != 0 ) {
+	if ( g_player_Demo[id] != 0 )
+	{
 		new demoName[128] = "Select demo^nDemo: ";
 		ArrayGetString( g_demoFileName, g_player_DemoIndex[id], demoName[18], charsmax(demoName) - 13 );
 		q_menu_item_add( menu, demoName );
 		q_menu_item_add( menu, "Clear demo" );
 	}
-	else {
+	else
+	{
 		q_menu_item_add( menu, "Select demo^nDemo: ..." );
 		q_menu_item_add( menu, "Clear demo" );
 	}
@@ -180,36 +199,44 @@ menu_kzghost( id ) {
 	q_menu_display( id, menu );
 }
 
-public menu_kzghost_handler( id, menu, item ) {
-	switch( item ) {
-	case 0: {
-		menu_demolist( id );
-		
-		return PLUGIN_HANDLED;
-	}
-	case 1: {
-		demo_clear( id );
-		
-		menu_kzghost( id );
-		
-		return PLUGIN_HANDLED;
-	}
+public menu_kzghost_handler( id, menu, item )
+{
+	switch( item )
+	{
+		case 0:
+		{
+			menu_demolist( id );
+			
+			return PLUGIN_HANDLED;
+		}
+		case 1:
+		{
+			demo_clear( id );
+			
+			menu_kzghost( id );
+			
+			return PLUGIN_HANDLED;
+		}
 	}
 	
 	return PLUGIN_CONTINUE;
 }
 
-menu_demolist( id ) {
+menu_demolist( id )
+{
 	new QMenu:menu = q_menu_create( "KZ Ghost", "menu_demolist_handler" );
 	
 	new size = ArraySize( g_demoFileName );
-	if( size == 0 ) {
+	if ( size == 0 )
+	{
 		q_menu_item_add( menu, "Demos for this map not found.", _, false );
 		q_menu_item_add( menu, "Add demos to data/q/kz/demos folder.", _, false );
 	}
-	else {
+	else
+	{
 		new demoname[128];
-		for( new i = 0; i < size; ++i ) {
+		for ( new i = 0; i < size; ++i )
+		{
 			ArrayGetString( g_demoFileName, i, demoname, charsmax(demoname) );
 			q_menu_item_add( menu, demoname );
 		}
@@ -219,15 +246,18 @@ menu_demolist( id ) {
 	q_menu_display( id, menu );
 }
 
-public menu_demolist_handler( id, menu, item ) {
-	if( item >= 0 ) {
+public menu_demolist_handler( id, menu, item )
+{
+	if ( item >= 0 )
+	{
 		demo_select( id, item );
 		
 		menu_kzghost( id );
 		
 		return PLUGIN_HANDLED;
 	}
-	else if( item == QMenuItem_Exit ) {
+	else if ( item == QMenuItem_Exit )
+	{
 		menu_kzghost( id );
 		
 		return PLUGIN_HANDLED;
@@ -236,7 +266,8 @@ public menu_demolist_handler( id, menu, item ) {
 	return PLUGIN_CONTINUE;
 }
 
-create_ghost( ) {
+create_ghost( )
+{
 	new entity = engfunc( EngFunc_CreateNamedEntity, engfunc( EngFunc_AllocString, "info_target" ) );
 	set_pev( entity, pev_classname, "info_target" );
 	set_pev( entity, pev_solid, SOLID_TRIGGER );
@@ -249,8 +280,10 @@ create_ghost( ) {
 	return entity;
 }
 
-demo_select( id, demo ) {
-	if( g_player_GhostEntity[id] == 0 ) {
+demo_select( id, demo )
+{
+	if ( g_player_GhostEntity[id] == 0 )
+	{
 		g_player_GhostEntity[id] = create_ghost( );
 	}
 	
@@ -259,7 +292,8 @@ demo_select( id, demo ) {
 	
 	new f = g_player_Demo[id];
 	new beginningOffset = ArrayGetCell( g_demoBeginningOffset, demo );
-	if( beginningOffset == 0 ) {
+	if ( beginningOffset == 0 )
+	{
 		fseek( f, 540, SEEK_CUR );
 		
 		new dirOffset;
@@ -269,12 +303,14 @@ demo_select( id, demo ) {
 		
 		new dirCount;
 		fread( f, dirCount, BLOCK_INT );
-		for( new i = 0; i < dirCount; ++i ) {
+		for ( new i = 0; i < dirCount; ++i )
+		{
 			fseek( f, 4, SEEK_CUR );
 			
 			new dirName[64];
 			fread_blocks( f, dirName, 64, BLOCK_BYTE );
-			if( equali( dirName, "playback" ) ) {
+			if ( equali( dirName, "playback" ) )
+			{
 				fseek( f, 16, SEEK_CUR );
 				
 				new playbackOffset;
@@ -283,13 +319,15 @@ demo_select( id, demo ) {
 				
 				break;
 			}
-			else {
+			else
+			{
 				fseek( f, 24, SEEK_CUR );
 			}
 		}
 		
 		new startNotFound = false;
-		for(;;) {
+		for (;;)
+		{
 			new macro;
 			fread( f, macro, BLOCK_BYTE );
 			
@@ -297,8 +335,233 @@ demo_select( id, demo ) {
 			fread( f, _:time, BLOCK_INT );
 			fseek( f, 4, SEEK_CUR );
 			
-			switch( macro ) {
-			case 0, 1: {
+			switch( macro )
+			{
+				case 0, 1:
+				{
+					new ghost = g_player_GhostEntity[id];
+					fseek( f, 4, SEEK_CUR );
+					
+					new Float:origin[3];
+					fread_blocks( f, _:origin, 3, BLOCK_INT );
+					set_pev( ghost, pev_origin, origin );
+					
+					fseek( f, 448, SEEK_CUR );
+					
+					new length;
+					fread( f, length, BLOCK_INT );
+					fseek( f, length, SEEK_CUR );
+				}
+				
+				case 3:
+				{
+					new command[64];
+					fread_blocks( f, command, 64, BLOCK_BYTE );
+					if ( equal( command, "+use" ) )
+					{
+						new Float:ghostOrigin[3];
+						pev( g_player_GhostEntity[id], pev_origin, ghostOrigin );
+						
+						new Float:buttonOrigin[3];
+						for ( new i = 0, size = ArraySize( g_startButtonEntityOrigins ); i < size; ++i ) {
+							ArrayGetArray( g_startButtonEntityOrigins, i, buttonOrigin );
+							
+							xs_vec_sub( ghostOrigin, buttonOrigin, buttonOrigin );
+							
+							if ( xs_vec_len( buttonOrigin ) < 90.0 )
+							{
+								ArraySetCell( g_demoBeginningTime, g_player_DemoIndex[id], time );
+								ArraySetCell( g_demoBeginningOffset, g_player_DemoIndex[id], ftell( f ) );
+								
+								return;
+							}
+						}
+					}
+				}
+				
+				case 4:
+				{
+					fseek( f, 32, SEEK_CUR );
+				}
+				
+				case 5:
+				{
+					startNotFound = true;
+					break;
+				}
+				
+				case 6:
+				{
+					fseek( f, 84, SEEK_CUR );
+				}
+				
+				case 7:
+				{
+					fseek( f, 8, SEEK_CUR );
+				}
+				
+				case 8:
+				{
+					fseek( f, 4, SEEK_CUR );
+					new length;
+					fread( f, length, BLOCK_INT );
+					fseek( f, length, SEEK_CUR );
+					fseek( f, 16, SEEK_CUR );
+				}
+				
+				case 9:
+				{
+					new length;
+					fread( f, length, BLOCK_INT );
+					fseek( f, length, SEEK_CUR );
+				}
+			}
+		}
+		
+		if ( startNotFound )
+		{
+			demo_clear( id );
+			client_print( id, print_chat, "Could not find start of the demo. Choose some other demo." );
+			return;
+		}
+	}
+	else
+	{
+		fseek( f, beginningOffset, SEEK_SET );
+	}
+}
+
+demo_clear( id )
+{
+	g_player_Demo[id] = 0;
+	
+	demo_stop( id );
+}
+
+demo_play( id )
+{
+	g_player_DemoPlaying[id] = true;
+	
+	g_player_DemoStartTime[id] = get_gametime( ) - Float:ArrayGetCell( g_demoBeginningTime, g_player_DemoIndex[id] );
+	g_player_DemoPosition[id] = ArrayGetCell( g_demoBeginningOffset, g_player_DemoIndex[id] );
+	
+	ghost_show( g_player_GhostEntity[id] );
+}
+
+demo_pause( id )
+{
+	g_player_DemoPaused[id] = true;
+	g_player_DemoPauseTime[id] = get_gametime( );
+}
+
+demo_unpause( id )
+{
+	g_player_DemoPaused[id] = false;
+	g_player_DemoStartTime[id] += get_gametime( ) - g_player_DemoPauseTime[id];
+}
+
+demo_stop( id )
+{
+	g_player_DemoPlaying[id] = false;
+	
+	ghost_hide( g_player_GhostEntity[id] );
+}
+
+is_ghost_entity( entity )
+{
+	for ( new i = 1; i <= 32; ++i )
+	{
+		if ( entity == g_player_GhostEntity[i] )
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+ghost_show( ghost_entity )
+{
+	set_pev( ghost_entity, pev_rendermode, kRenderTransAdd );
+	set_pev( ghost_entity, pev_renderamt, 128.0 );
+}
+
+ghost_hide( ghost_entity )
+{
+	set_pev( ghost_entity, pev_rendermode, kRenderTransAdd );
+	set_pev( ghost_entity, pev_renderamt, 0.0 );
+}
+
+stock ghost_toggle( ghost_entity )
+{
+	pev( ghost_entity, pev_rendermode ) == kRenderTransAlpha ? ghost_show( ghost_entity ) : ghost_hide( ghost_entity );
+}
+
+public forward_AddToFullPack( es, e, ent, host, hostflags, player, pset )
+{
+	
+	if ( !player && is_ghost_entity( ent ) )
+	{
+		if ( ent != g_player_GhostEntity[host] )
+		{
+			return FMRES_SUPERCEDE;
+		}
+		else
+		{
+			if ( !g_player_DemoPlaying[host] )
+			{
+				return FMRES_SUPERCEDE;
+			}
+			
+			new Float:ghostOrigin[3];
+			pev( ent, pev_origin, ghostOrigin );
+			
+			new Float:hostOrigin[3];
+			pev( host, pev_origin, hostOrigin );
+			
+			xs_vec_sub( ghostOrigin, hostOrigin, hostOrigin );
+			new Float:distance = xs_vec_len( hostOrigin );
+			if ( distance < 500.0 )
+			{
+				set_pev( ent, pev_renderamt, ( distance / 500.0 ) * 255.0 );
+			}
+		}
+	}
+	
+	return FMRES_IGNORED;
+}
+
+public forward_PlayerThink( id )
+{
+	if ( !g_player_DemoPlaying[id] || g_player_DemoPaused[id] )
+	{
+		return;
+	}
+	
+	new Float:currentTime = get_gametime( );
+	
+	new f = g_player_Demo[id];
+	fseek( f, g_player_DemoPosition[id], SEEK_SET );
+	
+	for (;;)
+	{
+		new macro;
+		fread( f, macro, BLOCK_BYTE );
+		
+		new Float:time;
+		fread( f, _:time, BLOCK_INT );
+		if ( time > ( currentTime - g_player_DemoStartTime[id] ) )
+		{
+			fseek( f, -5, SEEK_CUR );
+			break;
+		}
+		
+		fseek( f, 4, SEEK_CUR );
+		
+		switch( macro )
+		{
+			case 0, 1:
+			{
 				new ghost = g_player_GhostEntity[id];
 				fseek( f, 4, SEEK_CUR );
 				
@@ -313,47 +576,56 @@ demo_select( id, demo ) {
 				fseek( f, length, SEEK_CUR );
 			}
 			
-			case 3: {
+			case 3:
+			{
 				new command[64];
 				fread_blocks( f, command, 64, BLOCK_BYTE );
-				if( equal( command, "+use" ) ) {
+				if ( equal( command, "+use" ) )
+				{
 					new Float:ghostOrigin[3];
 					pev( g_player_GhostEntity[id], pev_origin, ghostOrigin );
 					
 					new Float:buttonOrigin[3];
-					for( new i = 0, size = ArraySize( g_startButtonEntityOrigins ); i < size; ++i ) {
-						ArrayGetArray( g_startButtonEntityOrigins, i, buttonOrigin );
+					for ( new i = 0, size = ArraySize( g_stopButtonEntityOrigins ); i < size; ++i ) 
+					{					
+						ArrayGetArray( g_stopButtonEntityOrigins, i, buttonOrigin );
 						
 						xs_vec_sub( ghostOrigin, buttonOrigin, buttonOrigin );
 						
-						if( xs_vec_len( buttonOrigin ) < 90.0 ) {
+						if ( xs_vec_len( buttonOrigin ) < 90.0 )
+						{
 							ArraySetCell( g_demoBeginningTime, g_player_DemoIndex[id], time );
 							ArraySetCell( g_demoBeginningOffset, g_player_DemoIndex[id], ftell( f ) );
 							
-							return;
+							client_print( id, print_chat, "Ghost finished the map." );
+							demo_stop( id );
 						}
 					}
 				}
 			}
 			
-			case 4: {
+			case 4:
+			{
 				fseek( f, 32, SEEK_CUR );
 			}
 			
-			case 5: {
-				startNotFound = true;
-				break;
+			case 5:
+			{
+				demo_stop( id );
 			}
 			
-			case 6: {
+			case 6:
+			{
 				fseek( f, 84, SEEK_CUR );
 			}
 			
-			case 7: {
+			case 7:
+			{
 				fseek( f, 8, SEEK_CUR );
 			}
 			
-			case 8: {
+			case 8:
+			{
 				fseek( f, 4, SEEK_CUR );
 				new length;
 				fread( f, length, BLOCK_INT );
@@ -361,220 +633,38 @@ demo_select( id, demo ) {
 				fseek( f, 16, SEEK_CUR );
 			}
 			
-			case 9: {
+			case 9:
+			{
 				new length;
 				fread( f, length, BLOCK_INT );
 				fseek( f, length, SEEK_CUR );
 			}
-			}
-		}
-		
-		if( startNotFound ) {
-			demo_clear( id );
-			client_print( id, print_chat, "Could not find start of the demo. Choose some other demo." );
-			return;
-		}
-	}
-	else {
-		fseek( f, beginningOffset, SEEK_SET );
-	}
-}
-
-demo_clear( id ) {
-	g_player_Demo[id] = 0;
-	
-	demo_stop( id );
-}
-
-demo_play( id ) {
-	g_player_DemoPlaying[id] = true;
-	
-	g_player_DemoStartTime[id] = get_gametime( ) - Float:ArrayGetCell( g_demoBeginningTime, g_player_DemoIndex[id] );
-	g_player_DemoPosition[id] = ArrayGetCell( g_demoBeginningOffset, g_player_DemoIndex[id] );
-	
-	ghost_show( g_player_GhostEntity[id] );
-}
-
-demo_pause( id ) {
-	g_player_DemoPaused[id] = true;
-	g_player_DemoPauseTime[id] = get_gametime( );
-}
-
-demo_unpause( id ) {
-	g_player_DemoPaused[id] = false;
-	g_player_DemoStartTime[id] += get_gametime( ) - g_player_DemoPauseTime[id];
-}
-
-demo_stop( id ) {
-	g_player_DemoPlaying[id] = false;
-	
-	ghost_hide( g_player_GhostEntity[id] );
-}
-
-is_ghost_entity( entity ) {
-	for( new i = 1; i <= 32; ++i ) {
-		if( entity == g_player_GhostEntity[i] ) {
-			return true;
-		}
-	}
-	
-	return false;
-}
-
-ghost_show( ghost_entity ) {
-	set_pev( ghost_entity, pev_rendermode, kRenderTransAdd );
-	set_pev( ghost_entity, pev_renderamt, 128.0 );
-}
-
-ghost_hide( ghost_entity ) {
-	set_pev( ghost_entity, pev_rendermode, kRenderTransAdd );
-	set_pev( ghost_entity, pev_renderamt, 0.0 );
-}
-
-stock ghost_toggle( ghost_entity ) {
-	pev( ghost_entity, pev_rendermode ) == kRenderTransAlpha ? ghost_show( ghost_entity ) : ghost_hide( ghost_entity );
-}
-
-public forward_AddToFullPack( es, e, ent, host, hostflags, player, pset ) {
-	
-	if( !player && is_ghost_entity( ent ) ) {
-		if( ent != g_player_GhostEntity[host] ) {
-			return FMRES_SUPERCEDE;
-		}
-		else {
-			if( !g_player_DemoPlaying[host] ) {
-				return FMRES_SUPERCEDE;
-			}
-			
-			new Float:ghostOrigin[3];
-			pev( ent, pev_origin, ghostOrigin );
-			
-			new Float:hostOrigin[3];
-			pev( host, pev_origin, hostOrigin );
-			
-			xs_vec_sub( ghostOrigin, hostOrigin, hostOrigin );
-			new Float:distance = xs_vec_len( hostOrigin );
-			if( distance < 500.0 ) {
-				set_pev( ent, pev_renderamt, ( distance / 500.0 ) * 255.0 );
-			}
-		}
-	}
-	
-	return FMRES_IGNORED;
-}
-
-public forward_PlayerThink( id ) {
-	if( !g_player_DemoPlaying[id] || g_player_DemoPaused[id] ) {
-		return;
-	}
-	
-	new Float:currentTime = get_gametime( );
-	
-	new f = g_player_Demo[id];
-	fseek( f, g_player_DemoPosition[id], SEEK_SET );
-	
-	for(;;) {
-		new macro;
-		fread( f, macro, BLOCK_BYTE );
-		
-		new Float:time;
-		fread( f, _:time, BLOCK_INT );
-		if( time > ( currentTime - g_player_DemoStartTime[id] ) ) {
-			fseek( f, -5, SEEK_CUR );
-			break;
-		}
-		
-		fseek( f, 4, SEEK_CUR );
-		
-		switch( macro ) {
-		case 0, 1: {
-			new ghost = g_player_GhostEntity[id];
-			fseek( f, 4, SEEK_CUR );
-			
-			new Float:origin[3];
-			fread_blocks( f, _:origin, 3, BLOCK_INT );
-			set_pev( ghost, pev_origin, origin );
-			
-			fseek( f, 448, SEEK_CUR );
-			
-			new length;
-			fread( f, length, BLOCK_INT );
-			fseek( f, length, SEEK_CUR );
-		}
-		
-		case 3: {
-			new command[64];
-			fread_blocks( f, command, 64, BLOCK_BYTE );
-			if( equal( command, "+use" ) ) {
-				new Float:ghostOrigin[3];
-				pev( g_player_GhostEntity[id], pev_origin, ghostOrigin );
-				
-				new Float:buttonOrigin[3];
-				for( new i = 0, size = ArraySize( g_stopButtonEntityOrigins ); i < size; ++i ) {
-					ArrayGetArray( g_stopButtonEntityOrigins, i, buttonOrigin );
-					
-					xs_vec_sub( ghostOrigin, buttonOrigin, buttonOrigin );
-					
-					if( xs_vec_len( buttonOrigin ) < 90.0 ) {
-						ArraySetCell( g_demoBeginningTime, g_player_DemoIndex[id], time );
-						ArraySetCell( g_demoBeginningOffset, g_player_DemoIndex[id], ftell( f ) );
-						
-						client_print( id, print_chat, "Ghost finished the map." );
-						demo_stop( id );
-					}
-				}
-			}
-		}
-		
-		case 4: {
-			fseek( f, 32, SEEK_CUR );
-		}
-		
-		case 5: {
-			demo_stop( id );
-		}
-		
-		case 6: {
-			fseek( f, 84, SEEK_CUR );
-		}
-		
-		case 7: {
-			fseek( f, 8, SEEK_CUR );
-		}
-		
-		case 8: {
-			fseek( f, 4, SEEK_CUR );
-			new length;
-			fread( f, length, BLOCK_INT );
-			fseek( f, length, SEEK_CUR );
-			fseek( f, 16, SEEK_CUR );
-		}
-		
-		case 9: {
-			new length;
-			fread( f, length, BLOCK_INT );
-			fseek( f, length, SEEK_CUR );
-		}
 		}
 	}
 	
 	g_player_DemoPosition[id] = ftell( f );
 }
 
-public forward_KZTimerStart( id ) {
-	if( g_player_Demo[id] ) {
+public forward_KZTimerStart( id )
+{
+	if ( g_player_Demo[id] )
+	{
 		demo_play( id );
 	}
 }
 
-public forward_KZTimerStop( id, successful ) {
-	if( g_player_Demo[id] && g_player_DemoPlaying[id] ) {
+public forward_KZTimerStop( id, successful )
+{
+	if ( g_player_Demo[id] && g_player_DemoPlaying[id] )
+	{
 		demo_stop( id );
 	}
 }
 
-public forward_KZTimerPause( id, paused ) {
-	if( g_player_Demo[id] && g_player_DemoPlaying[id] ) {
+public forward_KZTimerPause( id, paused )
+{
+	if ( g_player_Demo[id] && g_player_DemoPlaying[id] )
+	{
 		paused ? demo_pause( id ) : demo_unpause( id );
 	}
 }
