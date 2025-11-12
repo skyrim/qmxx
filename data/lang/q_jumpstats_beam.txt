@@ -1,3 +1,7 @@
 [en]
 Q_JS_BEAM_ON = Beam enabled
 Q_JS_BEAM_OFF = Beam disabled
+Q_JSBEAM_MENU = Beam
+Q_JSBEAM_ENABLED = Enabled
+Q_JSBEAM_TYPE = Type
+Q_JSBEAM_COLOR = Color

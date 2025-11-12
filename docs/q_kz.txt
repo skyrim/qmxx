@@ -172,6 +172,7 @@ Recommended aliases (just copy/paste the section below to q_clcmds.ini):
 "say /pre" "q_js_prestrafe"
 "say /ljsounds" "q_js_sounds"
 
+"say /beammenu" "q_js_beammenu"
 "say /beam" "q_js_beam"
 "beamtype" "q_js_beamtype"
 "beamcolor" "q_js_beamcolor"

@@ -2,7 +2,6 @@
  * to do:
  * - tech allow list
  * - tech allowed jump time length (???)
- * - illegal state
  * - get dd stats like sync and, i dunno, some other stuff, maybe
  * - display dd stats if countjump
  */
@@ -750,21 +749,7 @@ event_jump_end( id )
 	
 	if( h1 == h2 )
 	{
-		static Float:dist1;
-		static Float:dist2;
-		
-		static Float:airtime;
-		airtime = ( -floatsqroot( jump_first_velocity[id][2] * jump_first_velocity[id][2] + ( 1600.0 * ( jump_first_origin[id][2] - origin[id][2] ) ) ) - oldvelocity[id][2] ) / -800.0;
-		
-		static Float:cl_origin[2];
-		if( oldorigin[id][0] < origin[id][0] )	cl_origin[0] = oldorigin[id][0] + airtime * floatabs( oldvelocity[id][0] );
-		else					cl_origin[0] = oldorigin[id][0] - airtime * floatabs( oldvelocity[id][0] );
-		if( oldorigin[id][1] < origin[id][1] )	cl_origin[1] = oldorigin[id][1] + airtime * floatabs( oldvelocity[id][1] );
-		else					cl_origin[1] = oldorigin[id][1] - airtime * floatabs( oldvelocity[id][1] );
-		
-		dist1 = v2_distance( jump_start_origin[id], jump_end_origin[id] );
-		dist2 = v2_distance( jump_start_origin[id], cl_origin );
-		jump_distance[id] = floatmin( dist1, dist2 ) + 32.0;
+		jump_distance[id] = v2_distance( jump_start_origin[id], jump_end_origin[id] ) + 32.0;
 		
 		display_stats( id );
 	}
@@ -1024,7 +1009,7 @@ JumpType:get_jump_type( id )
 display_stats( id, bool:failed = false )
 {
 	static jump_info[256];
-	formatex( jump_info, charsmax(jump_info), "%s: %.2f^nMaxspeed: %.2f (%.2f)^nPrestrafe: %.2f^nStrafes: %d^nSync: %d",
+	formatex( jump_info, charsmax(jump_info), "%s: %.2f^nMaxspeed: %.2f (%.2f)^nPrestrafe: %.2f^nStrafes: %d^nSync: %d%%",
 			jump_name[jump_type[id]],
 			jump_distance[id],
 			jump_maxspeed[id],
@@ -1035,7 +1020,7 @@ display_stats( id, bool:failed = false )
 	);
 	
 	static jump_info_console[128];
-	formatex( jump_info_console, charsmax(jump_info_console), "%s Distance: %f Maxspeed: %f (%.2f) Prestrafe: %f Strafes %d Sync: %d",
+	formatex( jump_info_console, charsmax(jump_info_console), "%s Distance: %f Maxspeed: %f (%.2f) Prestrafe: %f Strafes %d Sync: %d%%",
 		jump_shortname[jump_type[id]],
 		jump_distance[id],
 		jump_maxspeed[id],
@@ -1052,9 +1037,11 @@ display_stats( id, bool:failed = false )
 		new len;
 		for( new i = 1; i <= jump_strafes[id]; ++i )
 		{
-			formatex( strafes_info_console[i], charsmax(strafes_info_console[]), "^t%d^t%.3f^t%.3f^t%d^t%d",
+			formatex( strafes_info_console[i], charsmax(strafes_info_console[]), "^t%2d^t%s%.3f^t%s%.3f^t%2d^t%3d%%",
 				i,
+				jump_strafe_gain[id][i] < 10.0 ? "  " : "",
 				jump_strafe_gain[id][i],
+				jump_strafe_loss[id][i] < 10.0 ? "  " : "",
 				jump_strafe_loss[id][i],
 				jump_strafe_frames[id][i] * 100 / jump_frames[id],
 				jump_strafe_sync[id][i] * 100 / jump_strafe_frames[id][i]
@@ -1079,9 +1066,9 @@ display_stats( id, bool:failed = false )
 				set_hudmessage( 255, 128, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_EXTRASTATS );
 			show_hudmessage( i, "%s", strafes_info );
 			
-			console_print( i, "%s", jump_info_console );
+			console_print( i, "%s%%", jump_info_console );
 			for( new j = 1; j <= jump_strafes[id]; ++j )
-				console_print( i, "%s", strafes_info_console[j] );
+				console_print( i, "%s%%", strafes_info_console[j] );
 		}
 		
 		static jump_info_chat[192];
