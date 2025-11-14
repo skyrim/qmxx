@@ -2153,48 +2153,6 @@ SetWeapon(id, iWeapon = 0, bDeployAnim = false) {
 * Message Stocks
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// Beam between point and entity
-stock message_te_beamentpoint(id = 0, iEnt, Float:vOrigin[3], hSprite, vColor[3], Float:iLife, iWidth) {
-	if(id) {
-		message_begin(MSG_ONE_UNRELIABLE, SVC_TEMPENTITY, _, id);
-	}
-	else {
-		message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
-	}
-	
-	write_byte(TE_BEAMENTPOINT);
-	write_short(iEnt);			// entity ID
-	write_coord(floatround(vOrigin[0]));	// X Origin
-	write_coord(floatround(vOrigin[1]));	// Y Origin
-	write_coord(floatround(vOrigin[2]));	// Z Origin
-	write_short(hSprite);			// sprite handle
-	write_byte(1); 			// starting frame
-	write_byte(1); 			// frame rate in 0.1s
-	write_byte(floatround(iLife * 10));	// life in 0.1s
-	write_byte(iWidth); 			// line width in 0.1s
-	write_byte(0); 			// noise amplitude in 0.01s
-	write_byte(vColor[0]);		// red
-	write_byte(vColor[1]);		// green
-	write_byte(vColor[2]);		// blue
-	write_byte(200);			// brigtness
-	write_byte(1);			// scroll speed in 0.1s
-	message_end();
-}
-
-// kills te_beamentpoint
-stock message_te_killbeam(id = 0, iEnt) {
-	if(id) {
-		message_begin(MSG_ONE_UNRELIABLE, SVC_TEMPENTITY, _, id);
-	}
-	else {
-		message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
-	}
-		
-	write_byte(TE_KILLBEAM);
-	write_short(iEnt);
-	message_end();
-}
-
 stock message_HideWeapon(id, flag) {
 	message_begin(MSG_ONE, g_msg_HideWeapon, _, id);
 	write_byte(flag);
@@ -2217,18 +2175,6 @@ stock message_Flashlight(id, flag, percent) {
 	message_begin(MSG_ONE_UNRELIABLE, g_msg_Flashlight, _, id);
 	write_byte(flag);
 	write_byte(percent);
-	message_end();
-}
-
-stock message_ScreenFade(id, fadetime, holdtime, flags, red, green, blue, alpha) {
-	message_begin(MSG_ONE_UNRELIABLE, g_msg_ScreenFade, _, id);
-	write_short(fadetime);
-	write_short(holdtime);
-	write_short(flags);
-	write_byte(red);
-	write_byte(green);
-	write_byte(blue);
-	write_byte(alpha);
 	message_end();
 }
 
@@ -2297,23 +2243,6 @@ stock message_SayText(id, const message[], any:...) {
 	}
 }
 
-stock message_ClCorpse(id, model[], Float:origin[3], Float:angles[3], delay, sequence) {
-	message_begin(MSG_ONE_UNRELIABLE, g_msg_ClCorpse, _, id);
-	write_string(model);
-	write_long(floatround(origin[0])<<7);
-	write_long(floatround(origin[1])<<7);
-	write_long(floatround(origin[2])<<7);
-	write_coord(floatround(angles[0]));
-	write_coord(floatround(angles[1]));
-	write_coord(floatround(angles[2]));
-	write_long(delay<<7); // delay
-	write_byte(sequence);
-	write_byte(0); // classid ???
-	write_byte(2); // team id
-	write_byte(id); // player id
-	message_end();
-}
-
 stock message_ArmorType(id, type) {
 	static msg_ArmorType;
 	if(!msg_ArmorType) {
@@ -2322,21 +2251,6 @@ stock message_ArmorType(id, type) {
 	
 	message_begin(MSG_ONE_UNRELIABLE, msg_ArmorType, _, id);
 	write_byte(type);
-	message_end();
-}
-
-stock message_HostagePos(id, flag, hostageid, Float:origin[3]) {
-	static msg_HostagePos;
-	if(!msg_HostagePos) {
-		msg_HostagePos = get_user_msgid("HostagePos");
-	}
-	
-	message_begin(MSG_ONE_UNRELIABLE, msg_HostagePos, _, id);
-	write_byte(flag);
-	write_byte(hostageid);
-	write_coord(floatround(origin[0]));
-	write_coord(floatround(origin[1]));
-	write_coord(floatround(origin[2]));
 	message_end();
 }
 
