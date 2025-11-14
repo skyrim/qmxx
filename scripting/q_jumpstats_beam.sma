@@ -247,6 +247,7 @@ beam_frame( id )
 	{
 		pev( id, pev_origin, origin );
 		g_beam_point[id][g_beam_count[id]] = origin;
+		g_beam_point[id][g_beam_count[id]][2] -= 18.0;
 		
 		if( pev( id, pev_flags ) & FL_DUCKING )
 		{
@@ -263,22 +264,33 @@ beam_frame( id )
 
 beam_display( id )
 {
+	static Float:p1[3];
+	static Float:p2[3];
+
 	switch( g_player_beam_type[id] )
 	{
 		case BEAM_STRAIGHT:
 		{
+			p1[0] = g_beam_point[id][0][0];
+			p1[1] = g_beam_point[id][0][1];
+			p1[2] = g_beam_point[id][0][2];
+
+			p2[0] = g_beam_point[id][g_beam_count[id] - 1][0];
+			p2[1] = g_beam_point[id][g_beam_count[id] - 1][1];
+			p2[2] = g_beam_point[id][0][2];
+
 			message_te_beampoints(
 				id,
-				g_beam_point[id][0],
-				g_beam_point[id][g_beam_count[id] - 1],
+				p1,
+				p2,
 				g_beam_sprite,
 				1, // start frame
 				5, // frame rate
 				15, // life
 				20, // width
 				0, // noise
-				255, // r
-				0, // g
+				0, // r
+				255, // g
 				0, // b
 				200, // brightness
 				200  // scroll speed
@@ -286,7 +298,6 @@ beam_display( id )
 		}
 		case BEAM_UBERFLAT:
 		{
-			new Float:p1[3], Float:p2[3];
 			for( new i = 2; i < g_beam_count[id]; i += 2 )
 			{
 				p1[0] = g_beam_point[id][i - 2][0];
@@ -307,9 +318,9 @@ beam_display( id )
 					i * 100 / g_beam_count[id] / 10 + 10, // life
 					20, // width
 					0, // noise
-					g_beam_point_induck[id][i] ? 0 : 255, // r
-					g_beam_point_induck[id][i] ? 255 : 0, // g
-					g_beam_point_induck[id][i] ? 255 : 0, // b
+					g_beam_point_induck[id][i] ? 255 : 0, // r
+					g_beam_point_induck[id][i] ? 0 : 255, // g
+					g_beam_point_induck[id][i] ? 0 : 255, // b
 					200, // brightness
 					200  // scroll speed
 				);
@@ -329,9 +340,9 @@ beam_display( id )
 					i * 100 / g_beam_count[id] / 10 + 10, // life
 					20, // width
 					0, // noise
-					g_beam_point_induck[id][i] ? 0 : 255, // r
-					g_beam_point_induck[id][i] ? 255 : 0, // g
-					g_beam_point_induck[id][i] ? 255 : 0, // b
+					g_beam_point_induck[id][i] ? 255 : 0, // r
+					g_beam_point_induck[id][i] ? 0 : 255, // g
+					g_beam_point_induck[id][i] ? 0 : 255, // b
 					200, // brightness
 					200  // scroll speed
 				);
