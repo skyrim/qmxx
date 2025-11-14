@@ -1,0 +1,6 @@
+[en]
+Q_KZ_GHOST_MENU = KZ Ghost
+Q_KZ_GHOST_SELECT = Select demo
+Q_KZ_GHOST_CLEAR = Clear demo
+Q_KZ_GHOST_NO_DEMOS = Demos for this map not found
+Q_KZ_GHOST_ADD_DEMOS = Add demos to data/q/kz/demos folder

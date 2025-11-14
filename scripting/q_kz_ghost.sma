@@ -36,12 +36,14 @@ new Array:g_stopButtonEntityOrigins;
 
 public plugin_precache( )
 {
-	g_ghost_Model = precache_model( "sprites/flare1.spr" );
+	g_ghost_Model = precache_model( "models/player/gign/gign.mdl" );
 }
 
 public plugin_init( )
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
+
+	register_dictionary( "q_kz_ghost.txt" );
 	
 	q_kz_getDataDirectory( g_demoDirectory, charsmax( g_demoDirectory ) );
 	formatex( g_demoDirectory, charsmax( g_demoDirectory ), "%s/demos/", g_demoDirectory );
@@ -185,15 +187,12 @@ menu_kzghost( id )
 	
 	if ( g_player_Demo[id] != 0 )
 	{
-		new demoName[128] = "Select demo^nDemo: ";
-		ArrayGetString( g_demoFileName, g_player_DemoIndex[id], demoName[18], charsmax(demoName) - 13 );
-		q_menu_item_add( menu, demoName );
-		q_menu_item_add( menu, "Clear demo" );
+		q_menu_item_add( menu, "select", _, _, _, "menu_kzghost_formatter" );
+		q_menu_item_add( menu, "clear", _, _, _, "menu_kzghost_formatter" );
 	}
 	else
 	{
-		q_menu_item_add( menu, "Select demo^nDemo: ..." );
-		q_menu_item_add( menu, "Clear demo" );
+		q_menu_item_add( menu, "select", _, _, _, "menu_kzghost_formatter" );
 	}
 	
 	q_menu_display( id, menu );
@@ -222,6 +221,26 @@ public menu_kzghost_handler( id, menu, item )
 	return PLUGIN_CONTINUE;
 }
 
+public menu_kzghost_formatter( id, menu, item, output[64] )
+{
+	switch(item) {
+		case 0:
+		{
+			if ( g_player_Demo[id] == 0 ) {
+				formatex( output, charsmax(output), "%L", id, "Q_KZ_GHOST_SELECT" );
+			} else {
+				new demoName[128] = "Demo: ";
+				ArrayGetString( g_demoFileName, g_player_DemoIndex[id], demoName[6], charsmax(demoName) - 6 );
+				formatex( output, charsmax(output), "%s", demoName );
+			}
+		}
+		case 1: 
+		{
+			formatex( output, charsmax(output), "%L", id, "Q_KZ_GHOST_CLEAR" );
+		}
+	}
+}
+
 menu_demolist( id )
 {
 	new QMenu:menu = q_menu_create( "KZ Ghost", "menu_demolist_handler" );
@@ -229,8 +248,8 @@ menu_demolist( id )
 	new size = ArraySize( g_demoFileName );
 	if ( size == 0 )
 	{
-		q_menu_item_add( menu, "Demos for this map not found.", _, false );
-		q_menu_item_add( menu, "Add demos to data/q/kz/demos folder.", _, false );
+		q_menu_item_add( menu, "no demos", _, false, _, "menu_demolist_formatter" );
+		q_menu_item_add( menu, "add demos", _, false, _, "menu_demolist_formatter" );
 	}
 	else
 	{
@@ -241,7 +260,6 @@ menu_demolist( id )
 			q_menu_item_add( menu, demoname );
 		}
 	}
-	q_menu_item_set_name( menu, QMenuItem_Exit, "Back to KZ Ghost Menu" );
 	
 	q_menu_display( id, menu );
 }
@@ -266,6 +284,20 @@ public menu_demolist_handler( id, menu, item )
 	return PLUGIN_CONTINUE;
 }
 
+public menu_demolist_formatter( id, menu, item, output[64] )
+{
+	switch( item ) {
+		case 0:
+		{
+			formatex( output, charsmax(output), "%L", id, "Q_KZ_GHOST_NO_DEMOS" );
+		}
+		case 1:
+		{
+			formatex( output, charsmax(output), "%L", id, "Q_KZ_GHOST_ADD_DEMOS" );
+		}
+	}
+}
+
 create_ghost( )
 {
 	new entity = engfunc( EngFunc_CreateNamedEntity, engfunc( EngFunc_AllocString, "info_target" ) );
@@ -276,6 +308,9 @@ create_ghost( )
 	set_pev( entity, pev_modelindex, g_ghost_Model );
 	set_pev( entity, pev_rendermode, kRenderTransAdd );
 	set_pev( entity, pev_renderamt, 0.0 );
+	set_pev( entity, pev_sequence, 19 );
+	set_pev( entity, pev_gaitsequence, 4 );
+	set_pev( entity, pev_framerate, 1.0 );
 	
 	return entity;
 }
@@ -520,11 +555,6 @@ public forward_AddToFullPack( es, e, ent, host, hostflags, player, pset )
 			pev( host, pev_origin, hostOrigin );
 			
 			xs_vec_sub( ghostOrigin, hostOrigin, hostOrigin );
-			new Float:distance = xs_vec_len( hostOrigin );
-			if ( distance < 500.0 )
-			{
-				set_pev( ent, pev_renderamt, ( distance / 500.0 ) * 255.0 );
-			}
 		}
 	}
 	
@@ -566,10 +596,17 @@ public forward_PlayerThink( id )
 				fseek( f, 4, SEEK_CUR );
 				
 				new Float:origin[3];
+				new Float:angles[3];
 				fread_blocks( f, _:origin, 3, BLOCK_INT );
+				fread_blocks( f, _:angles, 3, BLOCK_INT );
+				origin[2] -= 18.0;
 				set_pev( ghost, pev_origin, origin );
+				angles[0] = 0.0;
+				angles[2] = 0.0;
+				set_pev( ghost, pev_angles, angles );
+				set_pev( ghost, pev_animtime, currentTime );
 				
-				fseek( f, 448, SEEK_CUR );
+				fseek( f, 436, SEEK_CUR );
 				
 				new length;
 				fread( f, length, BLOCK_INT );
