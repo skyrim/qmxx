@@ -89,7 +89,7 @@ public plugin_init( )
 		{
 			fgets( fr, buffer, charsmax(buffer) );
 			
-			if( equal( currmap, buffer, currmap_len ) )
+			if( equali( currmap, buffer, currmap_len ) )
 			{
 				parse( buffer, map, charsmax(map), time, charsmax(time), player, charsmax(player) );
 				
