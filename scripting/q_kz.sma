@@ -12,7 +12,7 @@
 #pragma semicolon 1
 
 #define PLUGIN  "Q::KZ"
-#define VERSION "1.4b"
+#define VERSION "1.5"
 #define AUTHOR  "Quaker"
 
 #define SET_BITVECTOR(%1,%2) (%1[%2>>5] |=  (1<<(%2 & 31)))
@@ -101,6 +101,7 @@
 #define STR_STOP "QKZ_STOP"
 #define STR_TIMERSAVED "QKZ_TIMERSAVED"
 #define STR_NOSAVEDTIMER "QKZ_NOSAVEDTIMER"
+#define STR_MEASUREMENU "QKZ_MEASUREMENU"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Global Variables
@@ -129,6 +130,7 @@ new cvar_HPBug;
 new cvar_SpawnWithMenu;
 new cvar_VipFlags;
 new cvar_Rewards;
+new cvar_Measure;
 new g_cvar_command_save;
 
 new g_dir_data[128];
@@ -152,6 +154,9 @@ new g_map_ent_EndButton[MAX_ENTS_BITVECTOR];
 new QMenu:g_menu_welcome;
 new QMenu:g_menu_chooseteam;
 new QMenu:g_menu_kreedz;
+new QMenu:g_menu_measure;
+new QMenu:g_menu_measure_normal;
+new QMenu:g_menu_measure_twopoint;
 
 new g_start_bDefault;
 new Float:g_start_vDefault[3];
@@ -219,7 +224,6 @@ new g_msg_TeamInfo;
 new g_msg_AmmoPickup;
 new g_msg_WeapPickup;
 new g_msg_HideWeapon;
-new g_msg_ScreenFade;
 new g_msg_RoundTime;
 new g_msg_StatusIcon;
 new g_msg_Crosshair;
@@ -328,20 +332,20 @@ new const g_sz_WeaponName[][] = {
 };
 
 enum {
-	OFFSET_AMMO_AWP = 377,		// AWP
-	OFFSET_AMMO_SCOUT,		// AK47, G3SG1
-	OFFSET_AMMO_M249,		// M249
-	OFFSET_AMMO_M4A1,		// FAMAS, AUG, SG550, GALIL, SG552
-	OFFSET_AMMO_M3,			// XM1014
-	OFFSET_AMMO_USP,		// UMP45, MAC10
-	OFFSET_AMMO_FIVESEVEN,		// P90
-	OFFSET_AMMO_DEAGLE,		// DEAGLE
-	OFFSET_AMMO_P228,		// P228
-	OFFSET_AMMO_GLOCK18,		// MP5NAVY, TMP, ELITE
-	OFFSET_AMMO_FLASHBANG,		// FLASH
-	OFFSET_AMMO_HEGRENADE,		// HE
-	OFFSET_AMMO_SMOKEGRENADE,	// SMOKE
-	OFFSET_AMMO_C4			// C4
+	OFFSET_AMMO_AWP = 377,    // AWP
+	OFFSET_AMMO_SCOUT,        // AK47, G3SG1
+	OFFSET_AMMO_M249,         // M249
+	OFFSET_AMMO_M4A1,         // FAMAS, AUG, SG550, GALIL, SG552
+	OFFSET_AMMO_M3,           // XM1014
+	OFFSET_AMMO_USP,          // UMP45, MAC10
+	OFFSET_AMMO_FIVESEVEN,    // P90
+	OFFSET_AMMO_DEAGLE,       // DEAGLE
+	OFFSET_AMMO_P228,         // P228
+	OFFSET_AMMO_GLOCK18,      // MP5NAVY, TMP, ELITE
+	OFFSET_AMMO_FLASHBANG,    // FLASH
+	OFFSET_AMMO_HEGRENADE,    // HE
+	OFFSET_AMMO_SMOKEGRENADE, // SMOKE
+	OFFSET_AMMO_C4            // C4
 };
 
 new const g_weapon_AmmoOffset[] = {
@@ -379,75 +383,75 @@ new const g_weapon_AmmoOffset[] = {
 };
 
 new const g_weapon_Ammo[] = {
-	0,	// CSW_NONE
-	13,	// CSW_P228
-	0,	// CSW_SHIELD
-	10, 	// CSW_SCOUT
-	0, 	// CSW_HEGRENADE
-	7, 	// CSW_XM1014
-	0,  	// CSW_C4
-	30,	// CSW_MAC10
-	30,	// CSW_AUG
-	0, 	// CSW_SMOKEGRENADE
-	15,	// CSW_ELITE
-	20,	// CSW_FIVESEVEN
-	25,	// CSW_UMP45
-	30,	// CSW_SG550
-	35, 	// CSW_GALIL
-	25, 	// CSW_FAMAS
-	12,	// CSW_USP
-	20,	// CSW_GLOCK18
-	10,	// CSW_AWP
-	30,	// CSW_MP5NAVY
-	100,	// CSW_M249
-	8, 	// CSW_M3
-	30,	// CSW_M4A1
-	30,	// CSW_TMP
-	20, 	// CSW_G3SG1
-	0,  	// CSW_FLASHBANG
-	7, 	// CSW_DEAGLE
-	30,	// CSW_SG552
-	30, 	// CSW_AK47
-	0, 	// CSW_KNIFE
-	50,	// CSW_P90
-	0,	// CSW_VEST
-	0	// CSW_VESTHELM
+	0,   // CSW_NONE
+	13,  // CSW_P228
+	0,   // CSW_SHIELD
+	10,  // CSW_SCOUT
+	0,   // CSW_HEGRENADE
+	7,   // CSW_XM1014
+	0,   // CSW_C4
+	30,  // CSW_MAC10
+	30,  // CSW_AUG
+	0,   // CSW_SMOKEGRENADE
+	15,  // CSW_ELITE
+	20,  // CSW_FIVESEVEN
+	25,  // CSW_UMP45
+	30,  // CSW_SG550
+	35,  // CSW_GALIL
+	25,  // CSW_FAMAS
+	12,  // CSW_USP
+	20,  // CSW_GLOCK18
+	10,  // CSW_AWP
+	30,  // CSW_MP5NAVY
+	100, // CSW_M249
+	8,   // CSW_M3
+	30,  // CSW_M4A1
+	30,  // CSW_TMP
+	20,  // CSW_G3SG1
+	0, 	 // CSW_FLASHBANG
+	7,   // CSW_DEAGLE
+	30,  // CSW_SG552
+	30,  // CSW_AK47
+	0,   // CSW_KNIFE
+	50,  // CSW_P90
+	0,   // CSW_VEST
+	0	 // CSW_VESTHELM
 };
 
 new const g_int_WeaponBPAmmo[] = {
-	0,	// CSW_NONE
-	52,	// CSW_P228
-	0,	// CSW_SHIELD
-	90,	// CSW_SCOUT
-	0,	// CSW_HE
-	32,	// CSW_XM1014
-	0,	// CSW_C4
-	100,	// CSW_MAX10
-	90,	// CSW_AUG
-	0,	// CSW_SMOKE
-	120,	// CSW_ELITE
-	100,	// CSW_FIVESEVEN
-	100,	// CSW_UMP45
-	90,	// CSW_SG550
-	90,	// CSW_GALIL
-	90,	// CSW_FAMAS
-	100,	// CSW_USP
-	120,	// CSW_GLOCK
-	30,	// CSW_AWP
-	120,	// CSW_MP5
-	200,	// CSW_M249
-	32,	// CSW_M3
-	90,	// CSW_M4
-	120,	// CSW_TMP
-	90,	// CSW_G3SG1
-	0,	// CSW_FLASH
-	35,	// CSW_DEAGLE
-	90,	// CSW_SG552
-	90,	// CSW_AK47
-	0,	// CSW_KNIFE
-	100,	// CSW_P90
-	0,	// CSW_VEST
-	0	// CSW_VESTHELM
+	0,   // CSW_NONE
+	52,  // CSW_P228
+	0,   // CSW_SHIELD
+	90,  // CSW_SCOUT
+	0,   // CSW_HE
+	32,  // CSW_XM1014
+	0,   // CSW_C4
+	100, // CSW_MAC10
+	90,  // CSW_AUG
+	0,   // CSW_SMOKE
+	120, // CSW_ELITE
+	100, // CSW_FIVESEVEN
+	100, // CSW_UMP45
+	90,  // CSW_SG550
+	90,  // CSW_GALIL
+	90,  // CSW_FAMAS
+	100, // CSW_USP
+	120, // CSW_GLOCK
+	30,  // CSW_AWP
+	120, // CSW_MP5
+	200, // CSW_M249
+	32,  // CSW_M3
+	90,  // CSW_M4
+	120, // CSW_TMP
+	90,  // CSW_G3SG1
+	0,   // CSW_FLASH
+	35,  // CSW_DEAGLE
+	90,  // CSW_SG552
+	90,  // CSW_AK47
+	0,   // CSW_KNIFE
+	100, // CSW_P90
+	0,   // CSW_VEST
+	0	 // CSW_VESTHELM
 };
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -459,31 +463,31 @@ public plugin_natives() {
 	set_module_filter("module_filter");
 	
 	register_library("q_kz");
-	register_native("q_kz_getVersion",			"_q_kz_getVersion");
-	register_native("q_kz_getDataDirectory",		"_q_kz_getDataDirectory");
-	register_native("q_kz_getConfigDirectory",		"_q_kz_getConfigDirectory");
-	register_native("q_kz_getPrefix",			"_q_kz_getPrefix");
-	register_native("q_kz_registerReward",			"_q_kz_registerReward");
-	register_native("q_kz_print",				"_q_kz_print");
-	register_native("q_kz_saytext",				"_q_kz_saytext");
-	register_native("q_kz_getHudColor",			"_q_kz_getHudColor");
-	register_native("q_kz_player_getCheckpoints",		"_q_kz_player_getCheckpoints");
-	register_native("q_kz_player_getTeleports",		"_q_kz_player_getTeleports");
-	register_native("q_kz_player_isVip",			"_q_kz_player_isVip");
-	register_native("q_kz_player_isTimerStarted",		"_q_kz_player_isTimerStarted");
-	register_native("q_kz_player_stopTimer",		"_q_kz_player_stopTimer");
-	register_native("q_kz_player_getTimer",			"_q_kz_player_getTimer");
-	register_native("q_kz_isStartOriginFound",		"_q_kz_isStartOriginFound");
-	register_native("q_kz_getStartOrigin",			"_q_kz_getStartOrigin");
-	register_native("q_kz_isStopOriginFound",		"_q_kz_isStopOriginFound");
-	register_native("q_kz_getStopOrigin",			"_q_kz_getStopOrigin");
-	register_native("q_kz_getStartButtonEntities",		"_q_kz_getStartButtonEntities");
-	register_native("q_kz_getStopButtonEntities",		"_q_kz_getStopButtonEntities");
-	register_native("q_kz_registerForward",			"_q_kz_registerForward");
+	register_native("q_kz_getVersion",             "_q_kz_getVersion");
+	register_native("q_kz_getDataDirectory",       "_q_kz_getDataDirectory");
+	register_native("q_kz_getConfigDirectory",     "_q_kz_getConfigDirectory");
+	register_native("q_kz_getPrefix",              "_q_kz_getPrefix");
+	register_native("q_kz_registerReward",         "_q_kz_registerReward");
+	register_native("q_kz_print",                  "_q_kz_print");
+	register_native("q_kz_saytext",                "_q_kz_saytext");
+	register_native("q_kz_getHudColor",            "_q_kz_getHudColor");
+	register_native("q_kz_player_getCheckpoints",  "_q_kz_player_getCheckpoints");
+	register_native("q_kz_player_getTeleports",    "_q_kz_player_getTeleports");
+	register_native("q_kz_player_isVip",           "_q_kz_player_isVip");
+	register_native("q_kz_player_isTimerStarted",  "_q_kz_player_isTimerStarted");
+	register_native("q_kz_player_stopTimer",       "_q_kz_player_stopTimer");
+	register_native("q_kz_player_getTimer",        "_q_kz_player_getTimer");
+	register_native("q_kz_isStartOriginFound",     "_q_kz_isStartOriginFound");
+	register_native("q_kz_getStartOrigin",         "_q_kz_getStartOrigin");
+	register_native("q_kz_isStopOriginFound",      "_q_kz_isStopOriginFound");
+	register_native("q_kz_getStopOrigin",          "_q_kz_getStopOrigin");
+	register_native("q_kz_getStartButtonEntities", "_q_kz_getStartButtonEntities");
+	register_native("q_kz_getStopButtonEntities",  "_q_kz_getStopButtonEntities");
+	register_native("q_kz_registerForward",        "_q_kz_registerForward");
 }
 
 public module_filter(module[]) {
-	if(equal(module, "q_cookies")) {
+	if (equal(module, "q_cookies")) {
 		g_cookies_failed = true;
 		
 		return PLUGIN_HANDLED;
@@ -493,7 +497,7 @@ public module_filter(module[]) {
 }
 
 public native_filter(name[], index, trap) {
-	if(!trap) {
+	if (!trap) {
 		return PLUGIN_HANDLED;
 	}
 	
@@ -506,7 +510,7 @@ public plugin_precache() {
 	
 	q_getDataDirectory(g_dir_data, charsmax(g_dir_data));
 	add(g_dir_data, charsmax(g_dir_data), "/kz");
-	if(!dir_exists(g_dir_data)) {
+	if (!dir_exists(g_dir_data)) {
 		mkdir(g_dir_data);
 	}
 	
@@ -526,28 +530,29 @@ public plugin_init() {
 	
 	get_cvar_string("hostname", g_server_Name, charsmax(g_server_Name));
 	
-	cvar_Checkpoints	= register_cvar("q_kz_checkpoints", "1");
-	cvar_CheckpointAngles	= register_cvar("q_kz_checkpointangles", "1");
-	cvar_TeleportSplash	= register_cvar("q_kz_teleport_splash", "0");
-	cvar_Prefix		= register_cvar("q_kz_prefix", "QKZ");
-	cvar_Pause 		= register_cvar("q_kz_pause", "1");
-	cvar_GodMode 		= register_cvar("q_kz_godmode", "1");
-	cvar_Noclip 		= register_cvar("q_kz_noclip", "1");
-	cvar_Semiclip		= register_cvar("q_kz_semiclip", "1");
-	cvar_SemiclipAlpha	= register_cvar("q_kz_semiclip_alpha", "80");
-	cvar_Weapons		= register_cvar("q_kz_weapons", "1");
-	cvar_WeaponsAmmo	= register_cvar("q_kz_weapons_ammo", "2");
-	cvar_WeaponsSpeed	= register_cvar("q_kz_weapons_speed", "1");
-	cvar_Respawn		= register_cvar("q_kz_respawn", "1");
-	cvar_RespawnTime	= register_cvar("q_kz_respawn_time", "3.0");
-	cvar_HPBug		= register_cvar("q_kz_hpbug", "0");
-	cvar_PrintType		= register_cvar("q_kz_print_type", "0");
-	cvar_PrintColor		= register_cvar("q_kz_print_color", "0 100 255");
-	cvar_PrintPos		= register_cvar("q_kz_print_pos", "-1.0 0.9");
-	cvar_SpawnWithMenu	= register_cvar("q_kz_spawnwithmenu", "1");
-	cvar_VipFlags		= register_cvar("q_kz_vipflags", "a");
-	cvar_Rewards		= register_cvar("q_kz_rewards", "0");
-	g_cvar_command_save	= register_cvar("q_kz_command_save", "1");
+	cvar_Checkpoints      = register_cvar("q_kz_checkpoints", "1");
+	cvar_CheckpointAngles = register_cvar("q_kz_checkpointangles", "1");
+	cvar_TeleportSplash   = register_cvar("q_kz_teleport_splash", "0");
+	cvar_Prefix           = register_cvar("q_kz_prefix", "QKZ");
+	cvar_Pause            = register_cvar("q_kz_pause", "1");
+	cvar_GodMode          = register_cvar("q_kz_godmode", "1");
+	cvar_Noclip           = register_cvar("q_kz_noclip", "1");
+	cvar_Semiclip         = register_cvar("q_kz_semiclip", "1");
+	cvar_SemiclipAlpha    = register_cvar("q_kz_semiclip_alpha", "80");
+	cvar_Weapons          = register_cvar("q_kz_weapons", "1");
+	cvar_WeaponsAmmo      = register_cvar("q_kz_weapons_ammo", "2");
+	cvar_WeaponsSpeed     = register_cvar("q_kz_weapons_speed", "1");
+	cvar_Respawn          = register_cvar("q_kz_respawn", "1");
+	cvar_RespawnTime      = register_cvar("q_kz_respawn_time", "3.0");
+	cvar_HPBug            = register_cvar("q_kz_hpbug", "0");
+	cvar_PrintType        = register_cvar("q_kz_print_type", "0");
+	cvar_PrintColor       = register_cvar("q_kz_print_color", "0 100 255");
+	cvar_PrintPos         = register_cvar("q_kz_print_pos", "-1.0 0.9");
+	cvar_SpawnWithMenu    = register_cvar("q_kz_spawnwithmenu", "1");
+	cvar_VipFlags         = register_cvar("q_kz_vipflags", "a");
+	cvar_Rewards          = register_cvar("q_kz_rewards", "0");
+	cvar_Measure          = register_cvar("q_kz_measure", "1");
+	g_cvar_command_save   = register_cvar("q_kz_command_save", "1");
 	
 	g_menu_welcome = q_menu_create("Welcome", "mh_welcome");
 	q_menu_item_add(g_menu_welcome, "", _, _, _, "mf_welcome");
@@ -603,6 +608,7 @@ public plugin_init() {
 	q_registerClcmd("q_kz_maxspeed", "clcmd_MaxSpeed", _, "Toggle weapon speed notification.");
 	q_registerClcmd("q_kz_godmode", "clcmd_GodMode", _, "Toggle player god mode.");
 	q_registerClcmd("q_kz_noclip", "clcmd_Noclip", _, "Toggle player noclip mode.");
+	q_registerClcmd("q_kz_measure", "clcmd_Measure", _, "Measure distance between two points.");
 	
 	register_clcmd("say /clear_start", "clcmd_ClearStart", ADMIN_ADMIN);
 	register_clcmd("chooseteam", "clcmd_Chooseteam");
@@ -642,7 +648,6 @@ public plugin_init() {
 	g_msg_AmmoPickup = get_user_msgid("AmmoPickup");
 	g_msg_WeapPickup = get_user_msgid("WeapPickup");
 	g_msg_HideWeapon = get_user_msgid("HideWeapon");
-	g_msg_ScreenFade = get_user_msgid("ScreenFade");
 	g_msg_RoundTime = get_user_msgid("RoundTime");
 	g_msg_StatusIcon = get_user_msgid("StatusIcon");
 	g_msg_Crosshair = get_user_msgid("Crosshair");
@@ -685,7 +690,7 @@ public plugin_init() {
 public plugin_cfg() {
 	get_localinfo("amxx_configsdir", g_dir_config, charsmax(g_dir_config));
 	formatex(g_file_config, charsmax(g_file_config), "%s/amxx_q_kz.cfg", g_dir_config);
-	if(file_exists(g_file_config)) {
+	if (file_exists(g_file_config)) {
 		server_cmd("exec %s", g_file_config);
 	}
 	
@@ -723,6 +728,7 @@ public plugin_cfg() {
 	q_registerCvar(cvar_SpawnWithMenu, "1", "Toggle if menu should appear when player spawns.");
 	q_registerCvar(cvar_VipFlags, "a", "Set flag that will treat players as VIP.");
 	q_registerCvar(cvar_Rewards, "0", "Toggle rewards for finishing the map. (There are no plugins that use this. (Yet.))");
+	q_registerCvar(cvar_Measure, "1", "Toggle /measure command.");
 	q_registerCvar(g_cvar_command_save, "1", "Toggle /save command.");
 }
 
@@ -767,15 +773,15 @@ public client_putinserver(id) {
 	g_player_run_Paused[id]		= false;
 	g_player_run_WeaponID[id]	= 0;
 	
-	if(!g_cookies_failed && !is_user_bot(id)) {
-		if(!q_get_cookie_num(id, "save_cp_angles", g_player_setting_CPangles[id])) {
+	if (!g_cookies_failed && !is_user_bot(id)) {
+		if (!q_get_cookie_num(id, "save_cp_angles", g_player_setting_CPangles[id])) {
 			g_player_setting_CPangles[id] = get_pcvar_num(cvar_CheckpointAngles);
 		}
 	}
 	
 	new vipflags[28];
 	get_pcvar_string(cvar_VipFlags, vipflags, charsmax(vipflags));
-	if(get_user_flags(id) & read_flags(vipflags)) {
+	if (get_user_flags(id) & read_flags(vipflags)) {
 		g_player_VIP[id] = true;
 	}
 	
@@ -787,7 +793,7 @@ public client_infochanged(id) {
 	
 	new vipflags[28];
 	get_pcvar_string(cvar_VipFlags, vipflags, charsmax(vipflags));
-	if(get_user_flags(id) & read_flags(vipflags)) {
+	if (get_user_flags(id) & read_flags(vipflags)) {
 		g_player_VIP[id] = true;
 	}
 	else {
@@ -812,7 +818,7 @@ public client_disconnect(id) {
 	g_player_run_Paused[id] = false;
 	g_player_run_WeaponID[id] = 0;
 	
-	if(!g_cookies_failed && !is_user_bot(id)) {
+	if (!g_cookies_failed && !is_user_bot(id)) {
 		q_set_cookie_num(id, "save_cp_angles", g_player_setting_CPangles[id]);
 	}
 	
@@ -830,7 +836,7 @@ public fwd_GetGameDescription() {
 }
 
 public fwd_AddToFullPack(es_handle, e, ent, host, hostflags, player, pset) {
-	if(player && get_pcvar_num(cvar_Semiclip)) {
+	if (player && get_pcvar_num(cvar_Semiclip)) {
 		set_es(es_handle, ES_Solid, SOLID_NOT);
 		set_es(es_handle, ES_RenderMode, kRenderTransAlpha);
 		set_es(es_handle, ES_RenderAmt, get_pcvar_num(cvar_SemiclipAlpha));
@@ -838,9 +844,9 @@ public fwd_AddToFullPack(es_handle, e, ent, host, hostflags, player, pset) {
 }
 
 public fwd_PlayerPreThink(id) {
-	if(get_pcvar_num(cvar_Semiclip) && g_player_Alive[id]) {
-		for(new i = 1, playerCount = get_maxplayers(); i <= playerCount; i++) {
-			if(g_player_Alive[i] && (id != i)) {
+	if (get_pcvar_num(cvar_Semiclip) && g_player_Alive[id]) {
+		for (new i = 1, playerCount = get_maxplayers(); i <= playerCount; i++) {
+			if (g_player_Alive[i] && (id != i)) {
 				set_pev(i, pev_solid, SOLID_NOT);
 			}
 		}
@@ -850,9 +856,9 @@ public fwd_PlayerPreThink(id) {
 }
 
 public fwd_PlayerPostThink(id) {	
-	if(get_pcvar_num(cvar_Semiclip) && g_player_Alive[id]) {
-		for(new i = 1, playerCount = get_maxplayers(); i <= playerCount; i++) {
-			if(g_player_Alive[i] && (id != i)) {
+	if (get_pcvar_num(cvar_Semiclip) && g_player_Alive[id]) {
+		for (new i = 1, playerCount = get_maxplayers(); i <= playerCount; i++) {
+			if (g_player_Alive[i] && (id != i)) {
 				set_pev(i, pev_solid, SOLID_SLIDEBOX);
 			}
 		}
@@ -862,10 +868,10 @@ public fwd_PlayerPostThink(id) {
 }
 
 public fwd_Spawn_player(id) {
-	if(is_user_alive(id)) {
+	if (is_user_alive(id)) {
 		g_player_Alive[id] = true;
 		
-		if(g_map_HealerExists) {
+		if (g_map_HealerExists) {
 			set_pev(id, pev_health, 50175.0);
 		}
 		
@@ -884,13 +890,13 @@ public fwd_Spawn_player(id) {
 }
 
 public fwd_Touch_weaponbox(wpnbox, other) {
-	if(!other || (other > 32)) {
+	if (!other || (other > 32)) {
 		set_pev(wpnbox, pev_nextthink, get_gametime() + 1.337);
 	}
 }
 
 public fwd_Touch_hurt(hurt, player) {
-	if((player > 0) && (player < 32) && !g_player_Alive[player]) {
+	if ((player > 0) && (player < 32) && !g_player_Alive[player]) {
 		return HAM_SUPERCEDE;
 	}
 	
@@ -909,7 +915,7 @@ public fwd_Killed(id, attacker, shouldgib) {
 	set_pev(id, pev_frame, 0.0);
 	
 	/* RESPAWN */
-	if(get_pcvar_num(cvar_Respawn)) {
+	if (get_pcvar_num(cvar_Respawn)) {
 		new Float:rtime = get_pcvar_float(cvar_RespawnTime);
 		floatclamp(rtime, 1.0, 10000.0);
 		set_task(rtime, "task_Respawn", id + TASKID_RESPAWN);
@@ -922,12 +928,12 @@ public fwd_Killed(id, attacker, shouldgib) {
 }
 
 public fwd_Use_button(ent, id) {
-	if(!(1 <= id <= 32)) {
+	if (!(1 <= id <= 32)) {
 		return HAM_IGNORED;
 	}
 	
-	if(GET_BITVECTOR(g_map_ent_StartButton, ent)) {
-		if(!g_start_bDefault) {
+	if (GET_BITVECTOR(g_map_ent_StartButton, ent)) {
+		if (!g_start_bDefault) {
 			g_start_bDefault = true;
 			pev(id, pev_origin, g_start_vDefault);
 			save_ButtonPositions();
@@ -936,14 +942,14 @@ public fwd_Use_button(ent, id) {
 		g_start_bCurrent[id] = true;
 		pev(id, pev_origin, g_start_vCurrent[id]);
 	
-		if(g_player_run_Running[id]) {
+		if (g_player_run_Running[id]) {
 			run_reset(id);
 		}
 	
 		event_RunStart(id);
 	}
-	else if(GET_BITVECTOR(g_map_ent_EndButton, ent)) {
-		if(!g_end_bDefault) {
+	else if (GET_BITVECTOR(g_map_ent_EndButton, ent)) {
+		if (!g_end_bDefault) {
 			g_end_bDefault = true;
 			pev(id, pev_origin, g_end_vDefault);
 			save_ButtonPositions();
@@ -956,7 +962,7 @@ public fwd_Use_button(ent, id) {
 }
 
 public fwd_KeyValue(ent, kvd_handle) {
-	if(pev_valid(ent)) {
+	if (pev_valid(ent)) {
 		static szClassName[32];
 		static szKey[8];
 		static szVal[20];
@@ -971,8 +977,8 @@ public fwd_KeyValue(ent, kvd_handle) {
 		static y[6];
 		static z[6];
 		
-		if(equal(szClassName, "info_player_start")) {
-			if(equal(szKey, "origin")) {
+		if (equal(szClassName, "info_player_start")) {
+			if (equal(szKey, "origin")) {
 				parse(szVal, x, 5, y, 5, z, 5);
 				vecOrigin[0] = str_to_float(x);
 				vecOrigin[1] = str_to_float(y);
@@ -984,8 +990,8 @@ public fwd_KeyValue(ent, kvd_handle) {
 				vecAngle[1] = str_to_float(y);
 				vecAngle[2] = str_to_float(z);
 				
-				if(g_map_SpawnsNeeded > 0) {
-					for(new i = 0; i < g_map_SpawnsNeeded; ++i) {
+				if (g_map_SpawnsNeeded > 0) {
+					for (new i = 0; i < g_map_SpawnsNeeded; ++i) {
 						new spawn = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_player_start"));
 						set_pev(spawn, pev_origin, vecOrigin);
 						set_pev(spawn, pev_angles, vecAngle);
@@ -1003,7 +1009,7 @@ public fwd_KeyValue(ent, kvd_handle) {
 }
 
 public fwd_EmitSound(id, channel, szSound[]) {	
-	if(equal(szSound, "items/gunpickup" , 15)) {
+	if (equal(szSound, "items/gunpickup" , 15)) {
 		return FMRES_SUPERCEDE;
 	}
 	
@@ -1017,29 +1023,29 @@ public fwd_ClientKill(id) {
 }
 
 public forward_KZTimerStart(id) {
-	if(q_menu_current(id) == g_menu_kreedz) {
+	if (q_menu_current(id) == g_menu_kreedz) {
 		m_kreedz(id);
 	}
 }
 
 public forward_KZTimerStop(id, successful) {
-	if(successful && get_pcvar_num(cvar_Rewards)) {
+	if (successful && get_pcvar_num(cvar_Rewards)) {
 		menu_KZRewards(id);
 	}
 	
-	if(q_menu_current(id) == g_menu_kreedz) {
+	if (q_menu_current(id) == g_menu_kreedz) {
 		m_kreedz(id);
 	}
 }
 
 public forward_KZOnCheckpoint(id) {
-	if(q_menu_current(id) == g_menu_kreedz) {
+	if (q_menu_current(id) == g_menu_kreedz) {
 		m_kreedz(id);
 	}
 }
 
 public forward_KZOnTeleport(id) {
-	if(q_menu_current(id) == g_menu_kreedz) {
+	if (q_menu_current(id) == g_menu_kreedz) {
 		m_kreedz(id);
 	}
 }
@@ -1049,10 +1055,10 @@ public forward_KZOnTeleport(id) {
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 public event_RunStart(id) {
-	for(new i = 0, size = ArraySize(forward_TimerStart_pre); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_TimerStart_pre); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_TimerStart_pre, i), ret, id);
-		if(ret == PLUGIN_HANDLED) {
+		if (ret == PLUGIN_HANDLED) {
 			return;
 		}
 	}
@@ -1063,7 +1069,7 @@ public event_RunStart(id) {
 	g_player_TPcounter[id] = 0;
 	
 	g_player_run_WeaponID[id] = get_user_weapon(id);
-	if(g_player_run_WeaponID[id] == CSW_KNIFE) {
+	if (g_player_run_WeaponID[id] == CSW_KNIFE) {
 		g_player_run_WeaponID[id] = CSW_USP;
 	}
 	
@@ -1084,17 +1090,17 @@ public event_RunStart(id) {
 	
 	set_pev(id, pev_gravity, 1.0);
 	
-	if(g_player_God[id]) {
+	if (g_player_God[id]) {
 		g_player_God[id] = false;
 		set_pev(id, pev_takedamage, DAMAGE_AIM);
 	}
 	
-	if(g_player_Noclip[id]) {
+	if (g_player_Noclip[id]) {
 		g_player_Noclip[id] = false;
 		set_pev(id, pev_movetype, MOVETYPE_WALK);
 	}
 	
-	if(!g_map_HealerExists) {
+	if (!g_map_HealerExists) {
 		set_pev(id, pev_health, 100.0);
 	}
 	else {
@@ -1109,20 +1115,20 @@ public event_RunStart(id) {
 	
 	q_kz_print(id, "%L", id, STR_RUNSTARTED);
 	
-	for(new i = 0, size = ArraySize(forward_TimerStart_post); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_TimerStart_post); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_TimerStart_post, i), ret, id);
 	}
 }
 
 public event_RunEnd(id) {
-	if(!g_player_run_Running[id]) {
+	if (!g_player_run_Running[id]) {
 		q_kz_print(id, "%L", id, STR_NOTINRUN);
 		
 		return;
 	}
 	
-	for(new i = 0, size = ArraySize(forward_TimerStop_pre); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_TimerStop_pre); i < size; ++i) {
 		new ret;
 		new callback = ArrayGetCell(forward_TimerStop_pre, i);
 		ExecuteForward(callback, ret, id, true);
@@ -1147,7 +1153,7 @@ public event_RunEnd(id) {
 		
 	client_cmd(id, "spk buttons/bell1");
 	
-	for(new i = 0, size = ArraySize(forward_TimerStop_post); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_TimerStop_post); i < size; ++i) {
 		new ret;
 		new callback = ArrayGetCell(forward_TimerStop_post, i);
 		ExecuteForward(callback, ret, id, true);
@@ -1160,17 +1166,17 @@ public event_CurWeapon(id) {
 	static Float:speed;
 	static iLastWeapon, iCurWeapon;
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		return;
 	}
 	
 	iCurWeapon = read_data(2);
 	
-	if(g_player_run_Running[id] && g_player_run_WeaponID[id] == iCurWeapon) {
+	if (g_player_run_Running[id] && g_player_run_WeaponID[id] == iCurWeapon) {
 		g_player_ClipAmmo[id] = read_data(3);
 	}
 	
-	if(get_pcvar_num(cvar_WeaponsSpeed) && g_player_MaxSpeed[id] && (iCurWeapon != iLastWeapon)) {
+	if (get_pcvar_num(cvar_WeaponsSpeed) && g_player_MaxSpeed[id] && (iCurWeapon != iLastWeapon)) {
 		iLastWeapon = iCurWeapon;
 		
 		pev(id, pev_maxspeed, speed);
@@ -1178,7 +1184,7 @@ public event_CurWeapon(id) {
 		q_kz_print(id, "%L: %d", id, STR_WEAPONSPEED, floatround(speed));
 	}
 	
-	if(g_player_run_Running[id]
+	if (g_player_run_Running[id]
 	&& iCurWeapon != g_player_run_WeaponID[id]
 	&& !((iCurWeapon == CSW_USP && g_player_run_WeaponID[id] == CSW_KNIFE) || (iCurWeapon == CSW_KNIFE && g_player_run_WeaponID[id] == CSW_USP))) {
 		q_kz_player_stopTimer(id, ""); // FIX!
@@ -1190,13 +1196,13 @@ public event_CurWeapon(id) {
 
 public event_AmmoX(id) {
 	// hax
-	if(g_player_Alive[id] && g_player_run_Running[id] && !g_player_stripping[id] && (g_weapon_AmmoOffset[g_player_run_WeaponID[id]] == (read_data(1) + 376))) {
+	if (g_player_Alive[id] && g_player_run_Running[id] && !g_player_stripping[id] && (g_weapon_AmmoOffset[g_player_run_WeaponID[id]] == (read_data(1) + 376))) {
 		g_player_BackAmmo[id] = read_data(2);
 	}
 }
 
 public event_ResetHUD(id) {
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		message_HideWeapon(id, HIDEW_MONEY);
 	}
 	else {
@@ -1213,7 +1219,7 @@ public event_SpecHealth2(id) {
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 public message_hook_HideWeapon(msg_id, msg_dest, msg_ent) {	
-	if(g_player_run_Running[msg_ent]) {
+	if (g_player_run_Running[msg_ent]) {
 		set_msg_arg_int(1, ARG_BYTE, get_msg_arg_int(1) | (1<<5));
 	}
 	else {
@@ -1227,7 +1233,7 @@ public message_hook_StatusIcon(msg_id, msg_dest, msg_ent) {
 	static sz_msg[8];
 	get_msg_arg_string(2, sz_msg, charsmax(sz_msg));
 	
-	if(equal(sz_msg, "buyzone")) {
+	if (equal(sz_msg, "buyzone")) {
 		set_pdata_int(msg_ent, OFFSET_BUYZONE, get_pdata_int(msg_ent, OFFSET_BUYZONE) & ~(1<<0));
 		return PLUGIN_HANDLED;
 	}
@@ -1238,7 +1244,7 @@ public message_hook_StatusIcon(msg_id, msg_dest, msg_ent) {
 public message_hook_ScoreAttrib(msg_id, msg_dest, msg_ent) {
 	new iPlayer = get_msg_arg_int(1);
 	
-	if(g_player_Connected[iPlayer] && g_player_VIP[iPlayer]) {
+	if (g_player_Connected[iPlayer] && g_player_VIP[iPlayer]) {
 		set_msg_arg_int(2, ARG_BYTE, SCOREATTRIB_VIP);
 	}
 	
@@ -1248,10 +1254,10 @@ public message_hook_ScoreAttrib(msg_id, msg_dest, msg_ent) {
 public message_hook_Health(msg_id, msg_dest, msg_ent) {
 	new iHealth;
 	
-	if(get_pcvar_num(cvar_HPBug)) {
+	if (get_pcvar_num(cvar_HPBug)) {
 		iHealth = get_msg_arg_int(1);
 		
-		if(iHealth > 255 && ((iHealth % 256) == 0)) {
+		if (iHealth > 255 && ((iHealth % 256) == 0)) {
 			set_msg_arg_int(1, ARG_BYTE, iHealth + 1);
 		}
 	}
@@ -1260,7 +1266,7 @@ public message_hook_Health(msg_id, msg_dest, msg_ent) {
 }
 
 public message_hook_VGUIMenu(id, dest, ent) {
-	if(get_msg_arg_int(1) == 2) {
+	if (get_msg_arg_int(1) == 2) {
 		set_task(0.1, "task_Jointeam", ent + TASKID_JOINTEAM);
 	}
 	else {
@@ -1275,10 +1281,10 @@ public message_hook_ShowMenu(msg_id, msg_dest, msg_ent) {
 	
 	get_msg_arg_string(4, menu_text_code, charsmax(menu_text_code));
 	
-	if(equal(menu_text_code, "#Team_Select")) {
+	if (equal(menu_text_code, "#Team_Select")) {
 		set_task(0.1, "task_Jointeam", msg_ent + TASKID_JOINTEAM);
 	}
-	else if(equal(menu_text_code, "#CT_Select") || equal(menu_text_code, "#Terrorist_Select")) {
+	else if (equal(menu_text_code, "#CT_Select") || equal(menu_text_code, "#Terrorist_Select")) {
 		set_task(0.1, "task_Joinclass", msg_ent + TASKID_JOINCLASS);
 	}
 	else {
@@ -1314,11 +1320,11 @@ public task_Respawn(id) {
 public task_RoundTime(id) {
 	id -= TASKID_ROUNDTIME;
 	
-	if(g_player_Connected[id]) {
-		if(g_player_run_Paused[id]) {
+	if (g_player_Connected[id]) {
+		if (g_player_run_Paused[id]) {
 			message_RoundTime(id, floatround(g_player_run_PauseTime[ id ] - g_player_run_StartTime[ id ], floatround_floor));
 		}
-		else if(g_player_run_Running[id]) {
+		else if (g_player_run_Running[id]) {
 			message_RoundTime(id, floatround(get_gametime() - g_player_run_StartTime[ id ], floatround_floor));
 		}
 	}
@@ -1339,28 +1345,28 @@ public clcmd_Block(id) {
 }
 
 public clcmd_Checkpoint(id) {
-	if(!get_pcvar_num(cvar_Checkpoints)) {
+	if (!get_pcvar_num(cvar_Checkpoints)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!(pev(id, pev_flags) & FL_ONGROUND2)) {
+	if (!(pev(id, pev_flags) & FL_ONGROUND2)) {
 		q_kz_print(id, "%L", id, STR_NOTONGROUND);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	for(new i = 0, size = ArraySize(forward_OnCheckpoint_pre); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_OnCheckpoint_pre); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_OnCheckpoint_pre, i), ret, id);
-		if(ret == PLUGIN_HANDLED) {
+		if (ret == PLUGIN_HANDLED) {
 			return PLUGIN_HANDLED;
 		}
 	}
@@ -1374,10 +1380,10 @@ public clcmd_Checkpoint(id) {
 	++g_player_CPcounter[id];
 	q_kz_print(id, "%L #%d", id, STR_CHECKPOINT, g_player_CPcounter[id]);
 	
-	for(new i = 0, size = ArraySize(forward_OnCheckpoint_post); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_OnCheckpoint_post); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_OnCheckpoint_post, i), ret, id);
-		if(ret == PLUGIN_HANDLED) {
+		if (ret == PLUGIN_HANDLED) {
 			return PLUGIN_HANDLED;
 		}
 	}
@@ -1386,28 +1392,28 @@ public clcmd_Checkpoint(id) {
 }
 
 public clcmd_Teleport(id) {
-	if(!get_pcvar_num(cvar_Checkpoints)) {
+	if (!get_pcvar_num(cvar_Checkpoints)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_CPcounter[id] == 0) {
+	if (g_player_CPcounter[id] == 0) {
 		q_kz_print(id, "%L", id, STR_NOCHECKPOINTS);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	for(new i = 0, size = ArraySize(forward_OnTeleport_pre); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_OnTeleport_pre); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_OnTeleport_pre, i), ret, id);
-		if(ret == PLUGIN_HANDLED) {
+		if (ret == PLUGIN_HANDLED) {
 			return PLUGIN_HANDLED;
 		}
 	}
@@ -1417,22 +1423,22 @@ public clcmd_Teleport(id) {
 	set_pev(id, pev_flags, pev(id, pev_flags) | FL_DUCKING);
 	set_pev(id, pev_origin, g_player_CPorigin[id][0]);
 	
-	if(g_player_setting_CPangles[id]) {
+	if (g_player_setting_CPangles[id]) {
 		set_pev(id, pev_angles, g_player_CPangles[id][0]);
 		set_pev(id, pev_fixangle, 1);
 	}
 	
-	if(get_pcvar_num(cvar_TeleportSplash)) {
+	if (get_pcvar_num(cvar_TeleportSplash)) {
 		message_te_teleport(id, g_player_CPorigin[id][0]);
 	}
 
 	++g_player_TPcounter[id];
 	q_kz_print(id, "%L #%d", id, STR_TELEPORT, g_player_TPcounter[id]);
 	
-	for(new i = 0, size = ArraySize(forward_OnTeleport_post); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_OnTeleport_post); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_OnTeleport_post, i), ret, id);
-		if(ret == PLUGIN_HANDLED) {
+		if (ret == PLUGIN_HANDLED) {
 			return PLUGIN_HANDLED;
 		}
 	}
@@ -1441,19 +1447,19 @@ public clcmd_Teleport(id) {
 }
 
 public clcmd_Stuck(id) {
-	if(!get_pcvar_num(cvar_Checkpoints)) {
+	if (!get_pcvar_num(cvar_Checkpoints)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_CPcounter[id] < 2) {
+	if (g_player_CPcounter[id] < 2) {
 		q_kz_print(id, "%L", id, STR_NOTENOUGHCHECKPOINTS);
 		return PLUGIN_HANDLED;
 	}
@@ -1463,12 +1469,12 @@ public clcmd_Stuck(id) {
 	set_pev(id, pev_flags, pev(id, pev_flags) | FL_DUCKING);
 	set_pev(id, pev_origin, g_player_CPorigin[id][1]);
 	
-	if(g_player_setting_CPangles[id]) {
+	if (g_player_setting_CPangles[id]) {
 		set_pev(id, pev_angles, g_player_CPangles[id][1]);
 		set_pev(id, pev_fixangle, 1);
 	}
 	
-	if(get_pcvar_num(cvar_TeleportSplash)) {
+	if (get_pcvar_num(cvar_TeleportSplash)) {
 		message_te_teleport(id, g_player_CPorigin[id][1]);
 	}
 
@@ -1479,19 +1485,19 @@ public clcmd_Stuck(id) {
 }
 
 public clcmd_Start(id) {
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_run_Paused[id]) {
+	if (g_player_run_Paused[id]) {
 		q_kz_print(id, "%L", id, STR_NOTWHILEPAUSE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_start_bCustom[id]) {
+	if (g_start_bCustom[id]) {
 		set_pev(id, pev_gravity, Float:1.0);
 		set_pev(id, pev_origin, g_start_vCustom[id]);
 		set_pev(id, pev_velocity, Float:{0.0, 0.0, 0.0});
@@ -1502,13 +1508,13 @@ public clcmd_Start(id) {
 		
 		run_reset(id);
 	}
-	else if(g_start_bCurrent[id]) {
+	else if (g_start_bCurrent[id]) {
 		set_pev(id, pev_gravity, Float:1.0);
 		set_pev(id, pev_origin, g_start_vCurrent[id]);
 		set_pev(id, pev_velocity, Float:{0.0, 0.0, 0.0});
 		set_pev(id, pev_flags, pev(id, pev_flags) | FL_DUCKING);
 	}
-	else if(g_start_bDefault) {
+	else if (g_start_bDefault) {
 		set_pev(id, pev_gravity, Float:1.0);
 		set_pev(id, pev_origin, g_start_vDefault);
 		set_pev(id, pev_velocity, Float:{0.0, 0.0, 0.0});
@@ -1526,19 +1532,19 @@ public clcmd_Start(id) {
 }
 
 public clcmd_End(id) {
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_run_Paused[id]) {
+	if (g_player_run_Paused[id]) {
 		q_kz_print(id, "%L", id, STR_NOTWHILEPAUSE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_end_bDefault) {
+	if (g_end_bDefault) {
 		run_reset(id);
 		
 		set_pev(id, pev_gravity, Float:1.0);
@@ -1556,13 +1562,13 @@ public clcmd_End(id) {
 }
 
 public clcmd_SetStart(id) {
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!(pev(id, pev_flags) & FL_ONGROUND2)) {
+	if (!(pev(id, pev_flags) & FL_ONGROUND2)) {
 		q_kz_print(id, "%L", id, STR_NOTONGROUND);
 		
 		return PLUGIN_HANDLED;
@@ -1577,7 +1583,7 @@ public clcmd_SetStart(id) {
 }
 
 public clcmd_UnsetStart(id) {
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
@@ -1591,36 +1597,36 @@ public clcmd_UnsetStart(id) {
 }
 
 public clcmd_Pause(id) {
-	if(!get_pcvar_num(cvar_Pause)) {
+	if (!get_pcvar_num(cvar_Pause)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!(pev(id, pev_flags) & FL_ONGROUND2)) {
+	if (!(pev(id, pev_flags) & FL_ONGROUND2)) {
 		q_kz_print(id, "%L", id, STR_NOTONGROUND);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_run_Running[id]) {
+	if (!g_player_run_Running[id]) {
 		q_kz_print(id, "%L", id, STR_NOTINRUN);
 		
 		return PLUGIN_HANDLED;
 	}
 
-	for(new i = 0, size = ArraySize(forward_TimerPause_pre); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_TimerPause_pre); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_TimerPause_pre, i), ret, id, g_player_run_Paused[id]);
 	}
 	
-	if(g_player_run_Paused[id]) {	
+	if (g_player_run_Paused[id]) {	
 		g_player_run_Paused[id] = false;
 		g_player_run_StartTime[ id ] += (get_gametime() - g_player_run_PauseTime[ id ]);
 		
@@ -1637,7 +1643,7 @@ public clcmd_Pause(id) {
 		q_kz_print(id, "%L", id, STR_RUNUNPAUSED);
 	}
 	
-	for(new i = 0, size = ArraySize(forward_TimerPause_post); i < size; ++i) {
+	for (new i = 0, size = ArraySize(forward_TimerPause_post); i < size; ++i) {
 		new ret;
 		ExecuteForward(ArrayGetCell(forward_TimerPause_post, i), ret, id, g_player_run_Paused[id]);
 	}
@@ -1646,13 +1652,13 @@ public clcmd_Pause(id) {
 }
 
 public clcmd_Stop(id) {
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		q_kz_player_stopTimer(id, "");
 		
 		q_kz_print(id, "%L", id, STR_RUNSTOPPED);
@@ -1671,10 +1677,10 @@ public clcmd_Spectate(id) {
 	
 	new CsTeams:team = q_get_user_team(id);
 	
-	if(team == CS_TEAM_UNASSIGNED) {
+	if (team == CS_TEAM_UNASSIGNED) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 	}
-	else if(team == CS_TEAM_SPECTATOR) {
+	else if (team == CS_TEAM_SPECTATOR) {
 		g_player_run_Paused[id] = false;
 		g_player_run_StartTime[id] += (get_gametime() - g_player_run_PauseTime[id]);
 		
@@ -1684,14 +1690,14 @@ public clcmd_Spectate(id) {
 
 		set_pev(id, pev_origin, vOrigin[id]);
 		set_pev(id, pev_velocity, vVelocity[id]);
-		if(g_player_setting_CPangles[id]) {
+		if (g_player_setting_CPangles[id]) {
 			set_pev(id, pev_angles, vAngle[id]);
 			set_pev(id, pev_fixangle, 1);
 		}
 		
 		SetWeapon(id);
 	}
-	else if(!g_player_run_Paused[id]) {
+	else if (!g_player_run_Paused[id]) {
 		g_player_Alive[id] = false;
 		g_player_run_Paused[id] = true;
 		g_player_run_PauseTime[id] = get_gametime();
@@ -1720,7 +1726,7 @@ public clcmd_MaxSpeed(id) {
 }
 
 public clcmd_kzmenu(id) {
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
@@ -1732,19 +1738,19 @@ public clcmd_kzmenu(id) {
 }
 
 public clcmd_GodMode(id) {
-	if(!get_pcvar_num(cvar_GodMode)) {
+	if (!get_pcvar_num(cvar_GodMode)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		q_kz_print(id, "%L", id, STR_NOTWHILERUN);
 		
 		return PLUGIN_HANDLED;
@@ -1759,19 +1765,19 @@ public clcmd_GodMode(id) {
 }
 
 public clcmd_Noclip(id) {
-	if(!get_pcvar_num(cvar_Noclip)) {
+	if (!get_pcvar_num(cvar_Noclip)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		q_kz_print(id, "%L", id, STR_NOTWHILERUN);
 		
 		return PLUGIN_HANDLED;
@@ -1786,7 +1792,7 @@ public clcmd_Noclip(id) {
 }
 
 public clcmd_Drop(id) {
-	if(g_player_Alive[id]) {
+	if (g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_DROP);
 	}
 	
@@ -1794,22 +1800,22 @@ public clcmd_Drop(id) {
 }
 
 public clcmd_save(id, level, cid) {
-	if(!get_pcvar_num(g_cvar_command_save)) {
+	if (!get_pcvar_num(g_cvar_command_save)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!(pev(id, pev_flags) & FL_ONGROUND2)) {
+	if (!(pev(id, pev_flags) & FL_ONGROUND2)) {
 		q_kz_print(id, "%L", id, STR_NOTONGROUND);
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_run_Running[id]) {
+	if (!g_player_run_Running[id]) {
 		q_kz_print(id, "%L", id, STR_NOTINRUN);
 		return PLUGIN_HANDLED;
 	}
@@ -1822,22 +1828,22 @@ public clcmd_save(id, level, cid) {
 }
 
 public clcmd_restore(id, level, cid) {
-	if(!get_pcvar_num(g_cvar_command_save)) {
+	if (!get_pcvar_num(g_cvar_command_save)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		return PLUGIN_HANDLED;
 	}
 	
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		q_kz_print(id, "%L", id, STR_NOTINRUN);
 		return PLUGIN_HANDLED;
 	}
 	
-	if(!g_player_psave_exists[id]) {
+	if (!g_player_psave_exists[id]) {
 		q_kz_print(id, "%L", id, STR_NOSAVEDTIMER);
 		return PLUGIN_HANDLED;
 	}
@@ -1857,6 +1863,18 @@ public clcmd_ClearStart(id, level, cid) {
 	}
 
 	g_start_bDefault = false;
+
+	return PLUGIN_HANDLED;
+}
+
+public clcmd_Measure(id, level, cid) {
+	if (!get_pcvar_num(cvar_Measure)) {
+		q_kz_print(id, "%L", id, STR_CMDDISABLED);
+		
+		return PLUGIN_HANDLED;
+	}
+
+	m_measure(id);
 
 	return PLUGIN_HANDLED;
 }
@@ -1890,7 +1908,7 @@ public mh_welcome(id, QMenu:menu, item) {
 	
 	switch(item) {
 	case 0: {
-		if(get_pcvar_num(cvar_SpawnWithMenu)) {
+		if (get_pcvar_num(cvar_SpawnWithMenu)) {
 			m_kreedz(id);
 		}
 	}
@@ -1924,7 +1942,7 @@ public mf_chooseteam(id, menu, item, output[64]) {
 }
 
 public mh_chooseteam(id, menu, item) {
-	if(item == 0) {
+	if (item == 0) {
 		clcmd_Spectate(id);
 	}
 	
@@ -2000,12 +2018,12 @@ public menu_KZRewards(id) {
 	
 	new callback;
 	new size = ArraySize(g_rewards_name);
-	for(new i = 0; i < size; ++i) {
+	for (new i = 0; i < size; ++i) {
 		ArrayGetString(g_rewards_name, i, buffer, charsmax(buffer));
 		LookupLangKey(buffer, charsmax(buffer), buffer, id);
 		
 		callback = ArrayGetCell(g_rewards_callback, i);
-		if(callback != -1) {
+		if (callback != -1) {
 			callback = menu_makecallback("menu_KZRewards_callback");
 		}
 		
@@ -2027,11 +2045,11 @@ public menu_KZRewards(id) {
 public menu_KZRewards_handler(id, menu, item) {
 	menu_destroy(menu);
 	
-	if(item != MENU_EXIT) {
+	if (item != MENU_EXIT) {
 		new plug = ArrayGetCell(g_rewards_plugin, item);
 		new hand = ArrayGetCell(g_rewards_handler, item);
 		
-		if(callfunc_begin_i(hand, plug) == 1) {
+		if (callfunc_begin_i(hand, plug) == 1) {
 			callfunc_push_int(id);
 			callfunc_end();
 		}
@@ -2044,12 +2062,20 @@ public menu_KZRewards_callback(id, menu, item) {
 	new plug = ArrayGetCell(g_rewards_plugin, item);
 	new call = ArrayGetCell(g_rewards_callback, item);
 	
-	if(callfunc_begin_i(call, plug) == 1) {
+	if (callfunc_begin_i(call, plug) == 1) {
 		callfunc_push_int(id);
 		return callfunc_end();
 	}
 	
 	return ITEM_IGNORE;
+}
+
+m_measure(id) {
+	new title[32];
+	formatex(title, charsmax(title), "%L", id, STR_MEASUREMENU);
+	q_menu_set_title(g_menu_measure, title);
+	
+	q_menu_display(id, g_menu_measure);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -2062,12 +2088,12 @@ SetWeapon(id, iWeapon = 0, bDeployAnim = false) {
 	static iClipAmmo;
 	static iBackAmmo;
 	
-	if(!g_player_Alive[id]) {
+	if (!g_player_Alive[id]) {
 		return;
 	}
 	
 	// If player is in run we need to save ammo before striping weapons
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		iClipAmmo = g_player_ClipAmmo[id];
 		iBackAmmo = g_player_BackAmmo[id];
 	}
@@ -2075,15 +2101,15 @@ SetWeapon(id, iWeapon = 0, bDeployAnim = false) {
 	// Strip weapons because player can hold only one weapon
 	// with the exception of USP/Knife standard weapons
 	g_player_stripping[id] = true;
-	if(!fm_strip_user_weapons(id)) {
+	if (!fm_strip_user_weapons(id)) {
 		return;
 	}
 	g_player_stripping[id] = false;
 	
 	// If no weapon is passed as argument or someone is acting stupid
 	// this block will set everything back on track
-	if(iWeapon <= 0 || iWeapon > 30) {
-		if(g_player_run_Running[id]) {
+	if (iWeapon <= 0 || iWeapon > 30) {
+		if (g_player_run_Running[id]) {
 			iWeapon = g_player_run_WeaponID[id];
 		}
 		else {
@@ -2094,18 +2120,18 @@ SetWeapon(id, iWeapon = 0, bDeployAnim = false) {
 	formatex(szWeapon, charsmax(szWeapon), "weapon_%s", g_sz_WeaponEntName[iWeapon]);
 	
 	// Try to give the weapon
-	if((eWeapon = fm_give_item(id, szWeapon)) <= 0) {
+	if ((eWeapon = fm_give_item(id, szWeapon)) <= 0) {
 		return;
 	}
 	
 	// Knife always goes with USP (standard weapons of KreedZ)
 	// but if fm_give_item for knife fails, I dont give a shit. At least the player got USP.
-	if(iWeapon == CSW_USP) {
+	if (iWeapon == CSW_USP) {
 		 fm_give_item(id, "weapon_knife");
 	}
 	
 	// Set weapon animation to idle because deploy animation gets annoying after a while
-	if(!bDeployAnim) {
+	if (!bDeployAnim) {
 		switch(iWeapon) {
 		case CSW_USP: {
 			set_pev(id, pev_weaponanim, 8);
@@ -2127,7 +2153,7 @@ SetWeapon(id, iWeapon = 0, bDeployAnim = false) {
 	// 0 = 0 clip, 0 backpack
 	// 1 = full clip, 2 clips in backpack
 	// 2 = full clip and backpack
-	if(g_player_run_Running[id]) {
+	if (g_player_run_Running[id]) {
 		q_set_weapon_ammo(eWeapon, iClipAmmo);
 		q_set_user_bpammo(id, iWeapon, iBackAmmo);
 	}
@@ -2194,8 +2220,32 @@ stock message_te_teleport(id, Float:origin[3]) {
 	message_end();
 }
 
+stock message_te_beampoints(id, Float:start[3], Float:end[3], sprite, startFrameIdx, frameRate, life, width, noise, r, g, b, brightness, scrollSpeed)
+{
+	message_begin( MSG_ONE, SVC_TEMPENTITY, _, id );
+	write_byte( TE_BEAMPOINTS );
+	engfunc( EngFunc_WriteCoord, start[0] );
+	engfunc( EngFunc_WriteCoord, start[1] );
+	engfunc( EngFunc_WriteCoord, start[2] );
+	engfunc( EngFunc_WriteCoord, end[0] );
+	engfunc( EngFunc_WriteCoord, end[1] );
+	engfunc( EngFunc_WriteCoord, end[2] );
+	write_short( sprite );
+	write_byte( startFrameIdx );
+	write_byte( frameRate );
+	write_byte( life );
+	write_byte( width );
+	write_byte( noise );
+	write_byte( r );
+	write_byte( g );
+	write_byte( b );
+	write_byte( brightness );
+	write_byte( scrollSpeed );
+	message_end( );
+}
+
 stock message_TeamInfo(id, team_id) {
-	if(!id) {
+	if (!id) {
 		return;
 	}
 
@@ -2223,9 +2273,9 @@ stock message_SayText(id, const message[], any:...) {
 	replace_all(buffer, charsmax(buffer), "!t", "^x03");
 	replace_all(buffer, charsmax(buffer), "!g", "^x04");
 	
-	if(id == 0) { 
-		for(new i = 1, playerCount = get_maxplayers(); i <= playerCount; ++i) {
-			if(g_player_Connected[i]) {
+	if (id == 0) { 
+		for (new i = 1, playerCount = get_maxplayers(); i <= playerCount; ++i) {
+			if (g_player_Connected[i]) {
 				message_begin(MSG_ONE_UNRELIABLE, g_msg_SayText, _, i);
 				write_byte(i);
 				write_string(buffer);
@@ -2234,7 +2284,7 @@ stock message_SayText(id, const message[], any:...) {
 		}
 	}
 	else {
-		if(g_player_Connected[id]) {
+		if (g_player_Connected[id]) {
 			message_begin(MSG_ONE_UNRELIABLE, g_msg_SayText, _, id);
 			write_byte(id);
 			write_string(buffer);
@@ -2245,7 +2295,7 @@ stock message_SayText(id, const message[], any:...) {
 
 stock message_ArmorType(id, type) {
 	static msg_ArmorType;
-	if(!msg_ArmorType) {
+	if (!msg_ArmorType) {
 		msg_ArmorType = get_user_msgid("ArmorType");
 	}
 	
@@ -2260,7 +2310,7 @@ stock message_ArmorType(id, type) {
 
 // q_kz_getVersion(version[], len)
 public _q_kz_getVersion(plugin, params) {
-	if(params != 2) {
+	if (params != 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params);
 	}
 	else {
@@ -2270,7 +2320,7 @@ public _q_kz_getVersion(plugin, params) {
 
 // q_kz_getDataDirectory(path[], len)
 public _q_kz_getDataDirectory(plugin, params) {
-	if(params != 2) {
+	if (params != 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params);
 	}
 	else {
@@ -2280,7 +2330,7 @@ public _q_kz_getDataDirectory(plugin, params) {
 
 // q_kz_getConfigDirectory(path[], len)
 public _q_kz_getConfigDirectory(plugin, params) {
-	if(params != 2) {
+	if (params != 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params);
 	}
 	else {
@@ -2290,7 +2340,7 @@ public _q_kz_getConfigDirectory(plugin, params) {
 
 // q_kz_getPrefix(output[], len)
 public _q_kz_getPrefix(plugin, params) {
-	if(params != 2) {
+	if (params != 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2, found %d", params);
 		return;
 	}
@@ -2302,13 +2352,13 @@ public _q_kz_getPrefix(plugin, params) {
 
 // q_kz_print(id, msg_fmt[], any:...)
 public _q_kz_print(plugin, params) {
-	if(params < 2) {
+	if (params < 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2 or more, found %d", params);
 		return;
 	}
 	
 	new id = get_param(1);
-	if((id < 0) || (id > 32)) {
+	if ((id < 0) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return;
@@ -2347,20 +2397,20 @@ public _q_kz_print(plugin, params) {
 
 // q_kz_player_stopTimer(id, reason_fmt[], any:...)
 public _q_kz_player_stopTimer(plugin, params) {
-	if(params < 2) {
+	if (params < 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2 or more, found %d", params);
 		return;
 	}
 	
 	new id = get_param(1);
-	if((id < 1) || (id > 32)) {
+	if ((id < 1) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return;
 	}
 	
-	if(g_player_run_Running[id]) {
-		for(new i = 0, size = ArraySize(forward_TimerStop_pre); i < size; ++i) {
+	if (g_player_run_Running[id]) {
+		for (new i = 0, size = ArraySize(forward_TimerStop_pre); i < size; ++i) {
 			new ret;
 			ExecuteForward(ArrayGetCell(forward_TimerStop_pre, i), ret, id, false);
 		}
@@ -2371,7 +2421,7 @@ public _q_kz_player_stopTimer(plugin, params) {
 		vdformat(buffer, charsmax(buffer), 2, 3);
 		q_kz_print(id, buffer);
 		
-		for(new i = 0, size = ArraySize(forward_TimerStop_post); i < size; ++i) {
+		for (new i = 0, size = ArraySize(forward_TimerStop_post); i < size; ++i) {
 			new ret;
 			ExecuteForward(ArrayGetCell(forward_TimerStop_post, i), ret, id, false);
 		}
@@ -2380,13 +2430,13 @@ public _q_kz_player_stopTimer(plugin, params) {
 
 // q_kz_saytext(id, msg_fmt[], any:...)
 public _q_kz_saytext(plugin, params) {
-	if(params < 2) {
+	if (params < 2) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 3 or more, found %d", params);
 		return;
 	}
 	
 	new id = get_param(1);
-	if((id < 0) || (id > 32)) {
+	if ((id < 0) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return ;
@@ -2400,13 +2450,13 @@ public _q_kz_saytext(plugin, params) {
 
 // q_kz_player_isTimerStarted(id)
 public _q_kz_player_isTimerStarted(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0;
 	}
 	
 	new id = get_param(1);
-	if((id < 1) || (id > 32)) {
+	if ((id < 1) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return 0;
@@ -2417,20 +2467,20 @@ public _q_kz_player_isTimerStarted(plugin, params) {
 
 // Float:q_kz_player_getTimer(id)
 public Float:_q_kz_player_getTimer(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0.0;
 	}
 	
 	new id = get_param(1);
-	if((id < 1) || (id > 32)) {
+	if ((id < 1) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return 0.0;
 	}
 	
-	if(g_player_run_Running[id]) {
-		if(g_player_run_Paused[id]) {
+	if (g_player_run_Running[id]) {
+		if (g_player_run_Paused[id]) {
 			return (g_player_run_PauseTime[id] - g_player_run_StartTime[id]);
 		}
 		else {
@@ -2443,7 +2493,7 @@ public Float:_q_kz_player_getTimer(plugin, params) {
 
 // q_kz_getHudColor(&r, &g, &b)
 public _q_kz_getHudColor(plugin, params) {
-	if(params != 3) {
+	if (params != 3) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params);
 		return;
 	}
@@ -2464,12 +2514,12 @@ public _q_kz_isStartOriginFound(plugin, params) {
 
 // q_kz_getStartOrigin(Float:origin[3])
 public _q_kz_getStartOrigin(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0;
 	}
 	
-	if(g_start_bDefault) {
+	if (g_start_bDefault) {
 		set_array_f(1, g_start_vDefault, sizeof(g_start_vDefault));
 		return 1;
 	}
@@ -2484,12 +2534,12 @@ public _q_kz_isStopOriginFound(plugin, params) {
 
 // q_kz_getStopOrigin(Float:origin[3])
 public _q_kz_getStopOrigin(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0;
 	}
 	
-	if(g_end_bDefault) {
+	if (g_end_bDefault) {
 		set_array_f(1, g_end_vDefault, sizeof(g_end_vDefault));
 		
 		return 1;
@@ -2500,13 +2550,13 @@ public _q_kz_getStopOrigin(plugin, params) {
 
 // q_kz_player_isVip(id)
 public _q_kz_player_isVip(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0;
 	}
 	
 	new id = get_param(1);
-	if((id < 1) || (id > 32)) {
+	if ((id < 1) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return 0;
@@ -2517,13 +2567,13 @@ public _q_kz_player_isVip(plugin, params) {
 
 // q_kz_player_getCheckpoints(id)
 public _q_kz_player_getCheckpoints(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0;
 	}
 	
 	new id = get_param(1);
-	if((id < 1) || (id > 32)) {
+	if ((id < 1) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return 0;
@@ -2534,13 +2584,13 @@ public _q_kz_player_getCheckpoints(plugin, params) {
 
 // q_kz_player_getTeleports(id)
 public _q_kz_player_getTeleports(plugin, params) {
-	if(params != 1) {
+	if (params != 1) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 1, found %d", params);
 		return 0;
 	}
 	
 	new id = get_param(1);
-	if((id < 1) || (id > 32)) {
+	if ((id < 1) || (id > 32)) {
 		log_error(AMX_ERR_NATIVE, "Invalid player id %d", id);
 		
 		return 0;
@@ -2551,31 +2601,31 @@ public _q_kz_player_getTeleports(plugin, params) {
 
 // q_kz_registerReward(name[], handler[], callback[] = "")
 public _q_kz_registerReward(plugin, params) {
-	if((params < 2) || (params > 3)) {
+	if ((params < 2) || (params > 3)) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 2 or 3, found %d", params);
 		return;
 	}
 	
-	if(!g_rewards_registering) {
+	if (!g_rewards_registering) {
 		log_error(AMX_ERR_NATIVE, "qkz_register_reward can only be called inside ^"QKZ_RegisterRewards^" forward");
 		return;
 	}
 	
 	new szhandler[32];
 	get_array(2, szhandler, charsmax(szhandler));
-	if(szhandler[0] == 0) {
+	if (szhandler[0] == 0) {
 		log_error(AMX_ERR_NATIVE, "Handler function not given");
 		return;
 	}
 	
 	new phandler = get_func_id(szhandler, plugin);
-	if(phandler == -1) {
+	if (phandler == -1) {
 		log_error(AMX_ERR_NATIVE, "Handler function ^"%s^" not found", szhandler);
 	}
 	
 	new name[32];
 	get_string(1, name, charsmax(name));
-	if(name[0] == 0) {
+	if (name[0] == 0) {
 		log_error(AMX_ERR_NATIVE, "Reward name not given");
 		return;
 	}
@@ -2600,14 +2650,14 @@ public _q_kz_getStopButtonEntities(plugin, params) {
 
 // q_kz_registerForward(Q_KZ_Forward, callback[], _post = 0)
 public _q_kz_registerForward(plugin, params) {
-	if(params != 3) {
+	if (params != 3) {
 		log_error(AMX_ERR_NATIVE, "Parameters do not match. Expected 3, found %d", params);
 		return;
 	}
 	
 	new handler[32];
 	get_string(2, handler, charsmax(handler));
-	if(get_func_id(handler, plugin) == -1) {
+	if (get_func_id(handler, plugin) == -1) {
 		log_error(AMX_ERR_NATIVE, "Handler function ^"%s^" not found", handler);
 		return;
 	}
@@ -2647,7 +2697,7 @@ public _q_kz_registerForward(plugin, params) {
 
 stock q_set_user_team(id, {CsTeams,_}:team, {CsInternalModel,_}:model = CS_DONTCHANGE) {
 	set_pdata_int(id, OFFSET_TEAM, _:team, EXTRA_OFFSET);
-	if(model) {
+	if (model) {
 		set_pdata_int(id, OFFSET_INTERNALMODEL, _:model, EXTRA_OFFSET);
 	}
 	
@@ -2678,7 +2728,7 @@ load_Spawns() {
 	formatex(g_file_spawns, charsmax(g_file_spawns), "%s/spawns.dat", g_dir_data);
 	
 	new f = fopen(g_file_spawns, "rb");
-	if(!f) {
+	if (!f) {
 		return;
 	}
 	
@@ -2687,10 +2737,10 @@ load_Spawns() {
 	
 	new iSize = file_size(g_file_spawns);
 	
-	while(ftell(f) < iSize) {
+	while (ftell(f) < iSize) {
 		fread_blocks(f, szMapName, 32, BLOCK_BYTE);
 		
-		if(equal(g_map_Name, szMapName)) {
+		if (equal(g_map_Name, szMapName)) {
 			fread(f, iSpawns, BLOCK_BYTE);
 			g_map_Spawns = iSpawns;
 			g_map_SpawnsNeeded = 32 - g_map_Spawns;
@@ -2704,12 +2754,12 @@ load_Spawns() {
 }
 
 check_Spawns() {
-	if(g_map_Spawns) {
+	if (g_map_Spawns) {
 		return;
 	}
 	
 	new f = fopen(g_file_spawns, "ab");
-	if(!f) {
+	if (!f) {
 		return;
 	}
 
@@ -2723,15 +2773,15 @@ check_Spawns() {
 
 save_ButtonPositions() {
 	new f = fopen(g_file_buttons, "rb+");
-	if(f) {
+	if (f) {
 		new count;
 		fread(f, count, BLOCK_INT);
 		
 		new found = false;
 		new map[32];
-		for(new i = 0; i < count; ++i) {
+		for (new i = 0; i < count; ++i) {
 			fread_blocks(f, map, sizeof(map), BLOCK_BYTE);
-			if(equal(map, g_map_Name)) {
+			if (equal(map, g_map_Name)) {
 				found = true;
 				
 				fseek(f, 0, SEEK_CUR);
@@ -2746,7 +2796,7 @@ save_ButtonPositions() {
 			}
 		}
 		
-		if(!found) {
+		if (!found) {
 			fseek(f, 0, SEEK_CUR);
 			
 			fwrite_blocks(f, g_map_Name, sizeof(g_map_Name), BLOCK_BYTE);
@@ -2771,7 +2821,7 @@ save_ButtonPositions() {
 
 load_ButtonPositions() {
 	new f = fopen(g_file_buttons, "rb");
-	if(!f) {
+	if (!f) {
 		return;
 	}
 	
@@ -2779,17 +2829,17 @@ load_ButtonPositions() {
 	fread(f, count, BLOCK_INT);
 	
 	new map[32];
-	for(new i = 0; i < count; ++i) {
+	for (new i = 0; i < count; ++i) {
 		fread_blocks(f, map, sizeof(map), BLOCK_BYTE);
-		if(equal(map, g_map_Name)) {
+		if (equal(map, g_map_Name)) {
 			fread_blocks(f, _:g_start_vDefault, 3, BLOCK_INT);
 			fread_blocks(f, _:g_end_vDefault, 3, BLOCK_INT);
 			
-			if(g_start_vDefault[0] && g_start_vDefault[1] && g_start_vDefault[2]) {
+			if (g_start_vDefault[0] && g_start_vDefault[1] && g_start_vDefault[2]) {
 				g_start_bDefault = true;
 			}
 			
-			if(g_end_vDefault[0] && g_end_vDefault[1] && g_end_vDefault[2]) {
+			if (g_end_vDefault[0] && g_end_vDefault[1] && g_end_vDefault[2]) {
 				g_end_bDefault = true;
 			}
 		}
@@ -2804,37 +2854,37 @@ load_ButtonPositions() {
 find_Buttons() {
 	new const szStart[][] = {"counter_start", "clockstartbutton", "firsttimerelay", "gogogo", "multi_start", "counter_start_button"};
 	new Trie:tStart = TrieCreate();
-	for(new i = 0; i < sizeof(szStart); i++) {
+	for (new i = 0; i < sizeof(szStart); i++) {
 		TrieSetCell(tStart, szStart[i], 1);
 	}
 	
 	new const szStop[][] = {"counter_off", "clockstop", "clockstopbutton", "multi_stop", "stop_counter"};
 	new Trie:tStop = TrieCreate();
-	for(new i = 0; i < sizeof(szStop); i++) {
+	for (new i = 0; i < sizeof(szStop); i++) {
 		TrieSetCell(tStop, szStop[i], 1);
 	}
 	
 	new ent = -1;
 	new szTarget[32];
-	while((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "func_button"))) {
+	while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "func_button"))) {
 		pev(ent, pev_target, szTarget, charsmax(szTarget));
 		
-		if(TrieKeyExists(tStart, szTarget)) {
+		if (TrieKeyExists(tStart, szTarget)) {
 			SET_BITVECTOR(g_map_ent_StartButton, ent);
 			ArrayPushCell(g_startButtonEntities, ent);
 		}
-		else if(TrieKeyExists(tStop, szTarget)) {
+		else if (TrieKeyExists(tStop, szTarget)) {
 			SET_BITVECTOR(g_map_ent_EndButton, ent);
 			ArrayPushCell(g_stopButtonEntities, ent);
 		}
 		else {
 			pev(ent, pev_targetname, szTarget, charsmax(szTarget));
 			
-			if(TrieKeyExists(tStart, szTarget)) {
+			if (TrieKeyExists(tStart, szTarget)) {
 				SET_BITVECTOR(g_map_ent_StartButton, ent);
 				ArrayPushCell(g_startButtonEntities, ent);
 			}
-			else if(TrieKeyExists(tStop, szTarget)) {
+			else if (TrieKeyExists(tStop, szTarget)) {
 				SET_BITVECTOR(g_map_ent_EndButton, ent);
 				ArrayPushCell(g_stopButtonEntities, ent);
 			}
@@ -2848,10 +2898,10 @@ find_Buttons() {
 RemoveJunkEntities() {
 	new ent;
 	
-	for(new i = 0; i < sizeof(g_szRemoveEnts); ++i) {
+	for (new i = 0; i < sizeof(g_szRemoveEnts); ++i) {
 		ent = -1;
 		
-		while((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", g_szRemoveEnts[i]))) {
+		while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", g_szRemoveEnts[i]))) {
 			engfunc(EngFunc_RemoveEntity, ent);
 		}
 	}
@@ -2861,11 +2911,11 @@ find_Healer() {
 	new const szNull[] = "common/null.wav";
 	
 	new ent = -1;
-	while((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "func_door"))) {
+	while ((ent = engfunc(EngFunc_FindEntityByString, ent, "classname", "func_door"))) {
 		new Float:damage;
 		pev(ent, pev_dmg, damage);
 		
-		if(damage < -999.0) {
+		if (damage < -999.0) {
 			set_pev(ent, pev_noise1, szNull);
 			set_pev(ent, pev_noise2, szNull);
 			set_pev(ent, pev_noise3, szNull);
@@ -2879,7 +2929,7 @@ run_reset(id) {
 	g_player_CPcounter[id]		 = 0;
 	g_player_TPcounter[id]		 = 0;
 	g_player_run_Running[id]	 = false;
-	if(g_player_run_Paused[id]) {
+	if (g_player_run_Paused[id]) {
 		set_pev(id, pev_flags, pev(id, pev_flags) & ~FL_FROZEN);
 	}
 	g_player_run_Paused[id]		 = false;
@@ -2890,7 +2940,7 @@ run_reset(id) {
 	message_HideWeapon(id, HIDEW_TIMER | HIDEW_MONEY);
 	message_Crosshair(id, 0);
 	
-	if(task_exists(TASKID_ROUNDTIME + id)) {
+	if (task_exists(TASKID_ROUNDTIME + id)) {
 		remove_task(TASKID_ROUNDTIME + id);
 	}
 }
@@ -2908,7 +2958,7 @@ psave_save(id) {
 }
 
 psave_restore(id) {
-	if(!g_player_psave_exists[id]) {
+	if (!g_player_psave_exists[id]) {
 		return;
 	}
 	
@@ -2934,7 +2984,7 @@ psave_onPlayerJoin(id) {
 	new filePath[128];
 	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
 	new f = fopen(filePath, "r+b");
-	if(!f) {
+	if (!f) {
 		return;
 	}
 	
@@ -2949,15 +2999,15 @@ psave_onPlayerJoin(id) {
 	fread(f, entryCount, BLOCK_INT);
 	new mapName[32];
 	new playerAuthId[40];
-	for(new i = 0; i < entryCount; ++i) {
+	for (new i = 0; i < entryCount; ++i) {
 		fread_blocks(f, mapName, sizeof(mapName), BLOCK_BYTE);
-		if(!equali(mapName, g_map_Name)) {
+		if (!equali(mapName, g_map_Name)) {
 			fseek(f, 68, SEEK_CUR);
 			continue;
 		}
 		
 		fread_blocks(f, playerAuthId, sizeof(playerAuthId), BLOCK_BYTE);
-		if(!equali(authId, playerAuthId)) {
+		if (!equali(authId, playerAuthId)) {
 			fseek(f, 28, SEEK_CUR);
 			continue;
 		}
@@ -2979,7 +3029,7 @@ psave_onPlayerJoin(id) {
 }
 
 psave_onPlayerLeave(id) {
-	if(!g_player_psave_exists[id]) {
+	if (!g_player_psave_exists[id]) {
 		return;
 	}
 	
@@ -2988,7 +3038,7 @@ psave_onPlayerLeave(id) {
 	new filePath[128];
 	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
 	new f = fopen(filePath, "r+b");
-	if(!f) {
+	if (!f) {
 		log_error( AMX_ERR_NATIVE, "Could not open psave.dat file" );
 		return;
 	}
@@ -3025,12 +3075,12 @@ psave_onPlayerLeave(id) {
 psave_onPluginInit() {
 	new filePath[128];
 	formatex(filePath, charsmax(filePath), "%s/psave.dat", g_dir_data);
-	if(file_exists(filePath)) {
+	if (file_exists(filePath)) {
 		return;
 	}
 	
 	new f = fopen(filePath, "wb");
-	if(!f) {
+	if (!f) {
 		log_error( AMX_ERR_NATIVE, "Could not create psave.dat file" );
 		return;
 	}
@@ -3050,7 +3100,7 @@ psave_onPluginEnd() {
 	
 	new of = fopen(oldFilePath, "rb");
 	new nf = fopen(newFilePath, "w+b");
-	if(!of || !nf) {
+	if (!of || !nf) {
 		log_error( AMX_ERR_NATIVE, "Could not open psave.dat file for cleanup" );
 		return;
 	}
@@ -3059,7 +3109,7 @@ psave_onPluginEnd() {
 	fread(of, headerLength, BLOCK_INT);
 	fwrite(nf, headerLength, BLOCK_INT);
 	new headerData;
-	for(new i = 0; i < headerLength; ++i) {
+	for (new i = 0; i < headerLength; ++i) {
 		fread(of, headerData, BLOCK_BYTE);
 		fwrite(nf, headerData, BLOCK_BYTE);
 	}
@@ -3069,9 +3119,9 @@ psave_onPluginEnd() {
 	fwrite(nf, 0, BLOCK_INT); // will be set at the end
 	
 	new entry[100];
-	for(new i = 0, count = entryCount; i < count; ++i) {
+	for (new i = 0, count = entryCount; i < count; ++i) {
 		fread_blocks(of, entry, sizeof(entry), BLOCK_BYTE);
-		if(entry[0] == 0) {
+		if (entry[0] == 0) {
 			--entryCount;
 		}
 		else {
@@ -3089,7 +3139,7 @@ psave_onPluginEnd() {
 }
 
 public psave_onTimerStop(id, bool:successful) {
-	if(g_player_psave_exists[id]) {
+	if (g_player_psave_exists[id]) {
 		g_player_psave_exists[id] = false;
 	}
 }
@@ -3102,7 +3152,7 @@ public psave_onTimerStop(id, bool:successful) {
 
 stock fm_get_user_weapon_entity(id, wid = 0) {
 	new weap = wid, clip, ammo;
-	if(!weap && !(weap = get_user_weapon(id, clip, ammo))) {
+	if (!weap && !(weap = get_user_weapon(id, clip, ammo))) {
 		return 0;
 	}
 	
@@ -3114,7 +3164,7 @@ stock fm_get_user_weapon_entity(id, wid = 0) {
 
 stock fm_strip_user_weapons(index) {
 	new ent = fm_create_entity("player_weaponstrip");
-	if(!pev_valid(ent)) {
+	if (!pev_valid(ent)) {
 		return 0;
 	}
 
@@ -3127,12 +3177,12 @@ stock fm_strip_user_weapons(index) {
 
 
 stock fm_give_item(index, const item[]) {
-	if(!equal(item, "weapon_", 7) && !equal(item, "ammo_", 5) && !equal(item, "item_", 5) && !equal(item, "tf_weapon_", 10)) {
+	if (!equal(item, "weapon_", 7) && !equal(item, "ammo_", 5) && !equal(item, "item_", 5) && !equal(item, "tf_weapon_", 10)) {
 		return 0;
 	}
 
 	new ent = fm_create_entity(item);
-	if(!pev_valid(ent)) {
+	if (!pev_valid(ent)) {
 		return 0;
 	}
 
@@ -3144,7 +3194,7 @@ stock fm_give_item(index, const item[]) {
 
 	new save = pev(ent, pev_solid);
 	dllfunc(DLLFunc_Touch, ent, index);
-	if(pev(ent, pev_solid) != save) {
+	if (pev(ent, pev_solid) != save) {
 		return ent;
 	}
 
@@ -3164,7 +3214,7 @@ stock fm_find_ent_by_owner(index, const classname[], owner, jghgtype = 0) {
 	}
 	}
 
-	while((ent = engfunc(EngFunc_FindEntityByString, ent, strtype, classname)) && pev(ent, pev_owner) != owner) {}
+	while ((ent = engfunc(EngFunc_FindEntityByString, ent, strtype, classname)) && pev(ent, pev_owner) != owner) {}
 
 	return ent;
 }
