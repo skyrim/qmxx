@@ -214,8 +214,13 @@ public q_js_jumpbegin( id )
 	}
 }
 
-public q_js_jumpend( id )
+public q_js_jumpend( id, level )
 {
+	if ( level == 0 )
+	{
+		return;
+	}
+
 	g_player_injump[id] = false;
 	
 	if( get_pcvar_num( cvar_beam ) )
@@ -316,13 +321,13 @@ beam_display( id )
 					1, // start frame
 					5, // frame rate
 					i * 100 / g_beam_count[id] / 10 + 10, // life
-					20, // width
+					10, // width
 					0, // noise
 					g_beam_point_induck[id][i] ? 255 : 0, // r
 					g_beam_point_induck[id][i] ? 0 : 255, // g
 					g_beam_point_induck[id][i] ? 0 : 255, // b
 					200, // brightness
-					200  // scroll speed
+					20  // scroll speed
 				);
 			}
 		}

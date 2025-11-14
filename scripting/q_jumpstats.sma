@@ -259,6 +259,7 @@ reset_stats( id )
 	jump_turning[id] = 0;
 	jump_strafing[id] = 0;
 	
+	jump_level[id] = JumpLevel_None;
 	jump_prestrafe[id] = 0.0;
 	jump_maxspeed[id] = 0.0;
 	jump_sync[id] = 0;
