@@ -47,6 +47,7 @@
 #define TASKID_DOWNLOAD	6000
 #define TASKID_JOINTEAM	6100
 #define TASKID_JOINCLASS 6150
+#define TASKID_MEASURE_BEAM 6200
 
 #define SCOREATTRIB_NONE 0
 #define SCOREATTRIB_DEAD 1
@@ -155,8 +156,6 @@ new QMenu:g_menu_welcome;
 new QMenu:g_menu_chooseteam;
 new QMenu:g_menu_kreedz;
 new QMenu:g_menu_measure;
-new QMenu:g_menu_measure_normal;
-new QMenu:g_menu_measure_twopoint;
 
 new g_start_bDefault;
 new Float:g_start_vDefault[3];
@@ -204,6 +203,16 @@ new Float:g_player_psave_time[33];
 new g_player_psave_checkpoints[33];
 new g_player_psave_teleports[33];
 new g_player_psave_weapon[33];
+
+enum MeasureMode {
+	MeasureMode_Normal,
+	MeasureMode_TwoPoint
+};
+new MeasureMode:g_player_measure_mode[33];
+new bool:g_player_measure_pointA_set[33];
+new Float:g_player_measure_pointA[33][3];
+new bool:g_player_measure_pointB_set[33];
+new Float:g_player_measure_pointB[33][3];
 new Float:g_player_psave_origin[33][3];
 
 new Array:forward_TimerStart_pre;
@@ -216,6 +225,8 @@ new Array:forward_OnCheckpoint_pre;
 new Array:forward_OnCheckpoint_post;
 new Array:forward_OnTeleport_pre;
 new Array:forward_OnTeleport_post;
+
+new g_sprite_beam;
 
 new g_msg_Health;
 new g_msg_SayText;
@@ -518,6 +529,8 @@ public plugin_precache() {
 	
 	load_Spawns();
 	register_forward(FM_KeyValue, "fwd_KeyValue", 1);
+
+	g_sprite_beam = precache_model("sprites/zbeam1.spr");
 }
 
 public plugin_init() {
@@ -571,6 +584,14 @@ public plugin_init() {
 	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
 	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
 	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+
+	g_menu_measure = q_menu_create("Measure", "mh_measure");
+	q_menu_item_add(g_menu_measure, "Set Point A", _, _, _, "mf_measure");
+	q_menu_item_add(g_menu_measure, "Set Point B", _, _, false, "mf_measure");
+	q_menu_item_add(g_menu_measure, "Clear Points", _, _, false, "mf_measure");
+	q_menu_item_add(g_menu_measure, "Mode", _, _, _, "mf_measure");
+	q_menu_item_add(g_menu_measure, "", _, false, false, "mf_measure");
+	q_menu_item_add(g_menu_measure, "Distance", _, false, false, "mf_measure");
 	
 	g_rewards_name = ArrayCreate(32, 4);
 	g_rewards_plugin = ArrayCreate(1, 4);
@@ -2071,11 +2092,168 @@ public menu_KZRewards_callback(id, menu, item) {
 }
 
 m_measure(id) {
-	new title[32];
-	formatex(title, charsmax(title), "%L", id, STR_MEASUREMENU);
-	q_menu_set_title(g_menu_measure, title);
+	q_menu_display(id, QMenu:g_menu_measure);
+}
+
+public mh_measure(id, QMenu:menu, item) {
+	switch (item) {
+		case 0: {
+			if (!g_player_measure_pointA_set[id] || !g_player_measure_pointB_set[id]) {
+				set_task(0.1, "task_measure_beam", TASKID_MEASURE_BEAM + id);
+			}
+
+			if (g_player_measure_mode[id] == MeasureMode_Normal) {
+				g_player_measure_pointA_set[id] = true;
+				g_player_measure_pointB_set[id] = true;
+
+				fm_get_aim_origin(id, g_player_measure_pointA[id]);
+
+				new Float:normal[3];
+				get_tr2(0, TR_vecPlaneNormal, normal);
+
+				new Float:traceto[3];
+				traceto[0] = g_player_measure_pointA[id][0] + normal[0] * 9999.0;
+				traceto[1] = g_player_measure_pointA[id][1] + normal[1] * 9999.0;
+				traceto[2] = g_player_measure_pointA[id][2] + normal[2] * 9999.0;
+
+				engfunc(EngFunc_TraceLine, g_player_measure_pointA[id], traceto, IGNORE_MONSTERS, id, 0);
+				get_tr2(0, TR_vecEndPos, g_player_measure_pointB[id]);
+			} else if (g_player_measure_mode[id] == MeasureMode_TwoPoint) {
+				g_player_measure_pointA_set[id] = true;
+				fm_get_aim_origin(id, g_player_measure_pointA[id]);
+			}
+
+			q_menu_item_set_enabled(QMenu:g_menu_measure, 2, true);
+			m_measure(id);
+		}
+		case 1: {
+			if (!g_player_measure_pointA_set[id] || !g_player_measure_pointB_set[id]) {
+				set_task(0.1, "task_measure_beam", TASKID_MEASURE_BEAM + id);
+			}
+
+			g_player_measure_pointB_set[id] = true;
+			fm_get_aim_origin(id, g_player_measure_pointB[id]);
+
+			q_menu_item_set_enabled(QMenu:g_menu_measure, 2, true);
+
+			m_measure(id);
+		}
+		case 2: {
+			measure_clear(id);
+			m_measure(id);
+		}
+		case 3: {
+			if (g_player_measure_mode[id] == MeasureMode_Normal) {
+				g_player_measure_mode[id] = MeasureMode_TwoPoint;
+				q_menu_item_set_enabled(QMenu:g_menu_measure, 1, true);
+				q_menu_item_add(g_menu_measure, "Horizontal Distance", _, false, false, "mf_measure");
+				q_menu_item_add(g_menu_measure, "Height", _, false, false, "mf_measure");
+			} else {
+				g_player_measure_mode[id] = MeasureMode_Normal;
+				q_menu_item_set_enabled(QMenu:g_menu_measure, 1, false);
+				q_menu_item_remove(g_menu_measure, 4);
+				q_menu_item_remove(g_menu_measure, 5);
+			}
+			measure_clear(id);
+			m_measure(id);
+		}
+		case QMenuItem_Exit: {
+			measure_clear(id);
+		}
+	}
+}
+
+public mf_measure(id, menu, item, output[64]) {
+	switch (item) {
+		case 0: {
+			if (g_player_measure_pointA_set[id]) {
+				formatex(output, charsmax(output), "%L \y(%.2f, %.2f, %.2f)", id, "QKZ_MEASURE_POINT_A", g_player_measure_pointA[id][0], g_player_measure_pointA[id][1], g_player_measure_pointA[id][2]);
+			} else {
+				formatex(output, charsmax(output), "%L", id, "QKZ_MEASURE_SET_POINT_A");
+			}
+		}
+		case 1: {
+			if (g_player_measure_pointB_set[id]) {
+				formatex(output, charsmax(output), "%L \y(%.2f, %.2f, %.2f)", id, "QKZ_MEASURE_POINT_B", g_player_measure_pointB[id][0], g_player_measure_pointB[id][1], g_player_measure_pointB[id][2]);
+			} else {
+				formatex(output, charsmax(output), "%L", id, "QKZ_MEASURE_SET_POINT_B");
+			}
+		}
+		case 2: {
+			formatex(output, charsmax(output), "%L", id, "QKZ_MEASURE_CLEAR_POINTS");
+		}
+		case 3: {
+			formatex(output, charsmax(output), "%L: %L", id, "QKZ_MEASURE_MODE", id, (g_player_measure_mode[id] == MeasureMode_Normal ? "QKZ_MEASURE_NORMAL" : "QKZ_MEASURE_TWOPOINT"));
+		}
+		case 4: {
+			formatex(output, charsmax(output), "");
+		}
+		case 5: {
+			if (!g_player_measure_pointA_set[id] || !g_player_measure_pointB_set[id]) {
+				formatex(output, charsmax(output), "%L = \y%L", id, "QKZ_MEASURE_DISTANCE", id, "QKZ_MEASURE_POINTS_NOT_SET");
+				return;
+			}
+			new Float:distance = floatsqroot(
+				(g_player_measure_pointA[id][0] - g_player_measure_pointB[id][0]) * (g_player_measure_pointA[id][0] - g_player_measure_pointB[id][0]) +
+				(g_player_measure_pointA[id][1] - g_player_measure_pointB[id][1]) * (g_player_measure_pointA[id][1] - g_player_measure_pointB[id][1]) +
+				(g_player_measure_pointA[id][2] - g_player_measure_pointB[id][2]) * (g_player_measure_pointA[id][2] - g_player_measure_pointB[id][2])
+			);
+			formatex(output, charsmax(output), "%L = \y%.2f", id, "QKZ_MEASURE_DISTANCE", distance);
+		}
+		case 6: {
+			if (!g_player_measure_pointA_set[id] || !g_player_measure_pointB_set[id]) {
+				formatex(output, charsmax(output), "%L = \y%L", id, "QKZ_MEASURE_HORIZONTAL_DISTANCE", id, "QKZ_MEASURE_POINTS_NOT_SET");
+				return;
+			}
+			new Float:horizontal_distance = floatsqroot(
+				(g_player_measure_pointA[id][0] - g_player_measure_pointB[id][0]) * (g_player_measure_pointA[id][0] - g_player_measure_pointB[id][0]) +
+				(g_player_measure_pointA[id][1] - g_player_measure_pointB[id][1]) * (g_player_measure_pointA[id][1] - g_player_measure_pointB[id][1])
+			);
+			formatex(output, charsmax(output), "%L = \y%.2f", id, "QKZ_MEASURE_HORIZONTAL_DISTANCE", horizontal_distance);
+		}
+		case 7: {
+			if (!g_player_measure_pointA_set[id] || !g_player_measure_pointB_set[id]) {
+				formatex(output, charsmax(output), "%L = \y%L", id, "QKZ_MEASURE_HEIGHT", id, "QKZ_MEASURE_POINTS_NOT_SET");
+				return;
+			}
+			new Float:height = floatabs(g_player_measure_pointA[id][2] - g_player_measure_pointB[id][2]);
+			formatex(output, charsmax(output), "%L = \y%.2f", id, "QKZ_MEASURE_HEIGHT", height);
+		}
+	}
+}
+
+measure_clear(id) {
+	g_player_measure_pointA_set[id] = false;
+	g_player_measure_pointA[id][0] = 0.0;
+	g_player_measure_pointA[id][1] = 0.0;
+	g_player_measure_pointA[id][2] = 0.0;
+
+	g_player_measure_pointB_set[id] = false;
+	g_player_measure_pointB[id][0] = 0.0;
+	g_player_measure_pointB[id][1] = 0.0;
+	g_player_measure_pointB[id][2] = 0.0;
+
+	q_menu_item_set_enabled(QMenu:g_menu_measure, 2, false);
+	q_menu_item_set_enabled(QMenu:g_menu_measure, 2, false);
+}
+
+public task_measure_beam(id) {
+	id -= TASKID_MEASURE_BEAM;
+
+	if (!g_player_measure_pointA_set[id] || !g_player_measure_pointB_set[id]) {
+		return;
+	}
 	
-	q_menu_display(id, g_menu_measure);
+	message_te_beampoints(id, g_player_measure_pointA[id], g_player_measure_pointB[id], g_sprite_beam, 1, 5, 1, 20, 0, 255, 165, 0, 200, 20);
+	if (g_player_measure_pointA[id][2] != g_player_measure_pointB[id][2]) {
+		new Float:point[3];
+		point[0] = g_player_measure_pointA[id][0];
+		point[1] = g_player_measure_pointA[id][1];
+		point[2] = g_player_measure_pointB[id][2];
+		message_te_beampoints(id, g_player_measure_pointA[id], point, g_sprite_beam, 1, 5, 1, 20, 0, 255, 165, 0, 200, 20);
+		message_te_beampoints(id, g_player_measure_pointB[id], point, g_sprite_beam, 1, 5, 1, 20, 0, 255, 165, 0, 200, 20);
+	}
+	set_task(0.1, "task_measure_beam", TASKID_MEASURE_BEAM + id);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -2222,26 +2400,26 @@ stock message_te_teleport(id, Float:origin[3]) {
 
 stock message_te_beampoints(id, Float:start[3], Float:end[3], sprite, startFrameIdx, frameRate, life, width, noise, r, g, b, brightness, scrollSpeed)
 {
-	message_begin( MSG_ONE, SVC_TEMPENTITY, _, id );
-	write_byte( TE_BEAMPOINTS );
-	engfunc( EngFunc_WriteCoord, start[0] );
-	engfunc( EngFunc_WriteCoord, start[1] );
-	engfunc( EngFunc_WriteCoord, start[2] );
-	engfunc( EngFunc_WriteCoord, end[0] );
-	engfunc( EngFunc_WriteCoord, end[1] );
-	engfunc( EngFunc_WriteCoord, end[2] );
-	write_short( sprite );
-	write_byte( startFrameIdx );
-	write_byte( frameRate );
-	write_byte( life );
-	write_byte( width );
-	write_byte( noise );
-	write_byte( r );
-	write_byte( g );
-	write_byte( b );
-	write_byte( brightness );
-	write_byte( scrollSpeed );
-	message_end( );
+	message_begin(MSG_ONE, SVC_TEMPENTITY, _, id);
+	write_byte(TE_BEAMPOINTS);
+	engfunc(EngFunc_WriteCoord, start[0]);
+	engfunc(EngFunc_WriteCoord, start[1]);
+	engfunc(EngFunc_WriteCoord, start[2]);
+	engfunc(EngFunc_WriteCoord, end[0]);
+	engfunc(EngFunc_WriteCoord, end[1]);
+	engfunc(EngFunc_WriteCoord, end[2]);
+	write_short(sprite);
+	write_byte(startFrameIdx);
+	write_byte(frameRate);
+	write_byte(life);
+	write_byte(width);
+	write_byte(noise);
+	write_byte(r);
+	write_byte(g);
+	write_byte(b);
+	write_byte(brightness);
+	write_byte(scrollSpeed);
+	message_end();
 }
 
 stock message_TeamInfo(id, team_id) {
@@ -3217,4 +3395,28 @@ stock fm_find_ent_by_owner(index, const classname[], owner, jghgtype = 0) {
 	while ((ent = engfunc(EngFunc_FindEntityByString, ent, strtype, classname)) && pev(ent, pev_owner) != owner) {}
 
 	return ent;
+}
+
+stock fm_get_aim_origin(id, Float:origin[3]) {
+	new Float:start[3], Float:view_ofs[3];
+	
+	pev(id, pev_origin, start);
+	pev(id, pev_view_ofs, view_ofs);
+	start[0] += view_ofs[0];
+	start[1] += view_ofs[1];
+	start[2] += view_ofs[2];
+
+	new Float:dest[3];
+	
+	pev(id, pev_v_angle, dest);
+	engfunc(EngFunc_MakeVectors, dest);
+	global_get(glb_v_forward, dest);
+	dest[0] = dest[0] * 9999.0 + start[0];
+	dest[1] = dest[1] * 9999.0 + start[1];
+	dest[2] = dest[2] * 9999.0 + start[2];
+
+	engfunc(EngFunc_TraceLine, start, dest, IGNORE_MONSTERS, id, 0);
+	get_tr2(0, TR_vecEndPos, origin);
+
+	return 1;
 }
