@@ -105,7 +105,17 @@ stock const Float:g_jump_mindist[JumpType_TOTAL] =
 	230.0  // Ladder BJ
 };
 
-stock jump_level[JumpType_TOTAL][3] =
+enum JumpLevel
+{
+	JumpLevel_None,
+	JumpLevel_Impressive,
+	JumpLevel_Perfect,
+	JumpLevel_Godlike,
+
+	JumpLevel_TOTAL
+};
+
+stock jump_levels[JumpType_TOTAL][3] =
 {
 	{ 240, 245, 250 }, // LJ
 	{ 240, 245, 250 }, // HJ
@@ -118,4 +128,20 @@ stock jump_level[JumpType_TOTAL][3] =
 	{ 250, 255, 260 }, // Drop CJ
 	{ 250, 255, 260 }, // WJ
 	{ 250, 255, 260 }  // Ladder BJ
+};
+
+stock jump_level_message[JumpLevel_TOTAL][] =
+{
+	"",
+	"Q_JS_IMPRESSIVE",
+	"Q_JS_PERFECT",
+	"Q_JS_GODLIKE"
+};
+
+stock jump_level_sound[JumpLevel_TOTAL][] =
+{
+	"",
+	"misc/impressive",
+	"misc/perfect",
+	"misc/godlike"
 };

@@ -104,6 +104,7 @@ new jump_turning[33];
 new jump_strafing[33];
 
 new JumpType:jump_type[33];
+new JumpLevel:jump_level[33];
 new Float:jump_distance[33];
 new Float:jump_prestrafe[33];
 new Float:jump_maxspeed[33];
@@ -197,7 +198,7 @@ public plugin_init( )
 	mfwd_dd_fail = CreateMultiForward( "q_js_ddfail", ET_IGNORE, FP_CELL );
 	mfwd_dd_interrupt = CreateMultiForward( "q_js_ddinterrupt", ET_IGNORE, FP_CELL );
 	mfwd_jump_begin = CreateMultiForward( "q_js_jumpbegin", ET_IGNORE, FP_CELL );
-	mfwd_jump_end = CreateMultiForward( "q_js_jumpend", ET_IGNORE, FP_CELL );
+	mfwd_jump_end = CreateMultiForward( "q_js_jumpend", ET_IGNORE, FP_CELL, FP_CELL, FP_FLOAT, FP_FLOAT,  FP_FLOAT, FP_CELL, FP_CELL, FP_CELL );
 	mfwd_jump_fail = CreateMultiForward( "q_js_jumpfail", ET_IGNORE, FP_CELL );
 	mfwd_jump_illegal = CreateMultiForward( "q_js_jumpillegal", ET_IGNORE, FP_CELL );
 	mfwd_jump_interrupt = CreateMultiForward( "q_js_jumpinterrupt", ET_IGNORE, FP_CELL );
@@ -750,12 +751,25 @@ event_jump_end( id )
 	if( h1 == h2 )
 	{
 		jump_distance[id] = v2_distance( jump_start_origin[id], jump_end_origin[id] ) + 32.0;
+		jump_level[id] = JumpLevel_None;
+		if( jump_distance[id] >= jump_levels[jump_type[id]][2] )
+		{
+			jump_level[id] = JumpLevel_Godlike;
+		}
+		else if( jump_distance[id] >= jump_levels[jump_type[id]][1] )
+		{
+			jump_level[id] = JumpLevel_Perfect;
+		}
+		else if( jump_distance[id] >= jump_levels[jump_type[id]][0] )
+		{
+			jump_level[id] = JumpLevel_Impressive;
+		}
 		
 		display_stats( id );
 	}
 	
 	new ret;
-	ExecuteForward( mfwd_jump_end, ret, id );
+	ExecuteForward( mfwd_jump_end, ret, id, jump_level[id], jump_distance[id], jump_prestrafe[id], jump_maxspeed[id], jump_sync[id], jump_frames[id], jump_strafes[id] );
 	
 	reset_stats( id );
 }
@@ -1077,31 +1091,15 @@ display_stats( id, bool:failed = false )
 		{
 			if( player_show_stats[i] && player_show_stats_chat[i] )
 			{
-				if( jump_distance[id] >= jump_level[jump_type[id]][2] )
+				if ( jump_level[id] > JumpLevel_None )
 				{
-					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_GODLIKE" );
+					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, jump_level_message[jump_level[id]] );
 					if ( player_play_sounds[id] )
 					{
-						client_cmd(id, "spk misc/godlike");
+						client_cmd(id, "spk %s", jump_level_sound[jump_level[id]] );
 					}
 				}
-				else if( jump_distance[id] >= jump_level[jump_type[id]][1] )
-				{
-					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_PERFECT" );
-					if ( player_play_sounds[id] )
-					{
-						client_cmd(id, "spk misc/perfect");
-					}
-				}
-				else if( jump_distance[id] >= jump_level[jump_type[id]][0] )
-				{
-					formatex( jump_info_chat, charsmax(jump_info_chat), "%L", i, "Q_JS_IMPRESSIVE" );
-					if ( player_play_sounds[id] )
-					{
-						client_cmd(id, "spk misc/impressive");
-					}
-				}
-				
+
 				if( jump_info_chat[0] )
 				{
 					new name[32];
