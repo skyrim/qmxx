@@ -2183,7 +2183,7 @@ public mf_measure(id, menu, item, output[64]) {
 			formatex(output, charsmax(output), "%L", id, "QKZ_MEASURE_CLEAR_POINTS");
 		}
 		case 3: {
-			formatex(output, charsmax(output), "%L: %L", id, "QKZ_MEASURE_MODE", id, (g_player_measure_mode[id] == MeasureMode_Normal ? "QKZ_MEASURE_NORMAL" : "QKZ_MEASURE_TWOPOINT"));
+			formatex(output, charsmax(output), "%L: \y%L", id, "QKZ_MEASURE_MODE", id, (g_player_measure_mode[id] == MeasureMode_Normal ? "QKZ_MEASURE_NORMAL" : "QKZ_MEASURE_TWOPOINT"));
 		}
 		case 4: {
 			formatex(output, charsmax(output), "");
@@ -2197,7 +2197,7 @@ public mf_measure(id, menu, item, output[64]) {
 				(g_player_measure_pointA[id][0] - g_player_measure_pointB[id][0]) * (g_player_measure_pointA[id][0] - g_player_measure_pointB[id][0]) +
 				(g_player_measure_pointA[id][1] - g_player_measure_pointB[id][1]) * (g_player_measure_pointA[id][1] - g_player_measure_pointB[id][1]) +
 				(g_player_measure_pointA[id][2] - g_player_measure_pointB[id][2]) * (g_player_measure_pointA[id][2] - g_player_measure_pointB[id][2])
-			);
+			) + 2 * 0.03125;
 			formatex(output, charsmax(output), "%L = \y%.2f", id, "QKZ_MEASURE_DISTANCE", distance);
 		}
 		case 6: {
