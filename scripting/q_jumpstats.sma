@@ -108,6 +108,12 @@ new JumpLevel:jump_level[33];
 new Float:jump_distance[33];
 new Float:jump_prestrafe[33];
 new Float:jump_maxspeed[33];
+
+new bool:jump_block_distance_set[33];
+new jump_block_distance[33];
+new Float:jump_jumpoff_distance[33];
+new Float:jump_landing_distance[33];
+
 new jump_sync[33];
 new jump_frames[33];
 new jump_ground_frames[33];
@@ -137,13 +143,16 @@ new Float:ladderdrop_time[33];
 
 new Trie:illegal_touch_entity_classes;
 
-public plugin_natives( ) {
+public plugin_natives( )
+{
 	set_native_filter( "native_filter" );
 	set_module_filter( "module_filter" );
 }
 
-public module_filter( module[] ) {
-	if( equal( module, "q_cookies" ) ) {
+public module_filter( module[] )
+{
+	if( equal( module, "q_cookies" ) )
+	{
 		g_cookies_failed = true;
 		
 		return PLUGIN_HANDLED;
@@ -152,8 +161,10 @@ public module_filter( module[] ) {
 	return PLUGIN_CONTINUE;
 }
 
-public native_filter( name[], index, trap ) {
-	if( !trap ) {
+public native_filter( name[], index, trap )
+{
+	if( !trap )
+	{
 		return PLUGIN_HANDLED;
 	}
 	
@@ -218,14 +229,18 @@ public client_connect( id )
 
 public client_putinserver( id )
 {
-	if( !g_cookies_failed && !is_user_bot( id ) ) {
-		if ( !q_get_cookie_num( id, "show_speed", player_show_speed[id] ) ) {
+	if( !g_cookies_failed && !is_user_bot( id ) )
+	{
+		if ( !q_get_cookie_num( id, "show_speed", player_show_speed[id] ) )
+		{
 			player_show_speed[id] = true;
 		}
-		if ( !q_get_cookie_num( id, "show_prestrafe", player_show_prestrafe[id] ) ) {
+		if ( !q_get_cookie_num( id, "show_prestrafe", player_show_prestrafe[id] ) )
+		{
 			player_show_prestrafe[id] = true;
 		}
-		if ( !q_get_cookie_num( id, "js_sounds", player_play_sounds[id] ) ) {
+		if ( !q_get_cookie_num( id, "js_sounds", player_play_sounds[id] ) )
+		{
 			player_play_sounds[id] = true;
 		}
 	}
@@ -233,7 +248,8 @@ public client_putinserver( id )
 
 public client_disconnect( id )
 {
-	if( !g_cookies_failed && !is_user_bot( id ) ) {
+	if( !g_cookies_failed && !is_user_bot( id ) )
+	{
 		q_set_cookie_num( id, "show_speed", player_show_speed[id] );
 		q_set_cookie_num( id, "show_prestrafe", player_show_prestrafe[id] );
 		q_set_cookie_num( id, "js_sounds", player_play_sounds[id] );
@@ -282,41 +298,46 @@ public clcmd_jsmenu( id, level, cid )
 	return PLUGIN_HANDLED;
 }
 
-m_jsmenu(id) {
+m_jsmenu(id)
+{
 	new title[32];
 	formatex( title, charsmax(title), "%L", id, "Q_JS_MENU" );
 	q_menu_set_title( g_menu, title );
 	q_menu_display( id, g_menu );
 }
 
-public mf_jsmenu( id, QMenu:menu, item, output[64] ) {
-	switch( item ) {
-	case 0: { // show speed
-		formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_SHOW_SPEED", id, player_show_speed[id] ? "Q_ON" : "Q_OFF" );
-	}
-	case 1: { // show prestrafe
-		formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_SHOW_PRESTRAFE", id, player_show_prestrafe[id] ? "Q_ON" : "Q_OFF" );
-	}
-	case 2: { // jump sounds
-		formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_JUMP_SOUNDS", id, player_play_sounds[id] ? "Q_ON" : "Q_OFF" );
-	}
+public mf_jsmenu( id, QMenu:menu, item, output[64] )
+{
+	switch( item )
+	{
+		case 0: { // show speed
+			formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_SHOW_SPEED", id, player_show_speed[id] ? "Q_ON" : "Q_OFF" );
+		}
+		case 1: { // show prestrafe
+			formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_SHOW_PRESTRAFE", id, player_show_prestrafe[id] ? "Q_ON" : "Q_OFF" );
+		}
+		case 2: { // jump sounds
+			formatex( output, charsmax(output), "%L - \y%L", id, "Q_JS_JUMP_SOUNDS", id, player_play_sounds[id] ? "Q_ON" : "Q_OFF" );
+		}
 	}
 }
 
-public mh_jsmenu( id, QMenu:menu, item ) {
-	switch(item) {
-	case QMenuItem_Exit: {
-		return PLUGIN_HANDLED;
-	}
-	case 0: { // show speed
-		player_show_speed[id] = !player_show_speed[id];
-	}
-	case 1: { // show prestrafe
-		player_show_prestrafe[id] = !player_show_prestrafe[id];
-	}
-	case 2: { // jump sounds
-		player_play_sounds[id] = !player_play_sounds[id];
-	}
+public mh_jsmenu( id, QMenu:menu, item )
+{
+	switch(item)
+	{
+		case QMenuItem_Exit: {
+			return PLUGIN_HANDLED;
+		}
+		case 0: { // show speed
+			player_show_speed[id] = !player_show_speed[id];
+		}
+		case 1: { // show prestrafe
+			player_show_prestrafe[id] = !player_show_prestrafe[id];
+		}
+		case 2: { // jump sounds
+			player_play_sounds[id] = !player_play_sounds[id];
+		}
 	}
 	
 	m_jsmenu( id );
@@ -425,12 +446,12 @@ public forward_PlayerPreThink( id )
 		}
 	}
 	else if( maxspeed != 250.0
-	|| gravity != 1.0
-	|| ( pev( id, pev_waterlevel ) != 0 )
-	|| ( ( movetype[id] != MOVETYPE_WALK ) && ( movetype[id] != MOVETYPE_FLY ) )
-	|| ( v2_distance( origin[id], oldorigin[id] ) > 20.0 )
-	|| ( get_pcvar_num( sv_gravity ) != 800 )
-	|| ( get_pcvar_num( sv_airaccelerate ) != 10 )
+		|| gravity != 1.0
+		|| ( pev( id, pev_waterlevel ) != 0 )
+		|| ( ( movetype[id] != MOVETYPE_WALK ) && ( movetype[id] != MOVETYPE_FLY ) )
+		|| ( v2_distance( origin[id], oldorigin[id] ) > 20.0 )
+		|| ( get_pcvar_num( sv_gravity ) != 800 )
+		|| ( get_pcvar_num( sv_airaccelerate ) != 10 )
 	)
 	{
 		event_jump_illegal( id );
@@ -727,10 +748,17 @@ event_jump_failed( id )
 	
 	new Float:airtime = ( -oldvelocity[id][2] - floatsqroot( oldvelocity[id][2] * oldvelocity[id][2] - 2.0 * -800 * ( oldorigin[id][2] - jumpoff_height ) ) ) / -800;
 	
-	static Float:fail_distance[2];
+	static Float:fail_distance[3];
 	fail_distance[0] = floatabs( oldorigin[id][0] - jump_start_origin[id][0] ) + floatabs( velocity[id][0] * airtime );
 	fail_distance[1] = floatabs( oldorigin[id][1] - jump_start_origin[id][1] ) + floatabs( velocity[id][1] * airtime );
 	jump_distance[id] = v2_length( fail_distance ) + 32.0;
+
+	jump_end_ducking[id] = ducking[id];
+	jump_end_origin[id][0] = jump_fail_origin[id][0];
+	jump_end_origin[id][1] = jump_fail_origin[id][1];
+	jump_end_origin[id][2] = jumpoff_height;
+
+	set_block_distance( id, true);
 	
 	display_stats( id, true );
 	
@@ -765,6 +793,8 @@ event_jump_end( id )
 		{
 			jump_level[id] = JumpLevel_Impressive;
 		}
+
+		set_block_distance( id );
 		
 		display_stats( id );
 	}
@@ -1063,6 +1093,19 @@ display_stats( id, bool:failed = false )
 			);
 			len += formatex( strafes_info[len], charsmax(strafes_info) - len, "%s^n", strafes_info_console[i] );
 		}
+		if ( jump_block_distance_set[id] )
+		{
+			len += formatex( strafes_info[len], charsmax(strafes_info) - len, "^n%L: %d^n", id, "Q_JS_BLOCK", jump_block_distance[id] );
+			len += formatex( strafes_info[len], charsmax(strafes_info) - len, "%L: %.2f^n", id, "Q_JS_JUMPOFF", jump_jumpoff_distance[id] );
+			if ( !failed )
+			{
+				len += formatex( strafes_info[len], charsmax(strafes_info) - len, "%L: %.2f", id, "Q_JS_LANDING", jump_landing_distance[id] );
+			}
+		}
+	}
+	else
+	{
+		strafes_info = "";
 	}
 	
 	for( new i = 1, players = get_maxplayers( ); i <= players; ++i )
@@ -1070,20 +1113,36 @@ display_stats( id, bool:failed = false )
 		if( player_show_stats[i] && ( ( i == id ) || ( ( ( pev( i, pev_iuser1 ) == 2 ) || ( pev( i, pev_iuser1 ) == 4 ) ) && ( pev( i, pev_iuser2 ) == id ) ) ) )
 		{
 			if( failed )
+			{
 				set_hudmessage( 255, 0, 0, -1.0, 0.7, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_STATS );
+			}
 			else
+			{
 				set_hudmessage( 255, 128, 0, -1.0, 0.7, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_STATS );
+			}
 			show_hudmessage( i, "%s", jump_info );
 			
 			if( failed )
+			{
 				set_hudmessage( 255, 0, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_EXTRASTATS );
+			}
 			else
+			{
 				set_hudmessage( 255, 128, 0, 0.7, -1.0, 0, 0.0, 3.0, 0.0, 0.1, HUD_CHANNEL_EXTRASTATS );
+			}
 			show_hudmessage( i, "%s", strafes_info );
 			
 			console_print( i, "%s%%", jump_info_console );
 			for( new j = 1; j <= jump_strafes[id]; ++j )
+			{
 				console_print( i, "%s%%", strafes_info_console[j] );
+			}
+			if ( jump_block_distance_set[id] )
+			{
+				console_print( i, "  %L: %d", id, "Q_JS_BLOCK", jump_block_distance[id] );
+				console_print( i, "  %L: %.2f", id, "Q_JS_JUMPOFF", jump_jumpoff_distance[id] );
+				console_print( i, "  %L: %.2f", id, "Q_JS_LANDING", jump_landing_distance[id] );
+			}
 		}
 		
 		static jump_info_chat[192];
@@ -1123,6 +1182,16 @@ display_stats( id, bool:failed = false )
 					
 					new strafes[3];
 					num_to_str( jump_strafes[id], strafes, charsmax(strafes) );
+
+					new block[4] = "";
+					new jumpoff[7] = "";
+					new landing[7] = "";
+					if ( jump_block_distance_set[id] )
+					{
+						num_to_str( jump_block_distance[id], block, charsmax(block) );
+						float_to_str( jump_jumpoff_distance[id], jumpoff, charsmax(jumpoff) );
+						float_to_str( jump_landing_distance[id], landing, charsmax(landing) );
+					}
 					
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!name", name );
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!jump_type_name", jump_name[jump_type[id]] );
@@ -1133,6 +1202,9 @@ display_stats( id, bool:failed = false )
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!gain", gain );
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!sync", sync );
 					replace_all( jump_info_chat, charsmax(jump_info_chat), "!strf", strafes );
+					replace_all( jump_info_chat, charsmax(jump_info_chat), "!block", block );
+					replace_all( jump_info_chat, charsmax(jump_info_chat), "!jumpoff", jumpoff );
+					replace_all( jump_info_chat, charsmax(jump_info_chat), "!landing", landing );
 					
 					q_message_SayText( i, MSG_ONE, _, i, "%s", jump_info_chat );
 				}
@@ -1155,4 +1227,96 @@ Float:v2_distance( const Float:p1[], const Float:p2[] )
 	dy = p2[1] - p1[1];
 	
 	return floatsqroot( dx * dx + dy * dy );
+}
+
+set_block_distance( id, bool:failed = false )
+{
+	static Float:start[3];
+	static Float:end[3];
+	static Float:midpoint[3];
+
+	static Float:normal[3];
+	static Float:start_edge[3];
+	static Float:end_edge[3];
+
+	jump_block_distance_set[id] = false;
+
+	start[0] = jump_start_origin[id][0];
+	start[1] = jump_start_origin[id][1];
+	start[2] = jump_start_origin[id][2] - 36.0 - 1.0 + ( jump_start_ducking[id] ? 18.0 : 0.0 );
+
+	end[0] = jump_end_origin[id][0];
+	end[1] = jump_end_origin[id][1];
+	end[2] = jump_end_origin[id][2] - 36.0 - 1.0 + ( jump_end_ducking[id] ? 18.0 : 0.0 );
+
+	if ( start[2] != end[2] )
+	{
+		return;
+	}
+
+	midpoint[0] = ( start[0] + end[0] ) / 2.0;
+	midpoint[1] = ( start[1] + end[1] ) / 2.0;
+	midpoint[2] = start[2];
+
+	if( engfunc( EngFunc_PointContents, midpoint ) != CONTENTS_EMPTY )
+	{
+		return;
+	}
+
+	new iHull = ducking[id] ? HULL_HEAD : HULL_HUMAN;
+
+	engfunc( EngFunc_TraceHull, midpoint, start, IGNORE_MONSTERS, iHull, -1, 0 );
+	get_tr2( 0, TR_vecPlaneNormal, normal );
+
+	if( normal[ 2 ] != 0.0 )
+	{
+		return;
+	}
+
+	get_tr2( 0, TR_vecEndPos, start_edge );
+
+	if( floatabs( normal[ 0 ] ) == 1.0 && normal[ 1 ] == 0.0 )
+	{
+		jump_jumpoff_distance[id] = floatabs( start_edge[ 0 ] - start[ 0 ] ) - 0.03125;
+	}
+	else if( normal[ 0 ] == 0.0 && floatabs( normal[ 1 ] ) == 1.0 )
+	{
+		jump_jumpoff_distance[id] = floatabs( start_edge[ 1 ] - start[ 1 ] ) - 0.03125;
+	}
+	else
+	{
+		return;
+	}
+
+	if ( failed )
+	{
+		new Float:ex = end[0] - midpoint[0];
+		new Float:ey = end[1] - midpoint[1];
+		new Float:len = floatsqroot( ex * ex + ey * ey ) * 999.0;
+		end[0] = midpoint[0] + ex * len;
+		end[1] = midpoint[1] + ey * len;
+	}
+
+	engfunc( EngFunc_TraceHull, midpoint, end, IGNORE_MONSTERS, iHull, -1, 0 );
+	get_tr2( 0, TR_vecPlaneNormal, normal );
+
+	if( normal[ 2 ] != 0.0 )
+	{
+		return;
+	}
+
+	get_tr2( 0, TR_vecEndPos, end_edge );
+
+	if( floatabs( normal[ 0 ] ) == 1.0 && normal[ 1 ] == 0.0 )
+	{
+		jump_landing_distance[id] = failed ? 0.0 : floatabs( end_edge[ 0 ] - end[ 0 ] ) - 0.03125;
+		jump_block_distance[id] = floatround( floatabs( start_edge[ 0 ] - end_edge[ 0 ] ) + 32.0 );
+		jump_block_distance_set[id] = true;
+	}
+	else if( normal[ 0 ] == 0.0 && floatabs( normal[ 1 ] ) == 1.0 )
+	{
+		jump_landing_distance[id] = failed ? 0.0 : floatabs( end_edge[ 1 ] - end[ 1 ] ) - 0.03125;
+		jump_block_distance[id] = floatround( floatabs( start_edge[ 1 ] - end_edge[ 1 ] ) + 32.0 );
+		jump_block_distance_set[id] = true;
+	}
 }
