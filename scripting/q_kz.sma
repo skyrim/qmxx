@@ -75,6 +75,7 @@
 #define STR_RUNSTARTED "QKZ_RUN_STARTED"
 #define STR_RUNSTOPPED "QKZ_RUN_STOPPED"
 #define STR_WEAPONSPEED "QKZ_WEAPON_SPEED"
+#define STR_CPANGLES "QKZ_CPANGLES"
 #define STR_CMDDISABLED "QKZ_CMD_DISABLED"
 #define STR_NOTINRUN "QKZ_NOT_IN_RUN"
 #define STR_NOTALIVE "QKZ_NOT_ALIVE"
@@ -100,9 +101,10 @@
 #define STR_PAUSE "QKZ_PAUSE"
 #define STR_UNPAUSE "QKZ_UNPAUSE"
 #define STR_STOP "QKZ_STOP"
+#define STR_TOOLS "QKZ_TOOLS"
+#define STR_SETTINGS "QKZ_SETTINGS"
 #define STR_TIMERSAVED "QKZ_TIMERSAVED"
 #define STR_NOSAVEDTIMER "QKZ_NOSAVEDTIMER"
-#define STR_MEASUREMENU "QKZ_MEASUREMENU"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * Global Variables
@@ -155,6 +157,8 @@ new g_map_ent_EndButton[MAX_ENTS_BITVECTOR];
 new QMenu:g_menu_welcome;
 new QMenu:g_menu_chooseteam;
 new QMenu:g_menu_kreedz;
+new QMenu:g_menu_tools;
+new QMenu:g_menu_settings;
 new QMenu:g_menu_measure;
 
 new g_start_bDefault;
@@ -182,12 +186,12 @@ new g_player_VIP[MAX_PLAYERS + 1];
 new g_player_Welcome[MAX_PLAYERS + 1];
 new g_player_stripping[MAX_PLAYERS + 1];
 new g_player_Name[MAX_PLAYERS + 1][32];
-new g_player_MaxSpeed[MAX_PLAYERS + 1];
 new g_player_God[MAX_PLAYERS + 1];
 new g_player_Noclip[MAX_PLAYERS + 1];
 new g_player_CPcounter[MAX_PLAYERS + 1];
 new g_player_TPcounter[MAX_PLAYERS + 1];
-new g_player_setting_CPangles[MAX_PLAYERS + 1];
+new g_player_setting_cpAngles[MAX_PLAYERS + 1];
+new g_player_setting_showMaxSpeed[MAX_PLAYERS + 1];
 new Float:g_player_CPorigin[MAX_PLAYERS + 1][2][3];
 new Float:g_player_CPangles[MAX_PLAYERS + 1][2][3];
 new g_player_ClipAmmo[MAX_PLAYERS + 1];
@@ -578,12 +582,21 @@ public plugin_init() {
 	q_menu_item_set_enabled(g_menu_chooseteam, QMenuItem_Exit, false);
 	
 	g_menu_kreedz = q_menu_create("Kreedz", "mh_kreedz");
-	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
-	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
-	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
-	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
-	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
-	q_menu_item_add(g_menu_kreedz, "", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Checkpoint", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Teleport", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Stuck", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Start", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Pause", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Stop", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Tools", _, _, _, "mf_kreedz");
+	q_menu_item_add(g_menu_kreedz, "Settings", _, _, _, "mf_kreedz");
+
+	g_menu_tools = q_menu_create("Kreedz Tools", "mh_tools");
+	q_menu_item_add(g_menu_tools, "Measure", _, _, _, "mf_tools");
+	
+	g_menu_settings = q_menu_create("Settings", "mh_settings");
+	q_menu_item_add(g_menu_settings, "CP Angles", _, _, _, "mf_settings");
+	q_menu_item_add(g_menu_settings, "Show Weapon Speed", _, _, _, "mf_settings");
 
 	g_menu_measure = q_menu_create("Measure", "mh_measure");
 	q_menu_item_add(g_menu_measure, "Set Point A", _, _, _, "mf_measure");
@@ -621,14 +634,16 @@ public plugin_init() {
 	q_registerClcmd("q_kz_unsetstart", "clcmd_UnsetStart", _, "Remove cutsom start position.");
 	q_registerClcmd("q_kz_pause", "clcmd_Pause", _, "Pause timer.");
 	q_registerClcmd("q_kz_stop", "clcmd_Stop", _, "Stop timer.");
-	q_registerClcmd("q_kz_save", "clcmd_save", _, "Save timer.");
-	q_registerClcmd("q_kz_restore", "clcmd_restore", _, "Restore saved timer.");
+	q_registerClcmd("q_kz_save", "clcmd_Save", _, "Save timer.");
+	q_registerClcmd("q_kz_restore", "clcmd_Restore", _, "Restore saved timer.");
 	q_registerClcmd("q_kz_spec", "clcmd_Spectate", _, "Toggle spectate mode.");
-	q_registerClcmd("q_kz_cpangles", "clcmd_cpangles", _, "Toggle saving player checkpoint orientation.");
-	q_registerClcmd("q_kz_menu", "clcmd_kzmenu", _, "Open KZ menu.");
+	q_registerClcmd("q_kz_cpangles", "clcmd_CPAngles", _, "Toggle saving player checkpoint orientation.");
 	q_registerClcmd("q_kz_maxspeed", "clcmd_MaxSpeed", _, "Toggle weapon speed notification.");
 	q_registerClcmd("q_kz_godmode", "clcmd_GodMode", _, "Toggle player god mode.");
 	q_registerClcmd("q_kz_noclip", "clcmd_Noclip", _, "Toggle player noclip mode.");
+	q_registerClcmd("q_kz_menu", "clcmd_KZMenu", _, "Open KZ menu.");
+	q_registerClcmd("q_kz_tools", "clcmd_Tools", _, "Open KZ tools menu.");
+	q_registerClcmd("q_kz_settings", "clcmd_Settings", _, "Open KZ settings menu.");
 	q_registerClcmd("q_kz_measure", "clcmd_Measure", _, "Measure distance between two points.");
 	
 	register_clcmd("say /clear_start", "clcmd_ClearStart", ADMIN_ADMIN);
@@ -779,24 +794,28 @@ public plugin_end() {
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 public client_putinserver(id) {
-	g_player_ingame[id]		= false;
 	get_user_name(id, g_player_Name[id], charsmax(g_player_Name[][]));
-	g_player_Connected[id] 		= true;
-	g_player_Alive[id]		= false;
-	g_player_Welcome[id] 		= false;
-	g_player_MaxSpeed[id]		= true;
-	g_player_God[id]		= false;
-	g_player_Noclip[id]		= false;
-	g_player_CPcounter[id]		= 0;
-	g_player_TPcounter[id]		= 0;
-	g_player_SpecID[id]		= 0;
-	g_player_run_Running[id]	= false;
-	g_player_run_Paused[id]		= false;
-	g_player_run_WeaponID[id]	= 0;
+	g_player_ingame[id]               = false;
+	g_player_Connected[id]            = true;
+	g_player_Alive[id]                = false;
+	g_player_Welcome[id]              = false;
+	g_player_God[id]                  = false;
+	g_player_Noclip[id]               = false;
+	g_player_CPcounter[id]            = 0;
+	g_player_TPcounter[id]            = 0;
+	g_player_SpecID[id]               = 0;
+	g_player_run_Running[id]          = false;
+	g_player_run_Paused[id]           = false;
+	g_player_run_WeaponID[id]         = 0;
+	g_player_setting_cpAngles[id]     = false;
+	g_player_setting_showMaxSpeed[id] = true;
 	
 	if (!g_cookies_failed && !is_user_bot(id)) {
-		if (!q_get_cookie_num(id, "save_cp_angles", g_player_setting_CPangles[id])) {
-			g_player_setting_CPangles[id] = get_pcvar_num(cvar_CheckpointAngles);
+		if (!q_get_cookie_num(id, "save_cp_angles", g_player_setting_cpAngles[id])) {
+			g_player_setting_cpAngles[id] = get_pcvar_num(cvar_CheckpointAngles);
+		}
+		if (!q_get_cookie_num(id, "show_weapon_speed", g_player_setting_showMaxSpeed[id])) {
+			g_player_setting_showMaxSpeed[id] = 0;
 		}
 	}
 	
@@ -823,24 +842,26 @@ public client_infochanged(id) {
 }
 
 public client_disconnect(id) {
-	g_player_ingame[id] = false;
-	g_player_Name[id][0] = 0;
-	g_player_VIP[id] = false;
-	g_player_Connected[id] = true;
-	g_player_Alive[id] = false;
-	g_player_Welcome[id] = false;
-	g_player_MaxSpeed[id] = true;
-	g_player_God[id] = false;
-	g_player_Noclip[id] = false;
-	g_player_CPcounter[id] = 0;
-	g_player_TPcounter[id] = 0;
-	g_player_SpecID[id] = 0;
-	g_player_run_Running[id] = false;
-	g_player_run_Paused[id] = false;
-	g_player_run_WeaponID[id] = 0;
-	
+	g_player_ingame[id]               = false;
+	g_player_Name[id][0]              = 0;
+	g_player_VIP[id]                  = false;
+	g_player_Connected[id]            = true;
+	g_player_Alive[id]                = false;
+	g_player_Welcome[id]              = false;
+	g_player_God[id]                  = false;
+	g_player_Noclip[id]               = false;
+	g_player_CPcounter[id]            = 0;
+	g_player_TPcounter[id]            = 0;
+	g_player_SpecID[id]               = 0;
+	g_player_run_Running[id]          = false;
+	g_player_run_Paused[id]           = false;
+	g_player_run_WeaponID[id]         = 0;
+	g_player_setting_cpAngles[id]     = false;
+	g_player_setting_showMaxSpeed[id] = true;
+
 	if (!g_cookies_failed && !is_user_bot(id)) {
-		q_set_cookie_num(id, "save_cp_angles", g_player_setting_CPangles[id]);
+		q_set_cookie_num(id, "save_cp_angles", g_player_setting_cpAngles[id]);
+		q_set_cookie_num(id, "show_weapon_speed", g_player_setting_showMaxSpeed[id]);
 	}
 	
 	psave_onPlayerLeave(id);
@@ -1197,7 +1218,7 @@ public event_CurWeapon(id) {
 		g_player_ClipAmmo[id] = read_data(3);
 	}
 	
-	if (get_pcvar_num(cvar_WeaponsSpeed) && g_player_MaxSpeed[id] && (iCurWeapon != iLastWeapon)) {
+	if (get_pcvar_num(cvar_WeaponsSpeed) && g_player_setting_showMaxSpeed[id] && (iCurWeapon != iLastWeapon)) {
 		iLastWeapon = iCurWeapon;
 		
 		pev(id, pev_maxspeed, speed);
@@ -1444,7 +1465,7 @@ public clcmd_Teleport(id) {
 	set_pev(id, pev_flags, pev(id, pev_flags) | FL_DUCKING);
 	set_pev(id, pev_origin, g_player_CPorigin[id][0]);
 	
-	if (g_player_setting_CPangles[id]) {
+	if (g_player_setting_cpAngles[id]) {
 		set_pev(id, pev_angles, g_player_CPangles[id][0]);
 		set_pev(id, pev_fixangle, 1);
 	}
@@ -1490,7 +1511,7 @@ public clcmd_Stuck(id) {
 	set_pev(id, pev_flags, pev(id, pev_flags) | FL_DUCKING);
 	set_pev(id, pev_origin, g_player_CPorigin[id][1]);
 	
-	if (g_player_setting_CPangles[id]) {
+	if (g_player_setting_cpAngles[id]) {
 		set_pev(id, pev_angles, g_player_CPangles[id][1]);
 		set_pev(id, pev_fixangle, 1);
 	}
@@ -1711,7 +1732,7 @@ public clcmd_Spectate(id) {
 
 		set_pev(id, pev_origin, vOrigin[id]);
 		set_pev(id, pev_velocity, vVelocity[id]);
-		if (g_player_setting_CPangles[id]) {
+		if (g_player_setting_cpAngles[id]) {
 			set_pev(id, pev_angles, vAngle[id]);
 			set_pev(id, pev_fixangle, 1);
 		}
@@ -1739,14 +1760,14 @@ public clcmd_Spectate(id) {
 }
 
 public clcmd_MaxSpeed(id) {
-	g_player_MaxSpeed[id] = !g_player_MaxSpeed[id];
+	g_player_setting_showMaxSpeed[id] = !g_player_setting_showMaxSpeed[id];
 	
-	q_kz_print(id, "%L: %L", id, STR_WEAPONSPEED, id, (g_player_MaxSpeed[id] ? STR_ON : STR_OFF));
+	q_kz_print(id, "%L: %L", id, STR_WEAPONSPEED, id, (g_player_setting_showMaxSpeed[id] ? STR_ON : STR_OFF));
 	
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_kzmenu(id) {
+public clcmd_KZMenu(id) {
 	if (!g_player_Alive[id]) {
 		q_kz_print(id, "%L", id, STR_NOTALIVE);
 		
@@ -1820,7 +1841,7 @@ public clcmd_Drop(id) {
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_save(id, level, cid) {
+public clcmd_Save(id, level, cid) {
 	if (!get_pcvar_num(g_cvar_command_save)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		return PLUGIN_HANDLED;
@@ -1848,7 +1869,7 @@ public clcmd_save(id, level, cid) {
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_restore(id, level, cid) {
+public clcmd_Restore(id, level, cid) {
 	if (!get_pcvar_num(g_cvar_command_save)) {
 		q_kz_print(id, "%L", id, STR_CMDDISABLED);
 		return PLUGIN_HANDLED;
@@ -1874,8 +1895,12 @@ public clcmd_restore(id, level, cid) {
 	return PLUGIN_HANDLED;
 }
 
-public clcmd_cpangles(id, level, cid) {
-	g_player_setting_CPangles[id] = !g_player_setting_CPangles[id];
+public clcmd_CPAngles(id, level, cid) {
+	g_player_setting_cpAngles[id] = !g_player_setting_cpAngles[id];
+
+	q_kz_print(id, "%L: %L", id, STR_CPANGLES, id, (g_player_setting_cpAngles[id] ? STR_ON : STR_OFF));
+
+	return PLUGIN_HANDLED;
 }
 
 public clcmd_ClearStart(id, level, cid) {
@@ -1896,6 +1921,18 @@ public clcmd_Measure(id, level, cid) {
 	}
 
 	m_measure(id);
+
+	return PLUGIN_HANDLED;
+}
+
+public clcmd_Tools(id) {
+	m_tools(id);
+
+	return PLUGIN_HANDLED;
+}
+
+public clcmd_Settings(id) {
+	m_settings(id);
 
 	return PLUGIN_HANDLED;
 }
@@ -1976,55 +2013,72 @@ m_kreedz(id) {
 
 public mf_kreedz(id, menu, item, output[64]) {
 	switch(item) {
-	case 0: { // checkpoint
-		formatex(output, charsmax(output), "%L - \y%d", id, STR_CHECKPOINT, g_player_CPcounter[id]);
-	}
-	case 1: { // teleport
-		formatex(output, charsmax(output), "%L - \y%d", id, STR_TELEPORT, g_player_TPcounter[id]);
-		q_menu_item_set_enabled(g_menu_kreedz, 1, g_player_CPcounter[id] > 0 ? true : false);
-	}
-	case 2: { // unstuck
-		formatex(output, charsmax(output), "%L", id, STR_UNSTUCK);
-		q_menu_item_set_enabled(g_menu_kreedz, 2, g_player_CPcounter[id] > 1 ? true : false);
-	}
-	case 3: { // start
-		// TODO: enable if exists/found
-		formatex(output, charsmax(output), "%L", id, STR_START);
-	}
-	case 4: { // pause
-		formatex(output, charsmax(output), "%L", id, (g_player_run_Paused[id] ? STR_UNPAUSE : STR_PAUSE));
-		q_menu_item_set_enabled(g_menu_kreedz, 4, g_player_run_Running[id] ? true : false);
-	}
-	case 5: { // stop
-		formatex(output, charsmax(output), "%L", id, STR_STOP);
-		q_menu_item_set_enabled(g_menu_kreedz, 5, g_player_run_Running[id] ? true : false);
-	}
+		case 0: { // checkpoint
+			formatex(output, charsmax(output), "%L - \y%d", id, STR_CHECKPOINT, g_player_CPcounter[id]);
+		}
+		case 1: { // teleport
+			formatex(output, charsmax(output), "%L - \y%d", id, STR_TELEPORT, g_player_TPcounter[id]);
+			q_menu_item_set_enabled(g_menu_kreedz, 1, g_player_CPcounter[id] > 0 ? true : false);
+		}
+		case 2: { // unstuck
+			formatex(output, charsmax(output), "%L", id, STR_UNSTUCK);
+			q_menu_item_set_enabled(g_menu_kreedz, 2, g_player_CPcounter[id] > 1 ? true : false);
+		}
+		case 3: { // start
+			// TODO: enable if exists/found
+			formatex(output, charsmax(output), "%L", id, STR_START);
+		}
+		case 4: { // pause
+			formatex(output, charsmax(output), "%L", id, (g_player_run_Paused[id] ? STR_UNPAUSE : STR_PAUSE));
+			q_menu_item_set_enabled(g_menu_kreedz, 4, g_player_run_Running[id] ? true : false);
+		}
+		case 5: { // stop
+			formatex(output, charsmax(output), "%L", id, STR_STOP);
+			q_menu_item_set_enabled(g_menu_kreedz, 5, g_player_run_Running[id] ? true : false);
+		}
+		case 6: { // tools
+			formatex(output, charsmax(output), "%L", id, STR_TOOLS);
+			//
+		}
+		case 7: { // settings
+			formatex(output, charsmax(output), "%L", id, STR_SETTINGS);
+		}
 	}
 }
 
 public mh_kreedz(id, menu, item) {
 	switch(item) {
-	case QMenuItem_Exit, QMenuItem_Back, QMenuItem_Next: {
-		return PLUGIN_HANDLED;
-	}
-	case 0: {
-		clcmd_Checkpoint(id);
-	}
-	case 1: {
-		clcmd_Teleport(id);
-	}
-	case 2: {
-		clcmd_Stuck(id);
-	}
-	case 3: {
-		clcmd_Start(id);
-	}
-	case 4: {
-		clcmd_Pause(id);
-	}
-	case 5: {
-		clcmd_Stop(id);
-	}
+		case QMenuItem_Exit, QMenuItem_Back, QMenuItem_Next: {
+			return PLUGIN_HANDLED;
+		}
+		case 0: {
+			clcmd_Checkpoint(id);
+		}
+		case 1: {
+			clcmd_Teleport(id);
+		}
+		case 2: {
+			clcmd_Stuck(id);
+		}
+		case 3: {
+			clcmd_Start(id);
+		}
+		case 4: {
+			clcmd_Pause(id);
+		}
+		case 5: {
+			clcmd_Stop(id);
+		}
+		case 6: {
+			clcmd_Tools(id);
+
+			return PLUGIN_HANDLED;
+		}
+		case 7: {
+			clcmd_Settings(id);
+
+			return PLUGIN_HANDLED;
+		}
 	}
 	
 	m_kreedz(id);
@@ -2089,6 +2143,64 @@ public menu_KZRewards_callback(id, menu, item) {
 	}
 	
 	return ITEM_IGNORE;
+}
+
+m_tools(id) {
+	q_menu_display(id, QMenu:g_menu_tools);
+}
+
+public mh_tools(id, QMenu:menu, item) {
+	switch (item) {
+		case QMenuItem_Exit: {
+			return PLUGIN_HANDLED;
+		}
+		case 0: {
+			m_measure(id);
+		}
+	}
+
+	return PLUGIN_HANDLED;
+}
+
+public mf_tools(id, menu, item, output[64]) {
+	switch (item) {
+		case 0: {
+			formatex(output, charsmax(output), "%L", id, "QKZ_MEASURE");
+		}
+	}
+}
+
+m_settings(id) {
+	q_menu_display(id, QMenu:g_menu_settings);
+}
+
+public mh_settings(id, QMenu:menu, item) {
+	switch (item) {
+		case QMenuItem_Exit: {
+			return PLUGIN_HANDLED;
+		}
+		case 0: {
+			g_player_setting_cpAngles[id] = !g_player_setting_cpAngles[id];
+		}
+		case 1: {
+			g_player_setting_showMaxSpeed[id] = !g_player_setting_showMaxSpeed[id];
+		}
+	}
+	
+	m_settings(id);
+
+	return PLUGIN_HANDLED;
+}
+
+public mf_settings(id, menu, item, output[64]) {
+	switch (item) {
+		case 0: {
+			formatex(output, charsmax(output), "%L: \y%L", id, STR_CPANGLES, id, (g_player_setting_cpAngles[id] ? STR_ON : STR_OFF));
+		}
+		case 1: {
+			formatex(output, charsmax(output), "%L: \y%L", id, STR_WEAPONSPEED, id, (g_player_setting_showMaxSpeed[id] ? STR_ON : STR_OFF));
+		}
+	}
 }
 
 m_measure(id) {
