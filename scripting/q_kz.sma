@@ -1004,49 +1004,53 @@ public fwd_Use_button(ent, id) {
 }
 
 public fwd_KeyValue(ent, kvd_handle) {
-	if (pev_valid(ent)) {
-		static szClassName[32];
-		static szKey[8];
-		static szVal[20];
+	if (!pev_valid(ent)) {
+		return FMRES_IGNORED;
+	}
+
+	static szClassName[32];
+	static szKey[8];
+	static szVal[20];
+
+	get_kvd(kvd_handle, KV_ClassName, szClassName, 31);
+	get_kvd(kvd_handle, KV_KeyName, szKey, 7);
+	get_kvd(kvd_handle, KV_Value, szVal, 19);
+
+	static Float:vecOrigin[3];
+	static Float:vecAngle[3];
+	static x[6];
+	static y[6];
+	static z[6];
+
+	if (!equal(szClassName, "info_player_start")) {
+		return FMRES_IGNORED;
+	}
+
+	if (equal(szKey, "origin")) {
+		parse(szVal, x, 5, y, 5, z, 5);
+		vecOrigin[0] = str_to_float(x);
+		vecOrigin[1] = str_to_float(y);
+		vecOrigin[2] = str_to_float(z);
+	}
+	else {
+		parse(szVal, x, 5, y, 5, z, 5);
+		vecAngle[0] = str_to_float(x);
+		vecAngle[1] = str_to_float(y);
+		vecAngle[2] = Float:0.0;
 		
-		get_kvd(kvd_handle, KV_ClassName, szClassName, 31);
-		get_kvd(kvd_handle, KV_KeyName, szKey, 7);
-		get_kvd(kvd_handle, KV_Value, szVal, 19);
-		
-		static Float:vecOrigin[3];
-		static Float:vecAngle[3];
-		static x[6];
-		static y[6];
-		static z[6];
-		
-		if (equal(szClassName, "info_player_start")) {
-			if (equal(szKey, "origin")) {
-				parse(szVal, x, 5, y, 5, z, 5);
-				vecOrigin[0] = str_to_float(x);
-				vecOrigin[1] = str_to_float(y);
-				vecOrigin[2] = str_to_float(z);
-			}
-			else {
-				parse(szVal, x, 5, y, 5, z, 5);
-				vecAngle[0] = str_to_float(x);
-				vecAngle[1] = str_to_float(y);
-				vecAngle[2] = str_to_float(z);
-				
-				if (g_map_SpawnsNeeded > 0) {
-					for (new i = 0; i < g_map_SpawnsNeeded; ++i) {
-						new spawn = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_player_start"));
-						set_pev(spawn, pev_origin, vecOrigin);
-						set_pev(spawn, pev_angles, vecAngle);
-						--g_map_SpawnsNeeded;
-					}
-				}
-				else {
-					++g_map_SpawnCount;
-				}
+		if (g_map_SpawnsNeeded > 0) {
+			for (new i = 0; i < g_map_SpawnsNeeded; ++i) {
+				new spawn = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_player_start"));
+				set_pev(spawn, pev_origin, vecOrigin);
+				set_pev(spawn, pev_angles, vecAngle);
+				--g_map_SpawnsNeeded;
 			}
 		}
+		else {
+			++g_map_SpawnCount;
+		}
 	}
-	
+
 	return FMRES_IGNORED;
 }
 
