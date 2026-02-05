@@ -239,6 +239,7 @@ new g_msg_TeamInfo;
 new g_msg_AmmoPickup;
 new g_msg_WeapPickup;
 new g_msg_HideWeapon;
+new g_msg_ShowTimer;
 new g_msg_RoundTime;
 new g_msg_StatusIcon;
 new g_msg_Crosshair;
@@ -684,6 +685,7 @@ public plugin_init() {
 	g_msg_AmmoPickup = get_user_msgid("AmmoPickup");
 	g_msg_WeapPickup = get_user_msgid("WeapPickup");
 	g_msg_HideWeapon = get_user_msgid("HideWeapon");
+	g_msg_ShowTimer = get_user_msgid("ShowTimer");
 	g_msg_RoundTime = get_user_msgid("RoundTime");
 	g_msg_StatusIcon = get_user_msgid("StatusIcon");
 	g_msg_Crosshair = get_user_msgid("Crosshair");
@@ -1157,6 +1159,7 @@ public event_RunStart(id) {
 	
 	message_RoundTime(id, 0);
 	message_HideWeapon(id, HIDEW_MONEY);
+	message_ShowTimer(id);
 	message_Crosshair(id, false);
 	
 	q_kz_print(id, "%L", id, STR_RUNSTARTED);
@@ -2482,6 +2485,11 @@ stock message_HideWeapon(id, flag) {
 stock message_Crosshair(id, flag) {
 	message_begin(MSG_ONE, g_msg_Crosshair, _, id);
 	write_byte(flag);
+	message_end();
+}
+
+stock message_ShowTimer(id) {
+	message_begin(MSG_ONE, g_msg_ShowTimer, _, id);
 	message_end();
 }
 
